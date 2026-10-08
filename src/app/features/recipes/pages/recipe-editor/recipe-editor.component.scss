@@ -1,0 +1,56 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+.editor-page {
+  max-width: 1040px;
+}
+.form-section {
+  padding: 28px 0;
+  border-top: 1px solid #e1e6df;
+}
+.form-section > h2 {
+  margin-bottom: 24px;
+}
+.recipe-form mat-form-field {
+  display: block;
+  width: 100%;
+}
+.basics-grid {
+  display: grid;
+  gap: 16px;
+}
+.basics-bottom {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 16px;
+}
+.save-bar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 0 max(18px, env(safe-area-inset-bottom));
+  border-top: 1px solid #dbe4d9;
+  background: #fafbf9f5;
+  z-index: 5;
+}
+.save-bar button {
+  min-width: 156px;
+}
+@media (min-width: 850px) {
+  .basics-grid {
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: 32px;
+  }
+}
+@media (max-width: 420px) {
+  .save-bar > span {
+    display: none;
+  }
+  .save-bar > button {
+    width: 100%;
+  }
+}

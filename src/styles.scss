@@ -1,0 +1,241 @@
+@use '@angular/material' as mat;
+
+html {
+  color-scheme: light;
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$green-palette,
+        tertiary: mat.$orange-palette,
+      ),
+      typography: 'system-ui',
+      density: 0,
+    )
+  );
+  @include mat.theme-overrides(
+    (
+      primary: #175c46,
+      on-primary: #ffffff,
+      primary-container: #dcefe6,
+      on-primary-container: #103d2d,
+      surface: #ffffff,
+      on-surface: #202923,
+      surface-container: #f3f6f4,
+      outline: #78847c,
+      outline-variant: #d8dfda,
+    )
+  );
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: #fafbf9;
+  color: #202923;
+  font:
+    400 1rem/1.6 system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+}
+button,
+input,
+textarea {
+  font: inherit;
+}
+button,
+a,
+input,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+a {
+  color: #175c46;
+}
+button,
+a {
+  touch-action: manipulation;
+}
+:focus-visible {
+  outline: 3px solid #c07928;
+  outline-offset: 4px;
+}
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+h1 {
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: 650;
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
+}
+h2 {
+  font-size: 1.35rem;
+  line-height: 1.3;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+img {
+  max-width: 100%;
+  display: block;
+}
+.muted {
+  color: #657068;
+}
+.small {
+  font-size: 0.875rem;
+}
+.full-width {
+  width: 100%;
+}
+.eyebrow {
+  color: #46735f;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  margin-bottom: 12px;
+}
+.page {
+  max-width: 1120px;
+  margin: auto;
+  padding: 32px 20px 64px;
+}
+.page-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+.page-heading .muted {
+  margin-top: 12px;
+}
+.large-mark {
+  width: 68px;
+  height: 68px;
+  border-radius: 18px;
+  background: #e9f1eb;
+  color: #175c46;
+  display: grid;
+  place-items: center;
+  margin-bottom: 24px;
+}
+.large-mark app-icon {
+  width: 32px;
+  height: 32px;
+}
+.mat-mdc-button-base {
+  min-height: 44px;
+}
+.mat-mdc-unelevated-button,
+.mat-mdc-outlined-button {
+  border-radius: 10px !important;
+}
+.mat-mdc-button-base app-icon {
+  margin-right: 8px;
+  width: 20px;
+  height: 20px;
+}
+.mat-mdc-icon-button app-icon {
+  margin-right: 0;
+  width: 24px;
+  height: 24px;
+}
+.mat-mdc-button-base mat-spinner {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+.mat-mdc-form-field {
+  min-width: 0;
+}
+.mat-mdc-form-field textarea {
+  resize: vertical;
+}
+.mat-mdc-dialog-content {
+  line-height: 1.7;
+}
+.empty-state {
+  padding: 64px 20px;
+  text-align: center;
+  background: #fff;
+  border: 1px dashed #ccd9cf;
+  border-radius: 16px;
+}
+.empty-state .large-mark {
+  margin: 0 auto 24px;
+}
+.empty-state > app-icon {
+  margin-bottom: 16px;
+}
+.empty-state h2 {
+  margin-bottom: 12px;
+}
+.empty-state p {
+  color: #657068;
+  max-width: 430px;
+  margin: 0 auto 24px;
+}
+.error-box {
+  padding: 14px 16px;
+  background: #fff1ee;
+  color: #8b2b22;
+  border: 1px solid #f0ccc7;
+  border-radius: 10px;
+  line-height: 1.55;
+  margin: 12px 0;
+  overflow-wrap: anywhere;
+}
+.loading-state {
+  display: flex;
+  justify-content: center;
+  padding: 64px;
+}
+.back-link {
+  margin: 0 0 28px -12px;
+}
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.step-number {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  background: #e4ede5;
+  color: #27563e;
+  font-weight: 650;
+  border-radius: 50%;
+  font-size: 0.9rem;
+}
+@media (min-width: 600px) {
+  .page {
+    padding-top: 44px;
+  }
+}
+@media (max-width: 420px) {
+  .page {
+    padding-inline: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}

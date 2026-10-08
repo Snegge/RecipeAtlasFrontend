@@ -1,0 +1,29 @@
+# Copy this file to compose.yaml in your EXISTING repository root to deploy both parts.
+# Use the same repository directory / Compose project name to preserve existing volumes.
+services:
+  api:
+    build: .
+    restart: unless-stopped
+    environment:
+      Owner__PasswordHash: ${RECIPE_ATLAS_PASSWORD_HASH:?Set RECIPE_ATLAS_PASSWORD_HASH in .env}
+    volumes:
+      - recipe_data:/app/data
+
+  caddy:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      RECIPE_ATLAS_DOMAIN: ${RECIPE_ATLAS_DOMAIN:?Set RECIPE_ATLAS_DOMAIN in .env}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  recipe_data:
+  caddy_data:
+  caddy_config:

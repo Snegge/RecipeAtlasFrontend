@@ -1,0 +1,41 @@
+<div class="photo-editor">
+  <input
+    #photoInput
+    type="file"
+    accept="image/jpeg,image/png,image/webp"
+    hidden
+    (change)="photoSelected.emit($event)"
+  />
+  @if (preview; as photoUrl) {
+    <img [src]="photoUrl" alt="Recipe photo preview" class="photo-preview" />
+  } @else {
+    <div class="photo-empty">
+      <app-icon name="image" /><span>A photo makes it yours</span><small>Optional</small>
+    </div>
+  }
+  <div class="photo-buttons">
+    <button
+      mat-stroked-button
+      type="button"
+      (click)="photoInput.click()"
+      [disabled]="busy || preparing"
+    >
+      {{ preparing ? 'Preparing photo…' : preview ? 'Change photo' : 'Add photo' }}
+    </button>
+    @if (preview) {
+      <button
+        mat-icon-button
+        type="button"
+        aria-label="Remove photo"
+        (click)="photoRemoved.emit()"
+        [disabled]="busy || preparing"
+      >
+        <app-icon name="trash" />
+      </button>
+    }
+  </div>
+  <p class="muted small">JPEG, PNG, or WebP. We’ll resize it for you.</p>
+  @if (error) {
+    <p class="error-box" role="alert">{{ error }}</p>
+  }
+</div>

@@ -1,0 +1,93 @@
+<section class="page detail-page">
+  <a mat-button routerLink="/recipes" class="back-link"><app-icon name="back" /> All recipes</a>
+  @if (loading()) {
+    <div class="loading-state"><mat-spinner diameter="36" aria-label="Loading recipe" /></div>
+  } @else if (error()) {
+    <div class="empty-state" role="alert">
+      <h1>Recipe unavailable</h1>
+      <p>{{ error() }}</p>
+      <button mat-stroked-button (click)="load()">Try again</button
+      ><a mat-button routerLink="/login">Sign in</a>
+    </div>
+  } @else if (recipe(); as recipe) {
+    <div class="recipe-intro" [class.with-photo]="recipe.imageUrl && !imageFailed()">
+      <div class="recipe-intro-copy">
+        <p class="eyebrow">FROM YOUR COLLECTION</p>
+        <h1>{{ recipe.title }}</h1>
+        @if (recipe.description) {
+          <p class="recipe-description">{{ recipe.description }}</p>
+        }
+        <div class="recipe-meta">
+          <span><app-icon name="people" /> {{ recipe.servings }} servings</span>
+          @if (recipe.sourceUrl) {
+            <a [href]="recipe.sourceUrl" target="_blank" rel="noopener noreferrer"
+              ><app-icon name="link" /> Original recipe</a
+            >
+          }
+        </div>
+        <div class="recipe-actions">
+          <a mat-stroked-button [routerLink]="['/recipes', recipe.id, 'edit']"
+            ><app-icon name="edit" /> Edit recipe</a
+          ><button mat-button class="danger-text" (click)="remove()" [disabled]="deleting()">
+            <app-icon name="trash" /> Delete
+          </button>
+        </div>
+      </div>
+      @if (recipe.imageUrl && !imageFailed()) {
+        <img
+          class="detail-photo"
+          [src]="recipe.imageUrl"
+          [alt]="recipe.title"
+          (error)="imageFailed.set(true)"
+        />
+      }
+    </div>
+    <div class="cooking-layout">
+      <section class="ingredients-panel" aria-labelledby="ingredients-heading">
+        <h2 id="ingredients-heading">Ingredients</h2>
+        <p class="muted small">For {{ recipe.servings }} servings</p>
+        <ul class="ingredient-checklist">
+          @for (ingredient of recipe.ingredients; track $index) {
+            <li>
+              <mat-checkbox
+                [checked]="checkedIngredients().has($index)"
+                (change)="toggleIngredient($index)"
+                [class.checked]="checkedIngredients().has($index)"
+              >
+                <span class="ingredient-label">
+                  @if (ingredient.quantity !== null) {
+                    <strong
+                      >{{ ingredient.quantity | number: '1.0-3' }}
+                      {{ ingredient.unit === 'piece' ? '' : ingredient.unit }}</strong
+                    >
+                  }
+                  {{ ingredient.name }}
+                  @if (ingredient.unit === 'toTaste') {
+                    <span class="muted">, to taste</span>
+                  }
+                  @if (ingredient.note) {
+                    <small>{{ ingredient.note }}</small>
+                  }
+                </span>
+              </mat-checkbox>
+            </li>
+          }
+        </ul>
+      </section>
+      <section class="method-panel" aria-labelledby="method-heading">
+        <div class="section-heading">
+          <h2 id="method-heading">Method</h2>
+          <span class="muted small">{{ recipe.steps.length }} steps</span>
+        </div>
+        <ol class="method-list">
+          @for (step of recipe.steps; track $index) {
+            <li>
+              <span class="step-number">{{ $index + 1 }}</span>
+              <p>{{ step }}</p>
+            </li>
+          }
+        </ol>
+      </section>
+    </div>
+  }
+</section>

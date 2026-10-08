@@ -1,0 +1,12 @@
+{$RECIPE_ATLAS_DOMAIN} {
+    header Strict-Transport-Security "max-age=31536000"
+    @backend path /api /api/* /health
+    handle @backend {
+        reverse_proxy api:8080
+    }
+    handle {
+        root * /srv
+        try_files {path} /index.html
+        file_server
+    }
+}

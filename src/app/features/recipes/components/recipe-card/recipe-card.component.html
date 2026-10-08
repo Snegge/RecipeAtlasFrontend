@@ -1,0 +1,22 @@
+<a class="recipe-card" [routerLink]="['/recipes', recipe.id]">
+  <div class="card-photo">
+    @if (recipe.imageUrl) {
+      <img
+        [src]="recipe.imageUrl"
+        [alt]="recipe.title"
+        loading="lazy"
+        (error)="hideBrokenImage($event)"
+      />
+    }
+    <app-icon name="book" class="photo-fallback" />
+    <span class="serving-pill"
+      ><app-icon name="people" /> {{ recipe.servings }}
+      {{ recipe.servings === 1 ? 'serving' : 'servings' }}</span
+    >
+  </div>
+  <div class="card-copy">
+    <h2>{{ recipe.title }}</h2>
+    <p>{{ recipe.description || 'Open recipe for ingredients and steps.' }}</p>
+    <span class="card-date">Updated {{ recipe.updatedAtUtc | date: 'MMM d, y' }}</span>
+  </div>
+</a>

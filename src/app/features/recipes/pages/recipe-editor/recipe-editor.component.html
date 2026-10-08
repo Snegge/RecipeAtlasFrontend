@@ -1,0 +1,116 @@
+<section class="page editor-page">
+  <a mat-button [routerLink]="savedId() ? ['/recipes', savedId()] : ['/recipes']" class="back-link"
+    ><app-icon name="back" /> {{ savedId() ? 'Back to recipe' : 'All recipes' }}</a
+  >
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">MAKE IT YOURS</p>
+      <h1>{{ savedId() ? 'Edit recipe' : 'Add a recipe' }}</h1>
+      <p class="muted">The details you’ll want next time.</p>
+    </div>
+  </div>
+  @if (loading()) {
+    <div class="loading-state"><mat-spinner diameter="36" aria-label="Loading editor" /></div>
+  } @else if (loadError()) {
+    <div class="empty-state" role="alert">
+      <p>{{ loadError() }}</p>
+      <button mat-stroked-button (click)="load()">Try again</button
+      ><a mat-button routerLink="/login">Sign in</a>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="save()" class="recipe-form">
+      <section class="form-section">
+        <h2>The basics</h2>
+        <div class="basics-grid">
+          <div class="basics-fields">
+            <mat-form-field appearance="outline"
+              ><mat-label>Recipe title</mat-label
+              ><input
+                matInput
+                formControlName="title"
+                maxlength="200"
+                required
+                autocomplete="off"
+              /><mat-error>Enter a title, up to 200 characters.</mat-error></mat-form-field
+            >
+            <mat-form-field appearance="outline"
+              ><mat-label>Description (optional)</mat-label
+              ><textarea
+                matInput
+                formControlName="description"
+                rows="3"
+                maxlength="4000"
+                placeholder="What makes this one worth keeping?"
+              ></textarea
+              ><mat-error>Use up to 4,000 characters.</mat-error></mat-form-field
+            >
+            <div class="basics-bottom">
+              <mat-form-field appearance="outline"
+                ><mat-label>Servings</mat-label
+                ><input
+                  matInput
+                  type="number"
+                  formControlName="servings"
+                  min="1"
+                  max="1000"
+                  step="1"
+                  inputmode="numeric"
+                  required
+                /><mat-error>Use 1 to 1,000.</mat-error></mat-form-field
+              >
+              <mat-form-field appearance="outline"
+                ><mat-label>Source link (optional)</mat-label
+                ><input
+                  matInput
+                  formControlName="sourceUrl"
+                  type="url"
+                  placeholder="https://…"
+                  maxlength="2048"
+                /><mat-error>Enter a valid http or https link.</mat-error></mat-form-field
+              >
+            </div>
+          </div>
+          <app-photo-picker
+            [preview]="preview()"
+            [busy]="busy()"
+            [preparing]="preparingPhoto()"
+            [error]="photoError()"
+            (photoSelected)="choosePhoto($event)"
+            (photoRemoved)="removePhoto()"
+          />
+        </div>
+      </section>
+      <app-ingredient-editor
+        class="form-section"
+        [ingredients]="ingredients"
+        [units]="units()"
+        [busy]="busy()"
+        (ingredientAdded)="addIngredient()"
+        (ingredientRemoved)="removeIngredient($event)"
+        (unitChanged)="setUnit($event)"
+      />
+      <app-step-editor
+        class="form-section"
+        [steps]="steps"
+        [busy]="busy()"
+        (stepAdded)="addStep()"
+        (stepRemoved)="removeStep($event)"
+        (stepMoved)="moveStep($event.index, $event.direction)"
+      />
+      @if (error()) {
+        <p class="error-box" role="alert">{{ error() }}</p>
+      }
+      <div class="save-bar">
+        <span class="muted small">{{ busy() ? 'Saving your recipe…' : 'Ready when you are.' }}</span
+        ><button mat-flat-button type="submit" [disabled]="busy() || preparingPhoto()">
+          @if (busy()) {
+            <mat-spinner diameter="20" />
+          } @else {
+            <app-icon name="check" />
+          }
+          Save recipe
+        </button>
+      </div>
+    </form>
+  }
+</section>

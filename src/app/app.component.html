@@ -1,0 +1,14 @@
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="app-header">
+  <div class="header-inner">
+    <a class="brand" routerLink="/recipes" aria-label="Recipe Atlas home">
+      <span class="brand-mark"><app-icon name="book" /></span><span>Recipe Atlas</span>
+    </a>
+    @if (auth.signedIn() && !isEditor()) {
+      <button mat-button (click)="logout()" [disabled]="leaving()" class="signout">
+        <app-icon name="logout" /><span>Sign out</span>
+      </button>
+    }
+  </div>
+</header>
+<main id="main" tabindex="-1"><router-outlet /></main>

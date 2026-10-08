@@ -1,0 +1,83 @@
+<section class="page collection-page">
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">RECIPE ATLAS</p>
+      <h1>Your recipes</h1>
+      <p class="muted">Good food, worth keeping.</p>
+    </div>
+    <a mat-flat-button routerLink="/recipes/new" class="add-recipe"
+      ><app-icon name="plus" /> Add recipe</a
+    >
+  </div>
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>Find a recipe or ingredient</mat-label>
+    <app-icon matPrefix name="search" />
+    <input matInput [formControl]="search" maxlength="200" autocomplete="off" />
+    @if (search.value) {
+      <button mat-icon-button matSuffix aria-label="Clear search" (click)="search.setValue('')">
+        <app-icon name="close" />
+      </button>
+    }
+  </mat-form-field>
+  <div class="collection-meta">
+    <span aria-live="polite">{{
+      loading()
+        ? 'Finding your recipes…'
+        : result().total + (result().total === 1 ? ' recipe' : ' recipes')
+    }}</span
+    ><span>Recently updated</span>
+  </div>
+  @if (error()) {
+    <div class="empty-state" role="alert">
+      <app-icon name="book" />
+      <h2>Couldn’t load your recipes</h2>
+      <p>{{ error() }}</p>
+      <button mat-stroked-button (click)="retry()">Try again</button
+      ><a mat-button routerLink="/login">Sign in</a>
+    </div>
+  } @else if (loading()) {
+    <div class="recipe-grid" aria-label="Loading recipes" aria-busy="true">
+      @for (item of [1, 2, 3]; track item) {
+        <div class="skeleton-card">
+          <div></div>
+          <span></span><span></span>
+        </div>
+      }
+    </div>
+  } @else if (result().items.length === 0) {
+    <div class="empty-state">
+      <div class="large-mark"><app-icon name="book" /></div>
+      <h2>{{ query() ? 'No recipes found' : 'Your next favorite starts here' }}</h2>
+      <p>
+        {{
+          query()
+            ? 'Try another recipe name or ingredient.'
+            : 'Save a family favorite, a quick dinner, or something you want to try.'
+        }}
+      </p>
+      @if (query()) {
+        <button mat-stroked-button (click)="search.setValue('')">Clear search</button>
+      } @else {
+        <a mat-flat-button routerLink="/recipes/new"
+          ><app-icon name="plus" /> Add your first recipe</a
+        >
+      }
+    </div>
+  } @else {
+    <div class="recipe-grid">
+      @for (recipe of result().items; track recipe.id) {
+        <app-recipe-card [recipe]="recipe" />
+      }
+    </div>
+    @if (result().total > 12) {
+      <mat-paginator
+        [length]="result().total"
+        [pageSize]="12"
+        [pageIndex]="page() - 1"
+        [hidePageSize]="true"
+        (page)="changePage($event)"
+        aria-label="Recipe pages"
+      />
+    }
+  }
+</section>

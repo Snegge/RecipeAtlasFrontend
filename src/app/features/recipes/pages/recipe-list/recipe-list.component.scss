@@ -1,0 +1,67 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+.search-field {
+  width: 100%;
+  max-width: 560px;
+}
+.search-field app-icon[matPrefix] {
+  margin: 0 12px 0 16px;
+  color: #657068;
+}
+.collection-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #6c756d;
+  font-size: 0.875rem;
+  margin: 0 0 20px;
+  gap: 12px;
+}
+.recipe-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+}
+.skeleton-card {
+  border: 1px solid #e1e6df;
+  border-radius: 16px;
+  overflow: hidden;
+  background: white;
+  padding-bottom: 24px;
+}
+.skeleton-card div {
+  aspect-ratio: 16/10;
+  background: #eef1eb;
+}
+.skeleton-card span {
+  display: block;
+  height: 16px;
+  margin: 24px 20px 0;
+  background: #eef1eb;
+  width: 65%;
+  border-radius: 4px;
+}
+mat-paginator {
+  margin-top: 28px;
+  background: transparent !important;
+}
+@media (min-width: 600px) {
+  .recipe-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 850px) {
+  .recipe-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 420px) {
+  .add-recipe {
+    width: 100%;
+  }
+  .collection-meta {
+    font-size: 0.8rem;
+  }
+}

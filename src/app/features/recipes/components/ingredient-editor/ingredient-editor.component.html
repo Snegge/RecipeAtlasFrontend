@@ -1,0 +1,71 @@
+<section>
+  <div class="section-heading">
+    <h2>Ingredients</h2>
+    <span class="muted small">{{ ingredients.length }} / 100</span>
+  </div>
+  <div class="ingredient-rows">
+    @for (row of ingredients.controls; track row; let index = $index) {
+      <div class="ingredient-row" [formGroup]="row">
+        <span class="row-number" aria-hidden="true">{{ index + 1 }}</span>
+        <mat-form-field appearance="outline" class="ingredient-name"
+          ><mat-label>Ingredient {{ index + 1 }}</mat-label
+          ><input
+            matInput
+            formControlName="name"
+            maxlength="200"
+            required
+            placeholder="e.g. Olive oil"
+          /><mat-error>Enter an ingredient.</mat-error></mat-form-field
+        >
+        <mat-form-field appearance="outline" class="ingredient-quantity"
+          ><mat-label>Quantity</mat-label
+          ><input
+            matInput
+            formControlName="quantity"
+            type="number"
+            min="0.001"
+            max="100000"
+            step="0.001"
+            inputmode="decimal"
+            [required]="row.controls.unit.value !== 'toTaste'"
+          /><mat-error>Positive, up to 3 decimals.</mat-error></mat-form-field
+        >
+        <mat-form-field appearance="outline" class="ingredient-unit"
+          ><mat-label>Unit</mat-label
+          ><mat-select formControlName="unit" (selectionChange)="unitChanged.emit(index)">
+            @for (unit of units; track unit.code) {
+              <mat-option [value]="unit.code">{{
+                unit.code === 'toTaste' ? 'To taste' : unit.code === 'piece' ? 'Piece' : unit.code
+              }}</mat-option>
+            }
+          </mat-select></mat-form-field
+        >
+        <mat-form-field appearance="outline" class="ingredient-note"
+          ><mat-label>Note (optional)</mat-label
+          ><input matInput formControlName="note" maxlength="300" placeholder="e.g. finely chopped"
+        /></mat-form-field>
+        <button
+          mat-icon-button
+          type="button"
+          class="remove-ingredient"
+          [attr.aria-label]="'Remove ingredient ' + (index + 1)"
+          (click)="ingredientRemoved.emit(index)"
+          [disabled]="ingredients.length === 1 || busy"
+        >
+          <app-icon name="close" />
+        </button>
+      </div>
+    }
+  </div>
+  <button
+    mat-stroked-button
+    type="button"
+    (click)="ingredientAdded.emit()"
+    [disabled]="busy || ingredients.length >= 100"
+  >
+    <app-icon name="plus" /> Add ingredient
+  </button>
+  <p class="muted small unit-note">
+    Metric spoons: 1 tsp = 5 ml, 1 tbsp = 15 ml. Choose “To taste” when no quantity is needed.
+  </p>
+</section>

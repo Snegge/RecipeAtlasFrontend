@@ -1,0 +1,43 @@
+<section class="login-layout">
+  <div class="login-card">
+    <div class="large-mark"><app-icon name="book" /></div>
+    <p class="eyebrow">YOUR PERSONAL RECIPE BOOK</p>
+    <h1>Welcome to your kitchen.</h1>
+    <p class="muted">Sign in to find a favorite or save something new.</p>
+    <form [formGroup]="form" (ngSubmit)="login()">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Password</mat-label>
+        <input
+          matInput
+          [type]="visible() ? 'text' : 'password'"
+          formControlName="password"
+          autocomplete="current-password"
+          maxlength="256"
+          required
+        />
+        <button
+          mat-icon-button
+          matSuffix
+          type="button"
+          (click)="visible.set(!visible())"
+          [attr.aria-label]="visible() ? 'Hide password' : 'Show password'"
+          [attr.aria-pressed]="visible()"
+        >
+          <app-icon name="eye" />
+        </button>
+        <mat-error>Enter your password.</mat-error>
+      </mat-form-field>
+      @if (error()) {
+        <p class="error-box" role="alert">{{ error() }}</p>
+      }
+      <button mat-flat-button class="full-width login-submit" [disabled]="busy()" type="submit">
+        @if (busy()) {
+          <mat-spinner diameter="20" />
+        } @else {
+          <span>Open my recipe book</span>
+        }
+      </button>
+    </form>
+    <p class="login-footer"><app-icon name="lock" /> Just your recipes. Just for you.</p>
+  </div>
+</section>

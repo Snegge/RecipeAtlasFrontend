@@ -1,0 +1,130 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+.recipe-intro {
+  display: grid;
+  gap: 32px;
+  padding: 8px 0 40px;
+  border-bottom: 1px solid #e1e6df;
+}
+.recipe-intro h1 {
+  max-width: 760px;
+}
+.recipe-description {
+  color: #657068;
+  margin-top: 20px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 650px;
+}
+.recipe-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  margin-top: 24px;
+  color: #657068;
+  font-size: 0.9rem;
+}
+.recipe-meta > * {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.recipe-meta app-icon {
+  width: 19px;
+  height: 19px;
+  flex-basis: 19px;
+}
+.recipe-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+}
+.danger-text {
+  color: #a04338 !important;
+}
+.detail-photo {
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  border-radius: 16px;
+}
+.cooking-layout {
+  display: grid;
+  gap: 36px;
+  padding-top: 36px;
+}
+.ingredients-panel {
+  border-radius: 16px;
+  background: #eff3ec;
+  padding: 24px;
+  align-self: start;
+}
+.ingredients-panel > .muted {
+  margin-top: 6px;
+}
+.ingredient-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 0 -10px;
+}
+.ingredient-checklist li + li {
+  border-top: 1px solid #dce3d8;
+}
+.ingredient-checklist mat-checkbox {
+  display: block;
+  padding: 6px 0;
+}
+.ingredient-label {
+  display: block;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+  padding: 4px 0;
+}
+.ingredient-label strong {
+  font-weight: 650;
+  margin-right: 5px;
+}
+.ingredient-label small {
+  display: block;
+  color: #657068;
+  font-size: 0.875rem;
+}
+.checked .ingredient-label {
+  text-decoration: line-through;
+  color: #7d867e;
+}
+.method-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.method-list li {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 18px;
+  padding: 0 0 28px;
+}
+.method-list li + li {
+  border-top: 1px solid #e1e6df;
+  padding-top: 28px;
+}
+.method-list p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding-top: 4px;
+  line-height: 1.85;
+}
+@media (min-width: 850px) {
+  .recipe-intro.with-photo {
+    grid-template-columns: minmax(0, 1fr) 42%;
+    align-items: center;
+    gap: 48px;
+  }
+  .cooking-layout {
+    grid-template-columns: minmax(0, 35%) minmax(0, 1fr);
+    gap: 48px;
+  }
+}

@@ -1,0 +1,89 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+.recipe-card {
+  display: block;
+  min-width: 0;
+  text-decoration: none;
+  border: 1px solid #e1e6df;
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  color: inherit;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+.recipe-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 24px #1739230c;
+}
+.card-photo {
+  position: relative;
+  aspect-ratio: 16/10;
+  background: #edf1e9;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.card-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+.photo-fallback {
+  width: 48px !important;
+  height: 48px !important;
+  color: #9cae9c;
+}
+.serving-pill {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  z-index: 2;
+  background: #fffffff5;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 8px;
+  padding: 5px 10px;
+  color: #34443a;
+  font-size: 0.8rem;
+}
+.serving-pill app-icon {
+  width: 16px;
+  height: 16px;
+  flex-basis: 16px;
+}
+.card-copy {
+  padding: 22px;
+}
+.card-copy h2 {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  overflow-wrap: anywhere;
+}
+.card-copy p {
+  color: #69736b;
+  font-size: 0.9rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.9em;
+  overflow-wrap: anywhere;
+}
+.card-date {
+  display: block;
+  font-size: 0.8rem;
+  color: #737d75;
+  margin-top: 22px;
+}
+
+.recipe-card {
+  height: 100%;
+}
