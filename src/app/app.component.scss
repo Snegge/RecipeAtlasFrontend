@@ -55,6 +55,22 @@
 main:focus {
   outline: none;
 }
+.mobile-recipes-back {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .mobile-recipes-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-right: 8px;
+  }
+  .hide-signout-mobile {
+    display: none;
+  }
+}
 @media (max-width: 420px) {
   .header-inner {
     height: 66px;

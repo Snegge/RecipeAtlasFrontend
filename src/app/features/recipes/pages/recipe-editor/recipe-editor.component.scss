@@ -33,7 +33,6 @@
   align-items: center;
   gap: 16px;
   padding: 18px 0 max(18px, env(safe-area-inset-bottom));
-  border-top: 1px solid #dbe4d9;
   background: #fafbf9f5;
   z-index: 5;
 }
@@ -52,5 +51,10 @@
   }
   .save-bar > button {
     width: 100%;
+  }
+}
+@media (max-width: 600px) {
+  .back-link {
+    display: none;
   }
 }

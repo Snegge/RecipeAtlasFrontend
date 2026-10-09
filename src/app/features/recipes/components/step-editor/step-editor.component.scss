@@ -2,34 +2,84 @@
   display: block;
   min-width: 0;
 }
-.step-row {
-  display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
-  column-gap: 12px;
-  margin-bottom: 12px;
-}
-.step-row > .step-number {
-  margin-top: 10px;
-}
-.step-controls {
+
+.section-heading {
   display: flex;
-  grid-column: 2;
-  margin: -12px 0 12px;
-  justify-content: flex-end;
-}
-@media (min-width: 850px) {
-  .step-row {
-    grid-template-columns: 34px minmax(0, 1fr) 44px;
-  }
-  .step-controls {
-    flex-direction: column;
-    grid-column: auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  h2 {
     margin: 0;
-    justify-content: flex-start;
   }
 }
-mat-form-field {
+
+.step-list {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.step-card {
+  min-width: 0;
+  padding: 0px 12px 12px;
+
+  background-color: #f3f6f1;
+  border: 1px solid #dce4d7;
+  border-radius: 12px;
+}
+
+.step-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.step-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.remove-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  padding: 12px;
+  margin: 0;
+
+  app-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.step-field {
   display: block;
   width: 100%;
   min-width: 0;
+}
+
+textarea {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.add-step-button {
+  width: 100%;
+}
+
+@media (min-width: 601px) {
+  .add-step-button {
+    width: auto;
+  }
 }

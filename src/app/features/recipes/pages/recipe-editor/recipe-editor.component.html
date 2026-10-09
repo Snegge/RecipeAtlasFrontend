@@ -4,9 +4,7 @@
   >
   <div class="page-heading">
     <div>
-      <p class="eyebrow">MAKE IT YOURS</p>
       <h1>{{ savedId() ? 'Edit recipe' : 'Add a recipe' }}</h1>
-      <p class="muted">The details you’ll want next time.</p>
     </div>
   </div>
   @if (loading()) {
@@ -20,7 +18,6 @@
   } @else {
     <form [formGroup]="form" (ngSubmit)="save()" class="recipe-form">
       <section class="form-section">
-        <h2>The basics</h2>
         <div class="basics-grid">
           <div class="basics-fields">
             <mat-form-field appearance="outline"
@@ -95,7 +92,6 @@
         [busy]="busy()"
         (stepAdded)="addStep()"
         (stepRemoved)="removeStep($event)"
-        (stepMoved)="moveStep($event.index, $event.direction)"
       />
       @if (error()) {
         <p class="error-box" role="alert">{{ error() }}</p>

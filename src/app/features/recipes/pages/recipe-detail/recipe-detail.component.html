@@ -18,18 +18,42 @@
           <p class="recipe-description">{{ recipe.description }}</p>
         }
         <div class="recipe-meta">
-          <span><app-icon name="people" /> {{ recipe.servings }} servings</span>
+          <span class="intro-servings">
+            <app-icon name="people" />
+            {{ recipe.servings }} servings
+          </span>
+
           @if (recipe.sourceUrl) {
-            <a [href]="recipe.sourceUrl" target="_blank" rel="noopener noreferrer"
-              ><app-icon name="link" /> Original recipe</a
+            <a
+              mat-flat-button
+              class="original-recipe-link"
+              [href]="recipe.sourceUrl"
+              target="_blank"
+              rel="noopener noreferrer"
             >
+              <app-icon name="link" />
+              Original recipe
+            </a>
           }
         </div>
         <div class="recipe-actions">
-          <a mat-stroked-button [routerLink]="['/recipes', recipe.id, 'edit']"
-            ><app-icon name="edit" /> Edit recipe</a
-          ><button mat-button class="danger-text" (click)="remove()" [disabled]="deleting()">
-            <app-icon name="trash" /> Delete
+          <a
+            mat-stroked-button
+            [routerLink]="['/recipes', recipe.id, 'edit']"
+          >
+            <app-icon name="edit" />
+            Edit recipe
+          </a>
+
+          <button
+            mat-stroked-button
+            type="button"
+            class="danger-text"
+            (click)="remove()"
+            [disabled]="deleting()"
+          >
+            <app-icon name="trash" />
+            Delete
           </button>
         </div>
       </div>

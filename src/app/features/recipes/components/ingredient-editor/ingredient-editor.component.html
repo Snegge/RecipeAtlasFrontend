@@ -1,25 +1,116 @@
-<section>
+<section aria-labelledby="ingredients-heading">
   <div class="section-heading">
-    <h2>Ingredients</h2>
-    <span class="muted small">{{ ingredients.length }} / 100</span>
+    <h2 id="ingredients-heading">Ingredients</h2>
+
+    <span class="muted small">
+      {{ ingredients.length }} / 100
+    </span>
   </div>
+
+  <div class="quick-entry">
+    <mat-form-field
+      appearance="outline"
+      class="quick-input"
+      subscriptSizing="dynamic"
+    >
+      <mat-label>Quick add ingredient</mat-label>
+
+      <input
+        #quickInput
+        matInput
+        [value]="quickEntry"
+        (input)="onQuickInput($event)"
+        (keydown.enter)="onQuickEnter($event)"
+        [disabled]="busy"
+        [attr.aria-invalid]="quickError ? 'true' : null"
+        aria-describedby="ingredient-quick-help ingredient-quick-error"
+        placeholder="200 g Mehl (gesiebt)"
+        maxlength="600"
+        autocomplete="off"
+        enterkeyhint="enter"
+      />
+    </mat-form-field>
+
+    <button
+      mat-flat-button
+      type="button"
+      class="quick-add-button"
+      (click)="addQuickIngredient()"
+      [disabled]="busy || !quickEntry.trim()"
+    >
+      <app-icon name="plus" />
+      Add ingredient
+    </button>
+
+    @if (quickEntry) {
+      <button
+        mat-button
+        type="button"
+        class="quick-clear-button"
+        (click)="clearQuickEntry()"
+        [disabled]="busy"
+      >
+        Clear
+      </button>
+    }
+  </div>
+
+  <p id="ingredient-quick-help" class="muted small quick-help">
+    Type an ingredient and press Enter.
+    Examples: 200 g Mehl, ½ tsp salt, 2 Stück Eier,
+    Pfeffer nach Geschmack.
+    Put optional notes in parentheses.
+  </p>
+
+  <p
+    id="ingredient-quick-error"
+    class="quick-error"
+    role="alert"
+  >
+    {{ quickError }}
+  </p>
+
+  <span class="visually-hidden" role="status">
+    {{ quickStatus }}
+  </span>
+
   <div class="ingredient-rows">
-    @for (row of ingredients.controls; track row; let index = $index) {
+    @for (
+      row of ingredients.controls;
+      track row;
+      let index = $index
+    ) {
       <div class="ingredient-row" [formGroup]="row">
-        <span class="row-number" aria-hidden="true">{{ index + 1 }}</span>
-        <mat-form-field appearance="outline" class="ingredient-name"
-          ><mat-label>Ingredient {{ index + 1 }}</mat-label
-          ><input
+        <span class="row-number" aria-hidden="true">
+          {{ index + 1 }}
+        </span>
+
+        <mat-form-field
+          appearance="outline"
+          class="ingredient-name"
+          subscriptSizing="dynamic"
+        >
+          <mat-label>Ingredient {{ index + 1 }}</mat-label>
+
+          <input
             matInput
             formControlName="name"
             maxlength="200"
             required
             placeholder="e.g. Olive oil"
-          /><mat-error>Enter an ingredient.</mat-error></mat-form-field
+          />
+
+          <mat-error>Enter an ingredient.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field
+          appearance="outline"
+          class="ingredient-quantity"
+          subscriptSizing="dynamic"
         >
-        <mat-form-field appearance="outline" class="ingredient-quantity"
-          ><mat-label>Quantity</mat-label
-          ><input
+          <mat-label>Quantity</mat-label>
+
+          <input
             matInput
             formControlName="quantity"
             type="number"
@@ -28,44 +119,82 @@
             step="0.001"
             inputmode="decimal"
             [required]="row.controls.unit.value !== 'toTaste'"
-          /><mat-error>Positive, up to 3 decimals.</mat-error></mat-form-field
+          />
+
+          <mat-error>
+            Positive, up to 3 decimals.
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field
+          appearance="outline"
+          class="ingredient-unit"
+          subscriptSizing="dynamic"
         >
-        <mat-form-field appearance="outline" class="ingredient-unit"
-          ><mat-label>Unit</mat-label
-          ><mat-select formControlName="unit" (selectionChange)="unitChanged.emit(index)">
+          <mat-label>Unit</mat-label>
+
+          <mat-select
+            formControlName="unit"
+            (selectionChange)="unitChanged.emit(index)"
+          >
             @for (unit of units; track unit.code) {
-              <mat-option [value]="unit.code">{{
-                unit.code === 'toTaste' ? 'To taste' : unit.code === 'piece' ? 'Piece' : unit.code
-              }}</mat-option>
+              <mat-option [value]="unit.code">
+                {{ unitLabel(unit.code) }}
+              </mat-option>
             }
-          </mat-select></mat-form-field
+          </mat-select>
+
+          <mat-error>Select a unit.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field
+          appearance="outline"
+          class="ingredient-note"
+          subscriptSizing="dynamic"
         >
-        <mat-form-field appearance="outline" class="ingredient-note"
-          ><mat-label>Note (optional)</mat-label
-          ><input matInput formControlName="note" maxlength="300" placeholder="e.g. finely chopped"
-        /></mat-form-field>
+          <mat-label>Note (optional)</mat-label>
+
+          <input
+            matInput
+            formControlName="note"
+            maxlength="300"
+            placeholder="e.g. finely chopped"
+          />
+
+          <mat-error>
+            Use up to 300 characters.
+          </mat-error>
+        </mat-form-field>
+
         <button
           mat-icon-button
           type="button"
           class="remove-ingredient"
           [attr.aria-label]="'Remove ingredient ' + (index + 1)"
-          (click)="ingredientRemoved.emit(index)"
-          [disabled]="ingredients.length === 1 || busy"
+          (click)="removeIngredient(index)"
+          [disabled]="busy || ingredients.length <= 1"
         >
           <app-icon name="close" />
         </button>
       </div>
     }
   </div>
+
   <button
     mat-stroked-button
     type="button"
-    (click)="ingredientAdded.emit()"
+    class="add-manually-button"
+    (click)="addManually()"
     [disabled]="busy || ingredients.length >= 100"
   >
-    <app-icon name="plus" /> Add ingredient
+    <app-icon name="plus" />
+    Add manually
   </button>
+
   <p class="muted small unit-note">
-    Metric spoons: 1 tsp = 5 ml, 1 tbsp = 15 ml. Choose “To taste” when no quantity is needed.
+    Metric spoons: 1 tsp / TL = 5 ml,
+    1 tbsp / EL = 15 ml.
+    Choose “To taste / Nach Geschmack” when no quantity
+    is needed.
   </p>
 </section>

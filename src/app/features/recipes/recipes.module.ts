@@ -8,6 +8,7 @@ import { RecipeCardComponent } from './components/recipe-card/recipe-card.compon
 import { IngredientEditorComponent } from './components/ingredient-editor/ingredient-editor.component';
 import { StepEditorComponent } from './components/step-editor/step-editor.component';
 import { PhotoPickerComponent } from './components/photo-picker/photo-picker.component';
+import { TextFieldModule } from '@angular/cdk/text-field';
 
 @NgModule({
   declarations: [
@@ -19,6 +20,10 @@ import { PhotoPickerComponent } from './components/photo-picker/photo-picker.com
     StepEditorComponent,
     PhotoPickerComponent,
   ],
-  imports: [SharedModule, RecipesRoutingModule],
+  imports: [
+    SharedModule, 
+    RecipesRoutingModule,
+    TextFieldModule,
+  ],
 })
 export class RecipesModule {}

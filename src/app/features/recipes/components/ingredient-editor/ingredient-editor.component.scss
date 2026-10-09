@@ -1,70 +1,192 @@
+@use '@angular/material' as mat;
+
 :host {
   display: block;
   min-width: 0;
 }
-.ingredient-rows {
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 16px;
-}
-.ingredient-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 44px;
-  gap: 0 12px;
-  padding: 16px 0 4px;
-}
-.ingredient-row + .ingredient-row {
-  border-top: 1px solid #e1e6df;
-}
-.row-number {
-  display: none;
-}
-.ingredient-name {
-  grid-column: 1/3;
-  grid-row: 1;
-}
-.ingredient-quantity {
-  grid-column: 1;
-  grid-row: 2;
-}
-.ingredient-unit {
-  grid-column: 2/4;
-  grid-row: 2;
-}
-.ingredient-note {
-  grid-column: 1/4;
-  grid-row: 3;
-}
-.remove-ingredient {
-  grid-column: 3;
-  grid-row: 1;
-  margin-top: 4px;
-}
-.unit-note {
-  margin-top: 16px;
-  max-width: 600px;
-}
-@media (min-width: 850px) {
-  .ingredient-row {
-    grid-template-columns:
-      24px minmax(120px, 1.5fr) minmax(96px, 0.8fr) 100px minmax(120px, 1fr)
-      44px;
-    gap: 12px;
-    padding-top: 4px;
-  }
-  .ingredient-row + .ingredient-row {
-    border: none;
-  }
-  .ingredient-row > * {
-    grid-column: auto;
-    grid-row: auto;
-  }
-  .row-number {
-    display: block;
-    color: #7a857a;
-    margin-top: 16px;
+
+  h2 {
+    margin: 0;
   }
 }
+
 mat-form-field {
   display: block;
   width: 100%;
   min-width: 0;
+}
+
+.quick-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.quick-add-button,
+.quick-clear-button,
+.add-manually-button {
+  width: 100%;
+}
+
+.quick-help {
+  margin: 10px 0 0;
+  line-height: 1.5;
+}
+
+.quick-error {
+  margin: 8px 0 0;
+  color: #b3261e;
+  line-height: 1.5;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.ingredient-rows {
+  display: grid;
+  gap: 12px;
+  margin: 20px 0 16px;
+}
+
+.ingredient-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 40px;
+  gap: 8px;
+  padding: 12px;
+
+  background-color: #f3f6f1;
+  border: 1px solid #dce4d7;
+  border-radius: 12px;
+}
+
+.ingredient-row {
+  @include mat.form-field-density(-3);
+}
+
+.ingredient-row .remove-ingredient {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  margin: 0;
+
+  align-self: start;
+  justify-self: center;
+
+  app-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.remove-ingredient {
+  grid-column: 3;
+  grid-row: 1;
+  align-self: center;
+  justify-self: center;
+  margin: 0;
+}
+
+.row-number {
+  display: none;
+}
+
+.ingredient-name {
+  grid-column: 1 / 3;
+  grid-row: 1;
+}
+
+.ingredient-quantity {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.ingredient-unit {
+  grid-column: 2 / 4;
+  grid-row: 2;
+}
+
+.ingredient-note {
+  grid-column: 1 / 4;
+  grid-row: 3;
+}
+
+.unit-note {
+  max-width: 600px;
+  margin: 16px 0 0;
+  line-height: 1.5;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (min-width: 601px) {
+  .quick-entry {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .quick-input {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .quick-add-button,
+  .quick-clear-button,
+  .add-manually-button {
+    width: auto;
+    flex-shrink: 0;
+  }
+}
+
+@media (min-width: 1100px) {
+  .ingredient-row {
+    grid-template-columns:
+      minmax(140px, 1.5fr)
+      minmax(90px, 0.7fr)
+      minmax(160px, 1fr)
+      minmax(140px, 1fr)
+      40px;
+
+    align-items: start;
+    gap: 10px;
+  }
+
+  .ingredient-name,
+  .ingredient-quantity,
+  .ingredient-unit,
+  .ingredient-note,
+  .remove-ingredient {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .remove-ingredient {
+    margin: 0;
+  }
+
+  .row-number {
+    display: none;
+  }
 }

@@ -1,60 +1,73 @@
-<section>
+<section aria-labelledby="method-heading">
   <div class="section-heading">
-    <h2>Method</h2>
-    <span class="muted small">One instruction at a time</span>
+    <h2 id="method-heading">Method</h2>
+
+    <span class="muted small">
+      {{ steps.length }} / 100
+    </span>
   </div>
-  <div class="step-rows">
-    @for (step of steps.controls; track step; let index = $index) {
-      <div class="step-row">
-        <span class="step-number" aria-hidden="true">{{ index + 1 }}</span>
-        <mat-form-field appearance="outline"
-          ><mat-label>Step {{ index + 1 }}</mat-label
-          ><textarea
-            matInput
-            [formControl]="step"
-            rows="3"
-            maxlength="4000"
-            required
-            placeholder="What happens next?"
-          ></textarea
-          ><mat-error>Enter an instruction, up to 4,000 characters.</mat-error></mat-form-field
-        >
-        <div class="step-controls">
+
+  <div class="step-list">
+    @for (
+      step of steps.controls;
+      track step;
+      let index = $index
+    ) {
+      <div class="step-card">
+        <div class="step-card-header">
+          <span class="step-title">
+            Step {{ index + 1 }}
+          </span>
+
           <button
             mat-icon-button
             type="button"
-            [attr.aria-label]="'Move step ' + (index + 1) + ' up'"
-            (click)="stepMoved.emit({ index, direction: -1 })"
-            [disabled]="index === 0 || busy"
-          >
-            <app-icon name="up" /></button
-          ><button
-            mat-icon-button
-            type="button"
-            [attr.aria-label]="'Move step ' + (index + 1) + ' down'"
-            (click)="stepMoved.emit({ index, direction: 1 })"
-            [disabled]="index === steps.length - 1 || busy"
-          >
-            <app-icon name="down" /></button
-          ><button
-            mat-icon-button
-            type="button"
+            class="remove-step"
             [attr.aria-label]="'Remove step ' + (index + 1)"
-            (click)="stepRemoved.emit(index)"
-            [disabled]="steps.length === 1 || busy"
+            [disabled]="busy || steps.length <= 1"
+            (click)="removeStep(index)"
           >
             <app-icon name="close" />
           </button>
         </div>
+
+        <mat-form-field
+          appearance="outline"
+          subscriptSizing="dynamic"
+          class="step-field"
+        >
+          <mat-label>Instructions</mat-label>
+
+          <textarea
+            #stepInput
+            matInput
+            cdkTextareaAutosize
+            [cdkAutosizeMinRows]="2"
+            [formControl]="step"
+            [readonly]="busy"
+            [attr.aria-label]="'Instructions for step ' + (index + 1)"
+            rows="2"
+            maxlength="4000"
+            required
+            placeholder="What happens next?"
+          ></textarea>
+
+          <mat-error>
+            Enter an instruction, up to 4,000 characters.
+          </mat-error>
+        </mat-form-field>
       </div>
     }
   </div>
+
   <button
     mat-stroked-button
     type="button"
-    (click)="stepAdded.emit()"
+    class="add-step-button"
     [disabled]="busy || steps.length >= 100"
+    (click)="addStep()"
   >
-    <app-icon name="plus" /> Add step
+    <app-icon name="plus" />
+    Add step
   </button>
 </section>
