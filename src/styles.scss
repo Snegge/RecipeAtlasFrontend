@@ -239,3 +239,25 @@ img {
     scroll-behavior: auto !important;
   }
 }
+
+.cdk-overlay-pane.recipe-import-dialog {
+  width: min(560px, calc(100vw - 32px)) !important;
+  max-width: none !important;
+  max-height: calc(100dvh - 32px) !important;
+
+  .mat-mdc-dialog-surface {
+    border-radius: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .cdk-overlay-pane.recipe-import-dialog {
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+
+    .mat-mdc-dialog-surface {
+      border-radius: 0;
+    }
+  }
+}

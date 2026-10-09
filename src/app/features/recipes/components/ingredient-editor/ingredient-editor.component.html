@@ -80,6 +80,14 @@
       track row;
       let index = $index
     ) {
+      @if (importedIngredients.get(row); as imported) {
+        <p class="imported-source">
+          <span>
+            {{ imported.requiresReview ? 'Check against source:' : 'Source:' }}
+          </span>
+          {{ imported.originalText }}
+        </p>
+      }
       <div class="ingredient-row" [formGroup]="row">
         <span class="row-number" aria-hidden="true">
           {{ index + 1 }}
@@ -143,6 +151,7 @@
               </mat-option>
             }
           </mat-select>
+          <mat-error>Choose a unit.</mat-error>
 
           <mat-error>Select a unit.</mat-error>
         </mat-form-field>

@@ -8,8 +8,9 @@ import {
 } from '@angular/core';
 
 import { Unit } from '../../../../core/models/recipe.model';
-import { IngredientForms } from '../../models/recipe-form.model';
+import { IngredientForm, IngredientForms } from '../../models/recipe-form.model';
 import { parseIngredient } from '../../utils/ingredient-parser';
+import { ImportedIngredient } from '../../../../core/models/recipe-import.model';
 
 @Component({
   selector: 'app-ingredient-editor',
@@ -18,6 +19,9 @@ import { parseIngredient } from '../../utils/ingredient-parser';
   styleUrl: './ingredient-editor.component.scss',
 })
 export class IngredientEditorComponent {
+  @Input()
+  importedIngredients: ReadonlyMap<IngredientForm, ImportedIngredient> =
+    new Map();
   @Input({ required: true })
   ingredients!: IngredientForms;
 

@@ -141,6 +141,19 @@ mat-form-field {
   white-space: nowrap;
 }
 
+.imported-source {
+  grid-column: 1 / -1;
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.75rem;
+  border-left: 3px solid #b8c1cb;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+
+  span {
+    font-weight: 600;
+  }
+}
+
 @media (min-width: 601px) {
   .quick-entry {
     flex-direction: row;

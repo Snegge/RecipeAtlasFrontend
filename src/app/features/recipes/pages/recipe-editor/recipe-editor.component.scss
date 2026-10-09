@@ -39,6 +39,71 @@
 .save-bar button {
   min-width: 156px;
 }
+
+.import-panel,
+.import-review {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border: 1px solid #d8dde3;
+  border-radius: 12px;
+
+  h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.1rem;
+  }
+}
+
+.import-controls {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-top: 1rem;
+
+  mat-form-field {
+    flex: 1;
+    min-width: 0;
+  }
+
+  button {
+    min-height: 56px;
+    flex-shrink: 0;
+  }
+}
+
+.import-review {
+  background: #fff8e8;
+  color: #433b28;
+
+  ul {
+    margin-bottom: 0;
+    padding-left: 1.25rem;
+  }
+
+  li + li {
+    margin-top: 0.4rem;
+  }
+}
+
+.import-photo-help {
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 600px) {
+  .import-controls {
+    flex-direction: column;
+    gap: 0;
+
+    mat-form-field,
+    button {
+      width: 100%;
+    }
+
+    button {
+      min-height: 44px;
+    }
+  }
+}
+
 @media (min-width: 850px) {
   .basics-grid {
     grid-template-columns: minmax(0, 1fr) 260px;
