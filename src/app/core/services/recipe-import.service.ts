@@ -7,9 +7,13 @@ export class RecipeImportService {
   private readonly http = inject(HttpClient);
 
   importLink(url: string) {
-    return this.http.post<RecipeImportResult>(
-      '/api/recipes/import',
-      { url },
-    );
+    return this.http.post<RecipeImportResult>('/api/recipes/import', { url });
+  }
+
+  importText(text: string, sourceUrl?: string | null) {
+    return this.http.post<RecipeImportResult>('/api/recipes/import', {
+      text,
+      ...(sourceUrl ? { url: sourceUrl } : {}),
+    });
   }
 }

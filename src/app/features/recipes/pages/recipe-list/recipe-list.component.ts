@@ -1,19 +1,8 @@
-import {
-  Component,
-  DestroyRef,
-  effect,
-  inject,
-  signal,
-  untracked,
-} from '@angular/core';
+import { Component, DestroyRef, effect, inject, signal, untracked } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  debounceTime,
-  distinctUntilChanged,
-  firstValueFrom,
-} from 'rxjs';
+import { debounceTime, distinctUntilChanged, firstValueFrom } from 'rxjs';
 
 import { MatDialog } from '@angular/material/dialog';
 import { PageEvent } from '@angular/material/paginator';
@@ -56,11 +45,7 @@ export class RecipeListComponent {
 
   constructor() {
     this.search.valueChanges
-      .pipe(
-        debounceTime(250),
-        distinctUntilChanged(),
-        takeUntilDestroyed(),
-      )
+      .pipe(debounceTime(250), distinctUntilChanged(), takeUntilDestroyed())
       .subscribe((value) => {
         this.query.set(value.trim());
         this.page.set(1);
@@ -100,23 +85,21 @@ export class RecipeListComponent {
 
     let draftId: string | null = null;
 
-    const ref = this.dialog.open<
+    const ref = this.dialog.open<RecipeImportDialogComponent, undefined, RecipeImportResult>(
       RecipeImportDialogComponent,
-      undefined,
-      RecipeImportResult
-    >(RecipeImportDialogComponent, {
-      panelClass: 'recipe-import-dialog',
-      maxWidth: '100vw',
-      autoFocus: 'dialog',
-      restoreFocus: true,
-      closeOnNavigation: true,
-    });
+      {
+        panelClass: 'recipe-import-dialog',
+        maxWidth: '100vw',
+        autoFocus: 'dialog',
+        restoreFocus: true,
+        closeOnNavigation: true,
+      },
+    );
 
     const unregisterDestroy = this.destroyRef.onDestroy(() => ref.close());
 
     try {
       const result = await firstValueFrom(ref.afterClosed());
-      console.log('Import dialog result:', result);
 
       if (!result || this.destroyRef.destroyed) return;
 
@@ -128,20 +111,14 @@ export class RecipeListComponent {
 
       if (!navigated) {
         this.drafts.remove(draftId);
-        this.importError.set(
-          'The editor could not be opened. Please import the recipe again.',
-        );
+        this.importError.set('The editor could not be opened. Please import the recipe again.');
       }
     } catch {
       if (draftId) this.drafts.remove(draftId);
 
       if (!this.destroyRef.destroyed) {
-        this.importError.set(
-          'The editor could not be opened. Please try again.',
-        );
+        this.importError.set('The editor could not be opened. Please try again.');
       }
-
-      
     } finally {
       unregisterDestroy();
 

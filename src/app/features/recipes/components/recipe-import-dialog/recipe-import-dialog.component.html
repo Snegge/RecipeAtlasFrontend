@@ -1,6 +1,12 @@
 <div class="dialog-heading">
   <h2 mat-dialog-title>
-    {{ step() === 'source' ? 'Import recipe' : 'Import by link' }}
+    {{
+      step() === 'source'
+        ? 'Import recipe'
+        : step() === 'text'
+          ? 'Import by text'
+          : 'Import by link'
+    }}
   </h2>
 
   <button mat-icon-button type="button" aria-label="Close import dialog" (click)="cancel()">
@@ -21,21 +27,22 @@
 
           <span class="source-copy">
             <span class="source-title">Link</span>
-            <span class="source-description"> Import from a recipe website. </span>
+            <span class="source-description"
+              >Recipe website or public YouTube, TikTok, or Instagram Reel.</span
+            >
           </span>
 
           <span class="source-arrow" aria-hidden="true">›</span>
         </button>
 
-        <button class="source-option" type="button" disabled>
+        <button class="source-option" type="button" (click)="chooseText()">
           <span class="source-icon">
             <app-icon name="book" />
           </span>
 
           <span class="source-copy">
             <span class="source-title">Text</span>
-            <span class="source-description"> Paste a recipe you copied. </span>
-            <span class="coming-soon">Coming soon</span>
+            <span class="source-description">Paste a recipe or social description.</span>
           </span>
         </button>
 
@@ -53,8 +60,11 @@
           </span>
         </button>
       </div>
-    } @else {
-      <p class="intro">Paste a recipe website link. You can review everything before saving.</p>
+    } @else if (step() === 'link') {
+      <p class="intro">
+        Paste a recipe website or public social video link. Social import reads only the written
+        description, not the video or comments.
+      </p>
 
       <mat-form-field appearance="outline" class="url-field" floatLabel="always">
         <mat-label>Recipe link</mat-label>
@@ -76,13 +86,33 @@
 
         <mat-error>Enter a valid HTTPS recipe link.</mat-error>
       </mat-form-field>
-
-      @if (busy()) {
-        <div class="import-progress" role="status">
-          <mat-spinner diameter="24" />
-          <span>Reading the recipe…</span>
-        </div>
+    } @else {
+      <p class="intro">
+        Paste the full description or the text of one recipe. AI extraction uses only this text;
+        review the draft before saving.
+      </p>
+      @if (textSourceUrl()) {
+        <p class="text-source">Source: {{ textSourceUrl() }}</p>
       }
+      <mat-form-field appearance="outline" class="text-field" floatLabel="always">
+        <mat-label>Recipe text or description</mat-label>
+        <textarea
+          matInput
+          formControlName="text"
+          rows="8"
+          maxlength="20000"
+          placeholder="Ingredients and preparation, in the original wording…"
+          [readonly]="busy()"
+          required
+        ></textarea>
+        <mat-error>Paste text, up to 20,000 characters.</mat-error>
+      </mat-form-field>
+    }
+    @if (busy()) {
+      <div class="import-progress" role="status">
+        <mat-spinner diameter="24" />
+        <span>Reading the recipe…</span>
+      </div>
     }
   </mat-dialog-content>
 
@@ -90,7 +120,12 @@
     @if (error()) {
       <p class="import-error" role="alert">{{ error() }}</p>
     }
-    @if (step() === 'link') {
+    @if (canPasteDescription()) {
+      <button mat-stroked-button class="paste-description" type="button" (click)="chooseText(true)">
+        Paste description instead
+      </button>
+    }
+    @if (step() !== 'source') {
       <button mat-button type="button" (click)="back()" [disabled]="busy()">
         <app-icon name="back" />
         Back
@@ -101,8 +136,8 @@
 
     <button mat-button type="button" (click)="cancel()">Cancel</button>
 
-    @if (step() === 'link') {
-      <button mat-flat-button type="submit" [disabled]="busy() || url.invalid">
+    @if (step() !== 'source') {
+      <button mat-flat-button type="submit" [disabled]="!canSubmit()">
         {{ busy() ? 'Importing…' : 'Import recipe' }}
       </button>
     }
