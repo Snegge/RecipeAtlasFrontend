@@ -2,7 +2,7 @@ import { FormArray, FormControl, FormGroup } from '@angular/forms';
 
 export type IngredientForm = FormGroup<{
   name: FormControl<string>;
-  quantity: FormControl<number | null>;
+  quantity: FormControl<string>;
   unit: FormControl<string>;
   note: FormControl<string>;
 }>;

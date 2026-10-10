@@ -1,10 +1,4 @@
-import {
-  Component,
-  DestroyRef,
-  HostListener,
-  inject,
-  signal,
-} from '@angular/core';
+import { Component, DestroyRef, HostListener, inject, signal } from '@angular/core';
 import {
   FormArray,
   FormControl,
@@ -17,11 +11,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { RecipeApiService } from '../../../../core/services/recipe-api.service';
 import { RecipeDraftService } from '../../../../core/services/recipe-draft.service';
-import {
-  Ingredient,
-  RecipeInput,
-  Unit,
-} from '../../../../core/models/recipe.model';
+import { Ingredient, RecipeInput, Unit } from '../../../../core/models/recipe.model';
 import {
   ImportedIngredient,
   RecipeImportResult,
@@ -30,20 +20,16 @@ import { errorMessage } from '../../../../core/utils/api-error';
 import { preparePhoto } from '../../../../core/utils/photo';
 import { prepareImportedPhoto } from '../../../../core/utils/import-photo';
 import { IngredientForm } from '../../models/recipe-form.model';
+import { parseQuantity } from '../../../../core/utils/quantity';
 
 import { EventEmitter, Output } from '@angular/core';
 import { StepMove } from '../../models/recipe-form.model';
 
 const textRequired: ValidatorFn = (control) =>
-  typeof control.value === 'string' && control.value.trim()
-    ? null
-    : { required: true };
+  typeof control.value === 'string' && control.value.trim() ? null : { required: true };
 
-const threeDecimals: ValidatorFn = (control) =>
-  control.value === null ||
-  Math.abs(control.value * 1000 - Math.round(control.value * 1000)) < 0.00001
-    ? null
-    : { precision: true };
+const quantityValid: ValidatorFn = (control) =>
+  parseQuantity(control.value) ? null : { quantity: true };
 
 const integer: ValidatorFn = (control) =>
   Number.isInteger(control.value) ? null : { integer: true };
@@ -54,9 +40,7 @@ const sourceUrl: ValidatorFn = (control) => {
   try {
     const url = new URL(control.value);
 
-    return ['http:', 'https:'].includes(url.protocol) &&
-      !url.username &&
-      !url.password
+    return ['http:', 'https:'].includes(url.protocol) && !url.username && !url.password
       ? null
       : { url: true };
   } catch {
@@ -79,12 +63,9 @@ export class RecipeEditorComponent {
   private readonly snack = inject(MatSnackBar);
   private readonly destroyRef = inject(DestroyRef);
 
-  private readonly importId =
-    this.route.snapshot.queryParamMap.get('import');
+  private readonly importId = this.route.snapshot.queryParamMap.get('import');
 
-  readonly savedId = signal<string | null>(
-    this.route.snapshot.paramMap.get('id'),
-  );
+  readonly savedId = signal<string | null>(this.route.snapshot.paramMap.get('id'));
 
   readonly loading = signal(true);
   readonly loadError = signal('');
@@ -99,8 +80,7 @@ export class RecipeEditorComponent {
   readonly importedYield = signal<string | null>(null);
   readonly externalPhotoUrl = signal<string | null>(null);
 
-  readonly importedIngredients =
-    new Map<IngredientForm, ImportedIngredient>();
+  readonly importedIngredients = new Map<IngredientForm, ImportedIngredient>();
 
   private pendingPhoto: Blob | null = null;
   private photoRemoved = false;
@@ -108,6 +88,7 @@ export class RecipeEditorComponent {
   private objectUrl: string | null = null;
 
   ingredientDraftPending = false;
+  private importDraftPending = false;
 
   readonly ingredients = new FormArray(
     [this.makeIngredient()],
@@ -140,21 +121,11 @@ export class RecipeEditorComponent {
 
   private makeIngredient(input?: Ingredient) {
     return this.fb.group({
-      name: [
-        input?.name ?? '',
-        [textRequired, Validators.maxLength(200)],
-      ],
-      quantity: new FormControl<number | null>(
-        input?.quantity ?? null,
-        input?.unit === 'toTaste'
-          ? []
-          : [
-              Validators.required,
-              Validators.min(0.001),
-              Validators.max(100000),
-              threeDecimals,
-            ],
-      ),
+      name: [input?.name ?? '', [textRequired, Validators.maxLength(200)]],
+      quantity: new FormControl(input?.quantity ?? '', {
+        nonNullable: true,
+        validators: input?.unit === 'toTaste' ? [] : [quantityValid],
+      }),
       unit: [input?.unit ?? 'g', Validators.required],
       note: [input?.note ?? '', Validators.maxLength(300)],
     });
@@ -217,7 +188,7 @@ export class RecipeEditorComponent {
         if (!imported) {
           throw new Error(
             'This imported draft is no longer available. ' +
-            'Return to your recipes and import the link again.',
+              'Return to your recipes and import the link again.',
           );
         }
 
@@ -250,6 +221,7 @@ export class RecipeEditorComponent {
 
   private applyImportedDraft(result: RecipeImportResult): void {
     const draft = result.draft;
+    this.importDraftPending = true;
     const knownUnits = new Set(this.units().map((unit) => unit.code));
 
     this.importWarnings.set(result.warnings);
@@ -267,10 +239,7 @@ export class RecipeEditorComponent {
     this.importedIngredients.clear();
 
     for (const ingredient of draft.ingredients) {
-      const unit =
-        ingredient.unit && knownUnits.has(ingredient.unit)
-          ? ingredient.unit
-          : '';
+      const unit = ingredient.unit && knownUnits.has(ingredient.unit) ? ingredient.unit : '';
 
       const row = this.makeIngredient({
         name: ingredient.name,
@@ -316,7 +285,7 @@ export class RecipeEditorComponent {
       if (!this.destroyRef.destroyed) {
         this.photoError.set(
           'The recipe was imported, but its photo could not be copied. ' +
-          'Open the website photo below, save it, and upload it here.',
+            'Open the website photo below, save it, and upload it here.',
         );
       }
     } finally {
@@ -383,15 +352,10 @@ export class RecipeEditorComponent {
 
     if (row.controls.unit.value === 'toTaste') {
       quantity.clearValidators();
-      quantity.setValue(null);
+      quantity.setValue('');
       quantity.disable();
     } else {
-      quantity.setValidators([
-        Validators.required,
-        Validators.min(0.001),
-        Validators.max(100000),
-        threeDecimals,
-      ]);
+      quantity.setValidators([quantityValid]);
 
       quantity.enable();
     }
@@ -399,6 +363,23 @@ export class RecipeEditorComponent {
     quantity.updateValueAndValidity();
 
     if (dirty) this.form.markAsDirty();
+  }
+
+  recordIngredientDraft(event: { row: IngredientForm; ingredient: ImportedIngredient }): void {
+    this.importedIngredients.set(event.row, event.ingredient);
+    this.form.markAsDirty();
+  }
+
+  confirmIngredientReview(row: IngredientForm): void {
+    if (this.busy() || row.invalid) {
+      row.markAllAsTouched();
+      return;
+    }
+    const imported = this.importedIngredients.get(row);
+    if (imported) {
+      this.importedIngredients.set(row, { ...imported, requiresReview: false });
+      this.form.markAsDirty();
+    }
   }
 
   async choosePhoto(event: Event): Promise<void> {
@@ -458,6 +439,7 @@ export class RecipeEditorComponent {
 
   hasUnsavedChanges(): boolean {
     return (
+      this.importDraftPending ||
       this.ingredientDraftPending ||
       this.form.dirty ||
       this.pendingPhoto !== null ||
@@ -469,6 +451,21 @@ export class RecipeEditorComponent {
     return this.busy() || this.preparingPhoto();
   }
 
+  saveBlockReason(): string {
+    if (this.ingredientDraftPending) return 'Add or clear Quick add.';
+    if (!this.form.valid) return 'Check the highlighted fields.';
+    if ([...this.importedIngredients.values()].some((item) => item.requiresReview)) {
+      return 'Confirm ingredient reviews.';
+    }
+    return '';
+  }
+
+  canSave(): boolean {
+    return (
+      !this.loading() && !this.loadError() && !this.navigationBlocked() && !this.saveBlockReason()
+    );
+  }
+
   @HostListener('window:beforeunload', ['$event'])
   onBeforeUnload(event: BeforeUnloadEvent): void {
     if (this.hasUnsavedChanges() || this.navigationBlocked()) {
@@ -478,20 +475,14 @@ export class RecipeEditorComponent {
   }
 
   async save(): Promise<void> {
-    if (this.busy() || this.preparingPhoto()) return;
+    if (this.loading() || this.loadError() || this.navigationBlocked()) return;
 
     this.error.set('');
 
-    if (this.ingredientDraftPending) {
-      this.error.set(
-        'Add or clear the ingredient in Quick add before saving.',
-      );
-      return;
-    }
-
-    if (this.form.invalid) {
+    const blockedReason = this.saveBlockReason();
+    if (blockedReason) {
       this.form.markAllAsTouched();
-      this.error.set('Check the highlighted fields before saving.');
+      this.error.set(blockedReason);
       return;
     }
 
@@ -512,7 +503,7 @@ export class RecipeEditorComponent {
         ...item,
         name: item.name.trim(),
         note: item.note.trim() || null,
-        quantity: item.unit === 'toTaste' ? null : item.quantity,
+        quantity: item.unit === 'toTaste' ? '' : parseQuantity(item.quantity)!.canonical,
       })),
       steps: raw.steps.map((step) => step.trim()),
     };
@@ -525,12 +516,11 @@ export class RecipeEditorComponent {
     try {
       const id = this.savedId();
 
-      const saved = id
-        ? await this.api.update(id, input)
-        : await this.api.create(input);
+      const saved = id ? await this.api.update(id, input) : await this.api.create(input);
 
       this.savedId.set(saved.id);
       textSaved = true;
+      this.importDraftPending = false;
       this.form.markAsPristine();
 
       if (this.pendingPhoto) {
@@ -550,8 +540,8 @@ export class RecipeEditorComponent {
       this.error.set(
         textSaved
           ? 'Your recipe was saved, but the photo change failed. ' +
-            'Press Save again to retry. ' +
-            errorMessage(error)
+              'Press Save again to retry. ' +
+              errorMessage(error)
           : errorMessage(error),
       );
     } finally {

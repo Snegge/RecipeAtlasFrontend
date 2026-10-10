@@ -148,10 +148,15 @@ mat-form-field {
   border-left: 3px solid #b8c1cb;
   font-size: 0.85rem;
   overflow-wrap: anywhere;
+}
 
-  span {
-    font-weight: 600;
-  }
+.review-required {
+  background: #fff8e8;
+  border-left-color: #c07928;
+}
+
+.confirm-review-button {
+  margin-top: 8px;
 }
 
 @media (min-width: 601px) {
@@ -201,5 +206,16 @@ mat-form-field {
 
   .row-number {
     display: none;
+  }
+}
+.review-reason {
+  display: block;
+  font-weight: normal;
+  margin-top: 4px;
+}
+
+@media (max-width: 600px) {
+  .confirm-review-button {
+    width: 100%;
   }
 }

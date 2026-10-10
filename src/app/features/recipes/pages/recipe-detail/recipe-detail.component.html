@@ -37,10 +37,7 @@
           }
         </div>
         <div class="recipe-actions">
-          <a
-            mat-stroked-button
-            [routerLink]="['/recipes', recipe.id, 'edit']"
-          >
+          <a mat-stroked-button [routerLink]="['/recipes', recipe.id, 'edit']">
             <app-icon name="edit" />
             Edit recipe
           </a>
@@ -69,7 +66,19 @@
     <div class="cooking-layout">
       <section class="ingredients-panel" aria-labelledby="ingredients-heading">
         <h2 id="ingredients-heading">Ingredients</h2>
-        <p class="muted small">For {{ recipe.servings }} servings</p>
+        <label class="serving-selector"
+          >For
+          <input
+            type="number"
+            min="1"
+            max="1000"
+            step="1"
+            [value]="selectedServings()"
+            (input)="changeServings($event)"
+            aria-label="Servings to prepare"
+          />
+          servings
+        </label>
         <ul class="ingredient-checklist">
           @for (ingredient of recipe.ingredients; track $index) {
             <li>
@@ -79,11 +88,14 @@
                 [class.checked]="checkedIngredients().has($index)"
               >
                 <span class="ingredient-label">
-                  @if (ingredient.quantity !== null) {
+                  @if (ingredient.quantity) {
                     <strong
-                      >{{ ingredient.quantity | number: '1.0-3' }}
+                      >{{ scaledQuantity(ingredient).text }}
                       {{ ingredient.unit === 'piece' ? '' : ingredient.unit }}</strong
                     >
+                  }
+                  @if (ingredient.unit !== 'toTaste' && !scaledQuantity(ingredient).scaled) {
+                    <small>Original quantity · not scaled</small>
                   }
                   {{ ingredient.name }}
                   @if (ingredient.unit === 'toTaste') {
