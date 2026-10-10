@@ -2,17 +2,11 @@
   <div class="section-heading">
     <h2 id="ingredients-heading">Ingredients</h2>
 
-    <span class="muted small">
-      {{ ingredients.length }} / 100
-    </span>
+    <span class="muted small"> {{ ingredients.length }} / 100 </span>
   </div>
 
   <div class="quick-entry">
-    <mat-form-field
-      appearance="outline"
-      class="quick-input"
-      subscriptSizing="dynamic"
-    >
+    <mat-form-field appearance="outline" class="quick-input" subscriptSizing="dynamic">
       <mat-label>Quick add ingredient</mat-label>
 
       <input
@@ -56,17 +50,11 @@
   </div>
 
   <p id="ingredient-quick-help" class="muted small quick-help">
-    Type an ingredient and press Enter.
-    Examples: 200 g Mehl, ½ tsp salt, 2 Stück Eier,
-    Pfeffer nach Geschmack.
-    Put optional notes in parentheses.
+    Type an ingredient and press Enter. Examples: 200 g Mehl, ½ tsp salt, 2 Stück Eier, Pfeffer nach
+    Geschmack. Put optional notes in parentheses.
   </p>
 
-  <p
-    id="ingredient-quick-error"
-    class="quick-error"
-    role="alert"
-  >
+  <p id="ingredient-quick-error" class="quick-error" role="alert">
     {{ quickError }}
   </p>
 
@@ -75,17 +63,26 @@
   </span>
 
   <div class="ingredient-rows">
-    @for (
-      row of ingredients.controls;
-      track row;
-      let index = $index
-    ) {
+    @for (row of ingredients.controls; track row; let index = $index) {
       @if (importedIngredients.get(row); as imported) {
         <p class="imported-source">
           <span>
             {{ imported.requiresReview ? 'Check against source:' : 'Source:' }}
           </span>
           {{ imported.originalText }}
+          @if (imported.requiresReview) {
+            <span class="review-reason">{{
+              imported.reviewReason || 'Confirm quantity and unit.'
+            }}</span>
+            <button
+              mat-button
+              type="button"
+              (click)="reviewConfirmed.emit(row)"
+              [disabled]="busy || row.invalid"
+            >
+              Confirm reviewed
+            </button>
+          }
         </p>
       }
       <div class="ingredient-row" [formGroup]="row">
@@ -93,11 +90,7 @@
           {{ index + 1 }}
         </span>
 
-        <mat-form-field
-          appearance="outline"
-          class="ingredient-name"
-          subscriptSizing="dynamic"
-        >
+        <mat-form-field appearance="outline" class="ingredient-name" subscriptSizing="dynamic">
           <mat-label>Ingredient {{ index + 1 }}</mat-label>
 
           <input
@@ -111,40 +104,25 @@
           <mat-error>Enter an ingredient.</mat-error>
         </mat-form-field>
 
-        <mat-form-field
-          appearance="outline"
-          class="ingredient-quantity"
-          subscriptSizing="dynamic"
-        >
+        <mat-form-field appearance="outline" class="ingredient-quantity" subscriptSizing="dynamic">
           <mat-label>Quantity</mat-label>
 
           <input
             matInput
             formControlName="quantity"
-            type="number"
-            min="0.001"
-            max="100000"
-            step="0.001"
-            inputmode="decimal"
+            type="text"
+            maxlength="64"
+            placeholder="e.g. 2, 1/2, 3-4"
             [required]="row.controls.unit.value !== 'toTaste'"
           />
 
-          <mat-error>
-            Positive, up to 3 decimals.
-          </mat-error>
+          <mat-error> Use 0.001–100000, a fraction or an ascending range. </mat-error>
         </mat-form-field>
 
-        <mat-form-field
-          appearance="outline"
-          class="ingredient-unit"
-          subscriptSizing="dynamic"
-        >
+        <mat-form-field appearance="outline" class="ingredient-unit" subscriptSizing="dynamic">
           <mat-label>Unit</mat-label>
 
-          <mat-select
-            formControlName="unit"
-            (selectionChange)="unitChanged.emit(index)"
-          >
+          <mat-select formControlName="unit" (selectionChange)="unitChanged.emit(index)">
             @for (unit of units; track unit.code) {
               <mat-option [value]="unit.code">
                 {{ unitLabel(unit.code) }}
@@ -156,11 +134,7 @@
           <mat-error>Select a unit.</mat-error>
         </mat-form-field>
 
-        <mat-form-field
-          appearance="outline"
-          class="ingredient-note"
-          subscriptSizing="dynamic"
-        >
+        <mat-form-field appearance="outline" class="ingredient-note" subscriptSizing="dynamic">
           <mat-label>Note (optional)</mat-label>
 
           <input
@@ -170,9 +144,7 @@
             placeholder="e.g. finely chopped"
           />
 
-          <mat-error>
-            Use up to 300 characters.
-          </mat-error>
+          <mat-error> Use up to 300 characters. </mat-error>
         </mat-form-field>
 
         <button
@@ -201,9 +173,7 @@
   </button>
 
   <p class="muted small unit-note">
-    Metric spoons: 1 tsp / TL = 5 ml,
-    1 tbsp / EL = 15 ml.
-    Choose “To taste / Nach Geschmack” when no quantity
-    is needed.
+    Metric spoons: 1 tsp / TL = 5 ml, 1 tbsp / EL = 15 ml. Choose “To taste / Nach Geschmack” when
+    no quantity is needed.
   </p>
 </section>

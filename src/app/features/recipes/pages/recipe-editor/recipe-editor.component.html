@@ -1,9 +1,5 @@
 <section class="page editor-page">
-  <a
-    mat-button
-    [routerLink]="savedId() ? ['/recipes', savedId()] : ['/recipes']"
-    class="back-link"
-  >
+  <a mat-button [routerLink]="savedId() ? ['/recipes', savedId()] : ['/recipes']" class="back-link">
     <app-icon name="back" />
     {{ savedId() ? 'Back to recipe' : 'All recipes' }}
   </a>
@@ -24,9 +20,7 @@
     <div class="empty-state" role="alert">
       <p>{{ loadError() }}</p>
 
-      <button mat-stroked-button type="button" (click)="load()">
-        Try again
-      </button>
+      <button mat-stroked-button type="button" (click)="load()">Try again</button>
 
       <a mat-button routerLink="/recipes">All recipes</a>
       <a mat-button routerLink="/login">Sign in</a>
@@ -38,8 +32,7 @@
 
         @if (importedYield()) {
           <p>
-            Website yield: {{ importedYield() }}.
-            Confirm what one serving means for this recipe.
+            Website yield: {{ importedYield() }}. Confirm what one serving means for this recipe.
           </p>
         }
 
@@ -53,12 +46,7 @@
       </aside>
     }
 
-    <form
-      [formGroup]="form"
-      (ngSubmit)="save()"
-      class="recipe-form"
-      [attr.aria-busy]="busy()"
-    >
+    <form [formGroup]="form" (ngSubmit)="save()" class="recipe-form" [attr.aria-busy]="busy()">
       <section class="form-section">
         <h2>The basics</h2>
 
@@ -67,17 +55,9 @@
             <mat-form-field appearance="outline">
               <mat-label>Recipe title</mat-label>
 
-              <input
-                matInput
-                formControlName="title"
-                maxlength="200"
-                required
-                autocomplete="off"
-              />
+              <input matInput formControlName="title" maxlength="200" required autocomplete="off" />
 
-              <mat-error>
-                Enter a title, up to 200 characters.
-              </mat-error>
+              <mat-error> Enter a title, up to 200 characters. </mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="outline">
@@ -109,9 +89,7 @@
                   required
                 />
 
-                <mat-error>
-                  Enter a whole number from 1 to 1,000.
-                </mat-error>
+                <mat-error> Enter a whole number from 1 to 1,000. </mat-error>
               </mat-form-field>
 
               <mat-form-field appearance="outline">
@@ -125,9 +103,7 @@
                   maxlength="2048"
                 />
 
-                <mat-error>
-                  Enter a valid http or https link.
-                </mat-error>
+                <mat-error> Enter a valid http or https link. </mat-error>
               </mat-form-field>
             </div>
           </div>
@@ -146,16 +122,11 @@
               @if (externalPhotoUrl(); as photoUrl) {
                 <div class="import-photo-help">
                   <p class="muted small">
-                    The website photo has not been added. Open it,
-                    save it, and upload it using the photo picker.
+                    The website photo has not been added. Open it, save it, and upload it using the
+                    photo picker.
                   </p>
 
-                  <a
-                    mat-stroked-button
-                    [href]="photoUrl"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a mat-stroked-button [href]="photoUrl" target="_blank" rel="noopener noreferrer">
                     Open website photo
                   </a>
                 </div>
@@ -172,6 +143,8 @@
         [importedIngredients]="importedIngredients"
         [busy]="busy()"
         (ingredientAdded)="addIngredient()"
+        (ingredientParsed)="recordIngredientDraft($event)"
+        (reviewConfirmed)="confirmIngredientReview($event)"
         (draftPendingChange)="ingredientDraftPending = $event"
         (ingredientRemoved)="removeIngredient($event)"
         (unitChanged)="setUnit($event)"
@@ -179,8 +152,8 @@
 
       @if (ingredients.length > 100) {
         <p class="error-box" role="alert">
-          This recipe has {{ ingredients.length }} ingredients.
-          Reduce the list to 100 or fewer before saving.
+          This recipe has {{ ingredients.length }} ingredients. Reduce the list to 100 or fewer
+          before saving.
         </p>
       }
 
@@ -194,8 +167,7 @@
 
       @if (steps.length > 100) {
         <p class="error-box" role="alert">
-          This recipe has {{ steps.length }} steps.
-          Reduce the list to 100 or fewer before saving.
+          This recipe has {{ steps.length }} steps. Reduce the list to 100 or fewer before saving.
         </p>
       }
 
@@ -214,11 +186,7 @@
           }
         </span>
 
-        <button
-          mat-flat-button
-          type="submit"
-          [disabled]="busy() || preparingPhoto()"
-        >
+        <button mat-flat-button type="submit" [disabled]="busy() || preparingPhoto()">
           @if (busy()) {
             <mat-spinner diameter="20" />
           } @else {

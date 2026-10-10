@@ -1,10 +1,11 @@
 export interface ImportedIngredient {
   name: string;
-  quantity: number | null;
+  quantity: string;
   unit: string | null;
   note: string | null;
   originalText: string;
   requiresReview: boolean;
+  reviewReason?: string | null;
 }
 
 export interface RecipeImportDraft {
