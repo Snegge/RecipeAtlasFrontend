@@ -9,7 +9,9 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { firstValueFrom } from 'rxjs';
 import { RecipeApiService } from '../../../../core/services/recipe-api.service';
-import { Recipe } from '../../../../core/models/recipe.model';
+import { Ingredient, Recipe } from '../../../../core/models/recipe.model';
+
+import { scaleQuantity } from '../../../../core/utils/quantity';
 
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 
@@ -27,6 +29,7 @@ export class RecipeDetailComponent {
   private readonly snack = inject(MatSnackBar);
   private readonly title = inject(Title);
   readonly recipe = signal<Recipe | null>(null);
+  readonly selectedServings = signal(2);
   readonly loading = signal(true);
   readonly error = signal('');
   readonly deleting = signal(false);
@@ -41,12 +44,24 @@ export class RecipeDetailComponent {
     try {
       const recipe = await this.api.get(this.route.snapshot.paramMap.get('id')!);
       this.recipe.set(recipe);
+      this.selectedServings.set(recipe.servings);
       this.title.setTitle(`${recipe.title} · Recipe Atlas`);
     } catch (error) {
       this.error.set(errorMessage(error));
     } finally {
       this.loading.set(false);
     }
+  }
+  changeServings(event: Event): void {
+    const value = Number((event.target as HTMLInputElement).value);
+    if (Number.isInteger(value) && value >= 1 && value <= 1000) this.selectedServings.set(value);
+  }
+  scaledQuantity(ingredient: Ingredient): { text: string; scaled: boolean } {
+    return scaleQuantity(
+      ingredient.quantity,
+      this.selectedServings(),
+      this.recipe()?.servings ?? 1,
+    );
   }
   toggleIngredient(index: number) {
     this.checkedIngredients.update((current) => {

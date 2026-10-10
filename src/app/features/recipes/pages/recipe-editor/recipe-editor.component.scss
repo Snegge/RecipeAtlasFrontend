@@ -29,16 +29,93 @@
   position: sticky;
   bottom: 0;
   display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0 max(12px, env(safe-area-inset-bottom));
+  background: #fafbf9f5;
+  z-index: 5;
+}
+.save-actions {
+  display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  padding: 18px 0 max(18px, env(safe-area-inset-bottom));
-  background: #fafbf9f5;
-  z-index: 5;
+}
+.save-error {
+  margin: 0;
+  max-height: min(30dvh, 12rem);
+  overflow-y: auto;
+  font-size: 0.875rem;
+  line-height: 1.4;
 }
 .save-bar button {
   min-width: 156px;
 }
+
+.import-panel,
+.import-review {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border: 1px solid #d8dde3;
+  border-radius: 12px;
+
+  h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.1rem;
+  }
+}
+
+.import-controls {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-top: 1rem;
+
+  mat-form-field {
+    flex: 1;
+    min-width: 0;
+  }
+
+  button {
+    min-height: 56px;
+    flex-shrink: 0;
+  }
+}
+
+.import-review {
+  background: #fff8e8;
+  color: #433b28;
+
+  ul {
+    margin-bottom: 0;
+    padding-left: 1.25rem;
+  }
+
+  li + li {
+    margin-top: 0.4rem;
+  }
+}
+
+.import-photo-help {
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 600px) {
+  .import-controls {
+    flex-direction: column;
+    gap: 0;
+
+    mat-form-field,
+    button {
+      width: 100%;
+    }
+
+    button {
+      min-height: 44px;
+    }
+  }
+}
+
 @media (min-width: 850px) {
   .basics-grid {
     grid-template-columns: minmax(0, 1fr) 260px;
@@ -46,10 +123,12 @@
   }
 }
 @media (max-width: 420px) {
-  .save-bar > span {
-    display: none;
+  .save-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
   }
-  .save-bar > button {
+  .save-actions > button {
     width: 100%;
   }
 }

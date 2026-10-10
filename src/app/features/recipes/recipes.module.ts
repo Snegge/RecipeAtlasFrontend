@@ -9,6 +9,7 @@ import { IngredientEditorComponent } from './components/ingredient-editor/ingred
 import { StepEditorComponent } from './components/step-editor/step-editor.component';
 import { PhotoPickerComponent } from './components/photo-picker/photo-picker.component';
 import { TextFieldModule } from '@angular/cdk/text-field';
+import { RecipeImportDialogComponent } from './components/recipe-import-dialog/recipe-import-dialog.component';
 
 @NgModule({
   declarations: [
@@ -19,11 +20,8 @@ import { TextFieldModule } from '@angular/cdk/text-field';
     IngredientEditorComponent,
     StepEditorComponent,
     PhotoPickerComponent,
+    RecipeImportDialogComponent,
   ],
-  imports: [
-    SharedModule, 
-    RecipesRoutingModule,
-    TextFieldModule,
-  ],
+  imports: [SharedModule, RecipesRoutingModule, TextFieldModule],
 })
 export class RecipesModule {}

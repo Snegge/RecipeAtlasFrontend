@@ -1,15 +1,9 @@
-import {
-  Component,
-  ElementRef,
-  EventEmitter,
-  Input,
-  Output,
-  ViewChild,
-} from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 
 import { Unit } from '../../../../core/models/recipe.model';
-import { IngredientForms } from '../../models/recipe-form.model';
+import { IngredientForm, IngredientForms } from '../../models/recipe-form.model';
 import { parseIngredient } from '../../utils/ingredient-parser';
+import { ImportedIngredient } from '../../../../core/models/recipe-import.model';
 
 @Component({
   selector: 'app-ingredient-editor',
@@ -18,6 +12,8 @@ import { parseIngredient } from '../../utils/ingredient-parser';
   styleUrl: './ingredient-editor.component.scss',
 })
 export class IngredientEditorComponent {
+  @Input()
+  importedIngredients: ReadonlyMap<IngredientForm, ImportedIngredient> = new Map();
   @Input({ required: true })
   ingredients!: IngredientForms;
 
@@ -39,6 +35,15 @@ export class IngredientEditorComponent {
   @Output()
   readonly draftPendingChange = new EventEmitter<boolean>();
 
+  @Output()
+  readonly ingredientParsed = new EventEmitter<{
+    row: IngredientForm;
+    ingredient: ImportedIngredient;
+  }>();
+
+  @Output()
+  readonly reviewConfirmed = new EventEmitter<IngredientForm>();
+
   @ViewChild('quickInput')
   quickInput?: ElementRef<HTMLInputElement>;
 
@@ -51,9 +56,7 @@ export class IngredientEditorComponent {
     this.quickError = '';
     this.quickStatus = '';
 
-    this.draftPendingChange.emit(
-      this.quickEntry.trim().length > 0,
-    );
+    this.draftPendingChange.emit(this.quickEntry.trim().length > 0);
   }
 
   onQuickEnter(event: Event): void {
@@ -62,11 +65,7 @@ export class IngredientEditorComponent {
     keyboardEvent.preventDefault();
     keyboardEvent.stopPropagation();
 
-    if (
-      keyboardEvent.isComposing ||
-      keyboardEvent.keyCode === 229 ||
-      keyboardEvent.repeat
-    ) {
+    if (keyboardEvent.isComposing || keyboardEvent.keyCode === 229 || keyboardEvent.repeat) {
       return;
     }
 
@@ -98,13 +97,8 @@ export class IngredientEditorComponent {
 
     const ingredient = result.ingredient;
 
-    if (
-      !this.units.some(
-        (unit) => unit.code === ingredient.unit,
-      )
-    ) {
-      this.quickError =
-        'This unit is not available in your backend.';
+    if (ingredient.unit && !this.units.some((unit) => unit.code === ingredient.unit)) {
+      this.quickError = 'This unit is not available in your backend.';
       return;
     }
 
@@ -113,14 +107,13 @@ export class IngredientEditorComponent {
       (candidate) =>
         candidate.pristine &&
         !candidate.controls.name.value.trim() &&
-        candidate.controls.quantity.value === null &&
+        candidate.controls.quantity.value === '' &&
         !candidate.controls.note.value.trim(),
     );
 
     if (!row) {
       if (this.ingredients.length >= 100) {
-        this.quickError =
-          'A recipe can contain up to 100 ingredients.';
+        this.quickError = 'A recipe can contain up to 100 ingredients.';
         return;
       }
 
@@ -128,11 +121,8 @@ export class IngredientEditorComponent {
 
       this.ingredientAdded.emit();
 
-      if (
-        this.ingredients.length !== previousLength + 1
-      ) {
-        this.quickError =
-          'Could not create an ingredient row.';
+      if (this.ingredients.length !== previousLength + 1) {
+        this.quickError = 'Could not create an ingredient row.';
         return;
       }
 
@@ -142,7 +132,7 @@ export class IngredientEditorComponent {
     row.patchValue({
       name: ingredient.name,
       quantity: ingredient.quantity,
-      unit: ingredient.unit,
+      unit: ingredient.unit ?? '',
       note: ingredient.note ?? '',
     });
 
@@ -151,6 +141,7 @@ export class IngredientEditorComponent {
     // The parent applies quantity validators for this unit.
     this.unitChanged.emit(index);
 
+    this.ingredientParsed.emit({ row, ingredient });
     row.markAsDirty();
 
     this.quickStatus = `Added ${ingredient.name}.`;

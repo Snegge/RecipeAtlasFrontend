@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { Recipe, RecipeInput, RecipePage, Unit } from '../models/recipe.model';
+import { RecipeImportResult } from '../models/recipe-import.model';
 
 @Injectable({ providedIn: 'root' })
 export class RecipeApiService {
@@ -33,5 +34,12 @@ export class RecipeApiService {
   }
   removeImage(id: string) {
     return firstValueFrom(this.http.delete<void>(`/api/recipes/${id}/image`));
+  }
+
+  //Remove
+  importWebsite(url: string): Promise<RecipeImportResult> {
+    return firstValueFrom(
+      this.http.post<RecipeImportResult>('/api/recipes/import', { url }),
+    );
   }
 }

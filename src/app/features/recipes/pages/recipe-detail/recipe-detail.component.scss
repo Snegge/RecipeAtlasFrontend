@@ -185,3 +185,17 @@
     text-decoration: none;
   }
 }
+
+.serving-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.serving-selector input {
+  width: 72px;
+  padding: 6px;
+  border: 1px solid #b8c1cb;
+  border-radius: 6px;
+  font: inherit;
+}

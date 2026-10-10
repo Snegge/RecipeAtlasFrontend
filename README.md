@@ -217,3 +217,45 @@ Keep your existing production data volume, environment variables, and domain con
 - Tests cover lazy module navigation, rendered login form submission, rejected-login loading recovery, recipe list loading, child form binding, ingredient/step actions, and photo-upload retry without duplicate creation.
 
 The tests run in jsdom with stubbed API services. They do not verify real-browser visual layout or a live Docker deployment.
+
+## Quantity strings and website import
+
+Ingredient quantities are strings across the API, import drafts and forms: `2`, `0.5`, `1/2`, `1 1/2`, `3-4`. Use the text quantity field for manual entry. Quick entry and website imports normalize decimals/ranges and convert pounds/weight ounces to g and cups/explicit fluid ounces to ml. Unspecified cups/fluid ounces assume US customary definitions and are marked for review; 250 ml metric cooking cups also need review because conventions differ. Original source text and notes remain visible. Fix incomplete quantities/units and choose “Confirm reviewed” before saving flagged ingredients. `toTaste` clears and disables quantity; changing its unit restores validation.
+
+The detail serving selector scales the original stored quantities, including both range endpoints, without changing the recipe. Fractions are retained where possible. Unparseable values display their original text with “not scaled”.
+
+Deploy this frontend branch (`WebsiteReipeEctraction`) together with the backend `WebsiteScraping` branch and its `StringIngredientQuantities` migration. Old numeric/null API payloads are incompatible. See the backend's `docs/quantity-strings.md` for exact migration/startup commands, data backup requirements and conversion definitions. The existing URL import dialog, imported-photo fallback, mobile layout and unsaved-draft protection are retained.
+
+`src/app/core/utils/measurement-units.json` and `fixtures/quantity-cases.json` mirror the backend definitions/cases. Keep both copies synchronized and run `python3 tests/check_shared_contracts.py ../RecipeAtlasFrontend` from the backend checkout. Frontend checks remain `npm test` and `npm run build`.
+
+## Social description and pasted-text import
+
+Use `feature/social-description-import` in both repositories. Its backend base is
+`WebsiteScraping`; the existing frontend base is spelled `WebsiteReipeEctraction`
+(`WebsiteRecipeExtraction` was absent). The existing link dialog now supports
+public YouTube videos/Shorts, TikTok videos and Instagram Reels, plus **Text**.
+On caption retrieval failure, **Paste description instead** keeps the original
+URL. Standalone text needs no URL. Loading prevents duplicate requests, closing
+the dialog cancels the request, and failures keep the dialog open. Photo import
+remains disabled. Drafts use the existing editor, review confirmation and unsaved
+change protection; missing fields must be supplied before saving.
+
+```bash
+git fetch origin WebsiteReipeEctraction feature/social-description-import
+git switch feature/social-description-import
+npm ci
+npm test
+npm run build
+npm start
+```
+
+Start the matching backend at `http://localhost:5080`; Angular proxies `/api`.
+No AI credentials or platform selection belong in Angular. Backend installation,
+pinned yt-dlp version, secure model/key configuration, authenticated example
+requests, limits and live verification steps are documented in
+[the backend setup guide](https://github.com/Snegge/RecipeAtlas/blob/feature/social-description-import/docs/social-description-import.md).
+No new database migration is required. Social import is description-only:
+no video/audio, subtitles, comments, bios or linked pages are read. Missing or
+blocked captions yield an actionable error rather than an invented recipe.
+AI-extracted ingredients require review, and source wording/quantities remain
+available. Website imports continue working without AI configuration.

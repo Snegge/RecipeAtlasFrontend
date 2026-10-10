@@ -3,50 +3,108 @@
     <div>
       <p class="eyebrow">RECIPE ATLAS</p>
       <h1>Your recipes</h1>
+      <p class="muted">Good food, worth keeping.</p>
     </div>
-    <a mat-flat-button routerLink="/recipes/new" class="add-recipe"
-      ><app-icon name="plus" /> Add recipe</a
-    >
+
+    <div class="recipe-actions">
+      <a
+        mat-flat-button
+        routerLink="/recipes/new"
+        class="recipe-action add-recipe"
+      >
+        <app-icon name="plus" />
+        Add recipe
+      </a>
+
+      <button
+        mat-stroked-button
+        type="button"
+        class="recipe-action import-recipe"
+        (click)="openImport()"
+        [disabled]="importDialogOpen()"
+      >
+        <app-icon name="link" />
+        Import recipe
+      </button>
+    </div>
   </div>
+
+  @if (importError()) {
+    <p class="error-box" role="alert">{{ importError() }}</p>
+  }
+
   <mat-form-field appearance="outline" class="search-field">
     <mat-label>Find a recipe or ingredient</mat-label>
     <app-icon matPrefix name="search" />
-    <input matInput [formControl]="search" maxlength="200" autocomplete="off" />
+
+    <input
+      matInput
+      [formControl]="search"
+      maxlength="200"
+      autocomplete="off"
+    />
+
     @if (search.value) {
-      <button mat-icon-button matSuffix aria-label="Clear search" (click)="search.setValue('')">
+      <button
+        mat-icon-button
+        matSuffix
+        type="button"
+        aria-label="Clear search"
+        (click)="search.setValue('')"
+      >
         <app-icon name="close" />
       </button>
     }
   </mat-form-field>
+
   <div class="collection-meta">
-    <span aria-live="polite">{{
-      loading()
-        ? 'Finding your recipes…'
-        : result().total + (result().total === 1 ? ' recipe' : ' recipes')
-    }}</span
-    ><span>Recently updated</span>
+    <span aria-live="polite">
+      {{
+        loading()
+          ? 'Finding your recipes…'
+          : result().total + (result().total === 1 ? ' recipe' : ' recipes')
+      }}
+    </span>
+
+    <span>Recently updated</span>
   </div>
+
   @if (error()) {
     <div class="empty-state" role="alert">
       <app-icon name="book" />
       <h2>Couldn’t load your recipes</h2>
       <p>{{ error() }}</p>
-      <button mat-stroked-button (click)="retry()">Try again</button
-      ><a mat-button routerLink="/login">Sign in</a>
+
+      <button mat-stroked-button type="button" (click)="retry()">
+        Try again
+      </button>
+
+      <a mat-button routerLink="/login">Sign in</a>
     </div>
   } @else if (loading()) {
-    <div class="recipe-grid" aria-label="Loading recipes" aria-busy="true">
+    <div
+      class="recipe-grid"
+      aria-label="Loading recipes"
+      aria-busy="true"
+    >
       @for (item of [1, 2, 3]; track item) {
         <div class="skeleton-card">
           <div></div>
-          <span></span><span></span>
+          <span></span>
+          <span></span>
         </div>
       }
     </div>
   } @else if (result().items.length === 0) {
     <div class="empty-state">
-      <div class="large-mark"><app-icon name="book" /></div>
-      <h2>{{ query() ? 'No recipes found' : 'Your next favorite starts here' }}</h2>
+      <div class="large-mark">
+        <app-icon name="book" />
+      </div>
+
+      <h2>
+        {{ query() ? 'No recipes found' : 'Your next favorite starts here' }}
+      </h2>
+
       <p>
         {{
           query()
@@ -54,12 +112,20 @@
             : 'Save a family favorite, a quick dinner, or something you want to try.'
         }}
       </p>
+
       @if (query()) {
-        <button mat-stroked-button (click)="search.setValue('')">Clear search</button>
-      } @else {
-        <a mat-flat-button routerLink="/recipes/new"
-          ><app-icon name="plus" /> Add your first recipe</a
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="search.setValue('')"
         >
+          Clear search
+        </button>
+      } @else {
+        <a mat-flat-button routerLink="/recipes/new">
+          <app-icon name="plus" />
+          Add your first recipe
+        </a>
       }
     </div>
   } @else {
@@ -68,6 +134,7 @@
         <app-recipe-card [recipe]="recipe" />
       }
     </div>
+
     @if (result().total > 12) {
       <mat-paginator
         [length]="result().total"
