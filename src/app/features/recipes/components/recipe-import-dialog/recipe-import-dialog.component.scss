@@ -110,12 +110,27 @@ mat-dialog-content {
   font-size: 1.8rem;
 }
 
-.url-field {
+.url-field,
+.text-field {
   width: 100%;
 
   input {
     font-size: 16px;
   }
+}
+
+.text-field textarea {
+  font-size: 16px;
+  resize: vertical;
+}
+.text-source {
+  margin: 0 0 16px;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+.paste-description {
+  flex-basis: 100%;
+  margin-bottom: 8px;
 }
 
 .import-progress {
