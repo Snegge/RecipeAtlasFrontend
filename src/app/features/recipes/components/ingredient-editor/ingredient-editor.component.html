@@ -65,25 +65,31 @@
   <div class="ingredient-rows">
     @for (row of ingredients.controls; track row; let index = $index) {
       @if (importedIngredients.get(row); as imported) {
-        <p class="imported-source">
-          <span>
-            {{ imported.requiresReview ? 'Check against source:' : 'Source:' }}
-          </span>
-          {{ imported.originalText }}
+        <div class="imported-source" [class.review-required]="imported.requiresReview">
+          <p>
+            <strong>{{ imported.requiresReview ? 'Review required:' : 'Source:' }}</strong>
+            {{ imported.originalText }}
+          </p>
           @if (imported.requiresReview) {
-            <span class="review-reason">{{
-              imported.reviewReason || 'Confirm quantity and unit.'
-            }}</span>
+            <p class="review-reason" [id]="'ingredient-review-' + index">
+              {{ imported.reviewReason || 'Check quantity and unit.' }}
+              @if (row.invalid) {
+                Complete the fields below first.
+              }
+            </p>
             <button
-              mat-button
+              mat-flat-button
               type="button"
+              class="confirm-review-button"
+              [attr.aria-describedby]="'ingredient-review-' + index"
               (click)="reviewConfirmed.emit(row)"
               [disabled]="busy || row.invalid"
             >
+              <app-icon name="check" />
               Confirm reviewed
             </button>
           }
-        </p>
+        </div>
       }
       <div class="ingredient-row" [formGroup]="row">
         <span class="row-number" aria-hidden="true">
@@ -116,7 +122,7 @@
             [required]="row.controls.unit.value !== 'toTaste'"
           />
 
-          <mat-error> Use 0.001–100000, a fraction or an ascending range. </mat-error>
+          <mat-error class="compact-error">Check amount.</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="ingredient-unit" subscriptSizing="dynamic">
@@ -129,9 +135,7 @@
               </mat-option>
             }
           </mat-select>
-          <mat-error>Choose a unit.</mat-error>
-
-          <mat-error>Select a unit.</mat-error>
+          <mat-error class="compact-error">Choose unit.</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="ingredient-note" subscriptSizing="dynamic">

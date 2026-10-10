@@ -79,6 +79,50 @@ describe('Recipe editor component composition', () => {
     expect(fixture.componentInstance.busy()).toBe(false);
   });
 
+  it('enables Save only for valid fields and no unfinished quick entry or photo work', async () => {
+    const fixture = TestBed.createComponent(RecipeEditorComponent);
+    await fixture.whenStable();
+    const editor = fixture.componentInstance;
+    const saveButton = () => {
+      fixture.detectChanges();
+      return fixture.nativeElement.querySelector('button[type="submit"]') as HTMLButtonElement;
+    };
+    expect(saveButton().disabled).toBe(true);
+    editor.form.patchValue({
+      title: 'Pasta',
+      ingredients: saved.ingredients.map((item) => ({ ...item, note: '' })),
+      steps: saved.steps,
+    });
+    expect(saveButton().disabled).toBe(false);
+
+    editor.ingredients.at(0).controls.quantity.setValue('1/0');
+    expect(saveButton().disabled).toBe(true);
+    editor.ingredients.at(0).controls.quantity.setValue('1/2-1 1/2');
+    editor.form.controls.servings.setValue(2.5);
+    expect(saveButton().disabled).toBe(true);
+    editor.form.controls.servings.setValue(2);
+    expect(saveButton().disabled).toBe(false);
+
+    const quickInput: HTMLInputElement = fixture.nativeElement.querySelector('.quick-input input');
+    quickInput.value = '1 cup milk';
+    quickInput.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(saveButton().disabled).toBe(true);
+    expect(fixture.nativeElement.querySelector('.save-actions').textContent).toContain(
+      'Add or clear Quick add.',
+    );
+    (fixture.nativeElement.querySelector('.quick-clear-button') as HTMLButtonElement).click();
+    expect(saveButton().disabled).toBe(false);
+
+    editor.preparingPhoto.set(true);
+    expect(saveButton().disabled).toBe(true);
+    editor.preparingPhoto.set(false);
+    editor.busy.set(true);
+    expect(saveButton().disabled).toBe(true);
+    editor.busy.set(false);
+    expect(saveButton().disabled).toBe(false);
+    expect(api.create).not.toHaveBeenCalled();
+  });
+
   it('handles current add/remove controls and parent step ordering', async () => {
     const fixture = TestBed.createComponent(RecipeEditorComponent);
     await fixture.whenStable();
@@ -121,6 +165,12 @@ describe('Recipe editor component composition', () => {
     await editor.save();
     expect(editor.savedId()).toBe('recipe-1');
     expect(editor.error()).toContain('photo change failed');
+    fixture.detectChanges();
+    const error: HTMLElement = fixture.nativeElement.querySelector('.save-bar [role="alert"]');
+    const button: HTMLButtonElement = fixture.nativeElement.querySelector('button[type="submit"]');
+    expect(error.textContent).toContain('photo change failed');
+    expect(error.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(button.disabled).toBe(false);
     await editor.save();
     expect(api.create).toHaveBeenCalledTimes(1);
     expect(api.update).toHaveBeenCalledTimes(1);
@@ -236,14 +286,22 @@ describe('Recipe editor component composition', () => {
     expect(editor.ingredients.at(0).controls.quantity.value).toBe('3-4');
     expect(fixture.nativeElement.textContent).toContain('Fett für das Blech');
     expect(editor.hasUnsavedChanges()).toBe(true);
+    expect(fixture.nativeElement.querySelector('button[type="submit"]').disabled).toBe(true);
+    expect(fixture.nativeElement.querySelector('.confirm-review-button').disabled).toBe(true);
     await editor.save();
     expect(api.create).not.toHaveBeenCalled();
     row.controls.unit.setValue('g');
     editor.setUnit(1);
     row.controls.quantity.setValue('0,5');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('button[type="submit"]').disabled).toBe(true);
+    expect(fixture.nativeElement.querySelector('.confirm-review-button').disabled).toBe(false);
     await editor.save();
     expect(api.create).not.toHaveBeenCalled();
-    editor.confirmIngredientReview(row);
+    (fixture.nativeElement.querySelector('.confirm-review-button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.confirm-review-button')).toBeNull();
+    expect(fixture.nativeElement.querySelector('button[type="submit"]').disabled).toBe(false);
     await editor.save();
     expect(
       api.create.mock.calls[0][0].ingredients.map((item: { quantity: string }) => item.quantity),
@@ -265,6 +323,7 @@ describe('Recipe editor component composition', () => {
     );
     expect(input.type).toBe('text');
     expect(input.value).toBe('3-4');
+    expect(fixture.nativeElement.querySelector('button[type="submit"]').disabled).toBe(false);
     await fixture.componentInstance.save();
     expect(api.update.mock.calls[0][1].ingredients[0].quantity).toBe('3-4');
   });

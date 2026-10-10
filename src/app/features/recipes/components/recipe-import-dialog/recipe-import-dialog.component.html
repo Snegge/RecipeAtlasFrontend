@@ -3,40 +3,25 @@
     {{ step() === 'source' ? 'Import recipe' : 'Import by link' }}
   </h2>
 
-  <button
-    mat-icon-button
-    type="button"
-    aria-label="Close import dialog"
-    (click)="cancel()"
-  >
+  <button mat-icon-button type="button" aria-label="Close import dialog" (click)="cancel()">
     <app-icon name="close" />
   </button>
 </div>
 
-<form
-  class="import-form"
-  [formGroup]="form"
-  (ngSubmit)="submit()"
->
+<form class="import-form" [formGroup]="form" (ngSubmit)="submit()">
   <mat-dialog-content>
     @if (step() === 'source') {
       <p class="intro">How would you like to import your recipe?</p>
 
       <div class="source-options">
-        <button
-          class="source-option"
-          type="button"
-          (click)="chooseLink()"
-        >
+        <button class="source-option" type="button" (click)="chooseLink()">
           <span class="source-icon">
             <app-icon name="link" />
           </span>
 
           <span class="source-copy">
             <span class="source-title">Link</span>
-            <span class="source-description">
-              Import from a recipe website.
-            </span>
+            <span class="source-description"> Import from a recipe website. </span>
           </span>
 
           <span class="source-arrow" aria-hidden="true">›</span>
@@ -49,9 +34,7 @@
 
           <span class="source-copy">
             <span class="source-title">Text</span>
-            <span class="source-description">
-              Paste a recipe you copied.
-            </span>
+            <span class="source-description"> Paste a recipe you copied. </span>
             <span class="coming-soon">Coming soon</span>
           </span>
         </button>
@@ -71,11 +54,9 @@
         </button>
       </div>
     } @else {
-      <p class="intro">
-        Paste a recipe website link. You can review everything before saving.
-      </p>
+      <p class="intro">Paste a recipe website link. You can review everything before saving.</p>
 
-      <mat-form-field appearance="outline" class="url-field">
+      <mat-form-field appearance="outline" class="url-field" floatLabel="always">
         <mat-label>Recipe link</mat-label>
 
         <input
@@ -102,21 +83,15 @@
           <span>Reading the recipe…</span>
         </div>
       }
-
-      @if (error()) {
-        <p class="import-error" role="alert">{{ error() }}</p>
-      }
     }
   </mat-dialog-content>
 
   <mat-dialog-actions>
+    @if (error()) {
+      <p class="import-error" role="alert">{{ error() }}</p>
+    }
     @if (step() === 'link') {
-      <button
-        mat-button
-        type="button"
-        (click)="back()"
-        [disabled]="busy()"
-      >
+      <button mat-button type="button" (click)="back()" [disabled]="busy()">
         <app-icon name="back" />
         Back
       </button>
@@ -124,16 +99,10 @@
 
     <span class="actions-spacer"></span>
 
-    <button mat-button type="button" (click)="cancel()">
-      Cancel
-    </button>
+    <button mat-button type="button" (click)="cancel()">Cancel</button>
 
     @if (step() === 'link') {
-      <button
-        mat-flat-button
-        type="submit"
-        [disabled]="busy() || url.invalid"
-      >
+      <button mat-flat-button type="submit" [disabled]="busy() || url.invalid">
         {{ busy() ? 'Importing…' : 'Import recipe' }}
       </button>
     }

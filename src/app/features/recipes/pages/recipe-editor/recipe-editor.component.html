@@ -89,7 +89,7 @@
                   required
                 />
 
-                <mat-error> Enter a whole number from 1 to 1,000. </mat-error>
+                <mat-error class="compact-error">1–1000, whole.</mat-error>
               </mat-form-field>
 
               <mat-form-field appearance="outline">
@@ -150,13 +150,6 @@
         (unitChanged)="setUnit($event)"
       />
 
-      @if (ingredients.length > 100) {
-        <p class="error-box" role="alert">
-          This recipe has {{ ingredients.length }} ingredients. Reduce the list to 100 or fewer
-          before saving.
-        </p>
-      }
-
       <app-step-editor
         class="form-section"
         [steps]="steps"
@@ -165,35 +158,37 @@
         (stepRemoved)="removeStep($event)"
       />
 
-      @if (steps.length > 100) {
-        <p class="error-box" role="alert">
-          This recipe has {{ steps.length }} steps. Reduce the list to 100 or fewer before saving.
-        </p>
-      }
-
-      @if (error()) {
-        <p class="error-box" role="alert">{{ error() }}</p>
-      }
-
       <div class="save-bar">
-        <span class="muted small" role="status">
-          @if (preparingPhoto()) {
-            Preparing your photo…
-          } @else if (busy()) {
-            Saving your recipe…
-          } @else {
-            Ready when you are.
-          }
-        </span>
+        @if (ingredients.length > 100) {
+          <p class="error-box save-error" role="alert">Use at most 100 ingredients.</p>
+        }
+        @if (steps.length > 100) {
+          <p class="error-box save-error" role="alert">Use at most 100 steps.</p>
+        }
+        @if (error()) {
+          <p class="error-box save-error" role="alert">{{ error() }}</p>
+        }
 
-        <button mat-flat-button type="submit" [disabled]="busy() || preparingPhoto()">
-          @if (busy()) {
-            <mat-spinner diameter="20" />
-          } @else {
-            <app-icon name="check" />
-          }
-          Save recipe
-        </button>
+        <div class="save-actions">
+          <span class="muted small" role="status">
+            @if (preparingPhoto()) {
+              Preparing your photo…
+            } @else if (busy()) {
+              Saving your recipe…
+            } @else {
+              {{ saveBlockReason() || 'Ready when you are.' }}
+            }
+          </span>
+
+          <button mat-flat-button type="submit" [disabled]="!canSave()">
+            @if (busy()) {
+              <mat-spinner diameter="20" />
+            } @else {
+              <app-icon name="check" />
+            }
+            Save recipe
+          </button>
+        </div>
       </div>
     </form>
   }

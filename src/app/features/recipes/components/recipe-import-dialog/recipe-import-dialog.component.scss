@@ -126,6 +126,10 @@ mat-dialog-content {
 }
 
 .import-error {
+  flex-basis: 100%;
+  margin: 0 0 8px;
+  max-height: min(30dvh, 12rem);
+  overflow-y: auto;
   padding: 12px;
   border-radius: 8px;
   background: #fff0ed;

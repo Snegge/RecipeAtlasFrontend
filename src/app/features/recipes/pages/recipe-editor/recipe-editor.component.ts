@@ -451,6 +451,21 @@ export class RecipeEditorComponent {
     return this.busy() || this.preparingPhoto();
   }
 
+  saveBlockReason(): string {
+    if (this.ingredientDraftPending) return 'Add or clear Quick add.';
+    if (!this.form.valid) return 'Check the highlighted fields.';
+    if ([...this.importedIngredients.values()].some((item) => item.requiresReview)) {
+      return 'Confirm ingredient reviews.';
+    }
+    return '';
+  }
+
+  canSave(): boolean {
+    return (
+      !this.loading() && !this.loadError() && !this.navigationBlocked() && !this.saveBlockReason()
+    );
+  }
+
   @HostListener('window:beforeunload', ['$event'])
   onBeforeUnload(event: BeforeUnloadEvent): void {
     if (this.hasUnsavedChanges() || this.navigationBlocked()) {
@@ -460,23 +475,14 @@ export class RecipeEditorComponent {
   }
 
   async save(): Promise<void> {
-    if (this.busy() || this.preparingPhoto()) return;
+    if (this.loading() || this.loadError() || this.navigationBlocked()) return;
 
     this.error.set('');
 
-    if (this.ingredientDraftPending) {
-      this.error.set('Add or clear the ingredient in Quick add before saving.');
-      return;
-    }
-
-    if (this.form.invalid) {
+    const blockedReason = this.saveBlockReason();
+    if (blockedReason) {
       this.form.markAllAsTouched();
-      this.error.set('Check the highlighted fields before saving.');
-      return;
-    }
-
-    if ([...this.importedIngredients.values()].some((item) => item.requiresReview)) {
-      this.error.set('Check and confirm the ingredients marked for review before saving.');
+      this.error.set(blockedReason);
       return;
     }
 
