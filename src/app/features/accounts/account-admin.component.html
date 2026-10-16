@@ -1,0 +1,67 @@
+<section class="account-page">
+  <a mat-button routerLink="/cookbooks">All cookbooks</a>
+  <h1>Account administration</h1>
+  <p>Administrator access manages accounts. It does not grant access to private cookbooks.</p>
+  @if (error()) {
+    <p class="error-box" role="alert">{{ error() }}</p>
+  }
+  @if (notice()) {
+    <p role="status">{{ notice() }}</p>
+  }
+  @if (loading()) {
+    <p role="status">Loading accounts…</p>
+  }
+  <div class="account-grid">
+    <section>
+      <h2>Invitations</h2>
+      <button mat-flat-button (click)="invite()" [disabled]="busy()">Create invitation</button>
+      @if (link()) {
+        <div class="account-card">
+          <p>Anyone possessing this valid link can create one account. Share it privately.</p>
+          <input class="link-value" aria-label="New invitation link" [value]="link()" readonly />
+          <div class="account-actions">
+            <button mat-stroked-button (click)="copy()">Copy link</button
+            ><button mat-button (click)="link.set('')">Dismiss link</button>
+          </div>
+        </div>
+      }
+      @for (invitation of invitations(); track invitation.id) {
+        <article class="account-card">
+          <p>
+            <strong>{{ invitation.status }}</strong>
+          </p>
+          <p>
+            Created {{ invitation.createdAtUtc | date: 'medium' }}<br />Expires
+            {{ invitation.expiresAtUtc | date: 'medium' }}
+          </p>
+          @if (invitation.status === 'Pending') {
+            <button mat-stroked-button (click)="revoke(invitation.id)" [disabled]="busy()">
+              Revoke invitation
+            </button>
+          }
+        </article>
+      } @empty {
+        <p>No invitations yet.</p>
+      }
+    </section>
+    <section>
+      <h2>Accounts</h2>
+      @for (account of accounts(); track account.id) {
+        <article class="account-card">
+          <h3>{{ account.displayName }}</h3>
+          <p>
+            {{ account.username }} · {{ account.isActive ? 'Active' : 'Deactivated' }}
+            @if (account.isAdministrator) {
+              · Administrator
+            }
+          </p>
+          @if (!account.isAdministrator) {
+            <button mat-stroked-button (click)="status(account)" [disabled]="busy()">
+              {{ account.isActive ? 'Deactivate account' : 'Reactivate account' }}
+            </button>
+          }
+        </article>
+      }
+    </section>
+  </div>
+</section>

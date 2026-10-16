@@ -1,4 +1,4 @@
-<a class="recipe-card" [routerLink]="['/recipes', recipe.id]">
+<a class="recipe-card" [routerLink]="['/cookbooks', cookbooks.current()?.id, 'recipes', recipe.id]">
   <div class="card-photo">
     @if (recipe.imageUrl) {
       <img

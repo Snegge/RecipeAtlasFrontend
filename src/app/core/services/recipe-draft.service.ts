@@ -8,6 +8,10 @@ export class RecipeDraftService {
     result: RecipeImportResult;
   } | null = null;
 
+  clear(): void {
+    this.pending = null;
+  }
+
   put(result: RecipeImportResult): string {
     const id = crypto.randomUUID();
 
@@ -17,9 +21,7 @@ export class RecipeDraftService {
   }
 
   get(id: string): RecipeImportResult | null {
-    return this.pending?.id === id
-      ? this.pending.result
-      : null;
+    return this.pending?.id === id ? this.pending.result : null;
   }
 
   remove(id: string): void {

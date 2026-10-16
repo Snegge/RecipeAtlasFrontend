@@ -90,3 +90,22 @@ main:focus {
     display: none;
   }
 }
+
+.account-navigation {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.account-navigation a {
+  min-height: 44px;
+}
+.header-inner {
+  flex-wrap: wrap;
+}
+@media (max-width: 600px) {
+  .account-navigation {
+    order: 3;
+    flex-basis: 100%;
+    justify-content: center;
+  }
+}

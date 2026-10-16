@@ -1,5 +1,6 @@
+import { CookbookContext } from '../../../../core/services/cookbook-context';
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, provideRouter, Router } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { signal } from '@angular/core';
 import { of } from 'rxjs';
@@ -22,6 +23,8 @@ describe('Recipe list loading', () => {
       imports: [RecipesModule],
       providers: [provideRouter([]), { provide: RecipeApiService, useValue: { list } }],
     }).compileComponents();
+    TestBed.inject(ActivatedRoute).snapshot.params = { cookbookId: 'cookbook-1' };
+    TestBed.inject(CookbookContext).current.set({ id: 'cookbook-1', name: 'Test', role: 'Owner' });
     const fixture = TestBed.createComponent(RecipeListComponent);
     await fixture.whenStable();
     expect(fixture.componentInstance.loading()).toBe(false);
@@ -71,6 +74,8 @@ describe('Recipe list loading', () => {
         },
       ],
     }).compileComponents();
+    TestBed.inject(ActivatedRoute).snapshot.params = { cookbookId: 'cookbook-1' };
+    TestBed.inject(CookbookContext).current.set({ id: 'cookbook-1', name: 'Test', role: 'Owner' });
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     const list = TestBed.createComponent(RecipeListComponent);
     await list.whenStable();
@@ -78,7 +83,9 @@ describe('Recipe list loading', () => {
     expect(navigate).toHaveBeenCalledTimes(1);
     const id = navigate.mock.calls[0][1]?.queryParams?.['import'];
     expect(TestBed.inject(RecipeDraftService).get(id)).toEqual(result);
-    TestBed.inject(ActivatedRoute).snapshot.queryParams = { import: id };
+    vi.spyOn(TestBed.inject(ActivatedRoute).snapshot, 'queryParamMap', 'get').mockReturnValue(
+      convertToParamMap({ import: id }),
+    );
     const editorFixture = TestBed.createComponent(RecipeEditorComponent);
     await editorFixture.whenStable();
     editorFixture.detectChanges();
@@ -91,5 +98,28 @@ describe('Recipe list loading', () => {
     expect(editorFixture.nativeElement.querySelector('button[type="submit"]').disabled).toBe(true);
     expect(editor.hasUnsavedChanges()).toBe(true);
     expect(TestBed.inject(RecipeDraftService).get(id)).toBeNull();
+  });
+  it('hides recipe creation and import from viewers', async () => {
+    await TestBed.configureTestingModule({
+      imports: [RecipesModule],
+      providers: [
+        provideRouter([]),
+        {
+          provide: RecipeApiService,
+          useValue: { list: () => of({ items: [], total: 0, page: 1, pageSize: 12 }) },
+        },
+      ],
+    }).compileComponents();
+    TestBed.inject(CookbookContext).current.set({
+      id: 'read-only',
+      name: 'Shared',
+      role: 'Viewer',
+    });
+    const fixture = TestBed.createComponent(RecipeListComponent);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.add-recipe')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.import-recipe')).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('Add your first recipe');
   });
 });

@@ -1,0 +1,38 @@
+<section class="account-page">
+  <a mat-button routerLink="/cookbooks">All cookbooks</a>
+  <h1>Your account</h1>
+  <p>{{ auth.user()?.displayName }} · {{ auth.user()?.username }}</p>
+  <div class="account-card">
+    <h2>Change password</h2>
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <mat-form-field
+        ><mat-label>Current password</mat-label
+        ><input
+          matInput
+          type="password"
+          formControlName="currentPassword"
+          autocomplete="current-password"
+          required /></mat-form-field
+      ><mat-form-field
+        ><mat-label>New password</mat-label
+        ><input
+          matInput
+          type="password"
+          formControlName="newPassword"
+          autocomplete="new-password"
+          minlength="12"
+          maxlength="256"
+          required
+        /><mat-error>Use 12–256 characters.</mat-error></mat-form-field
+      ><button mat-flat-button [disabled]="busy()">
+        {{ busy() ? 'Changing…' : 'Change password' }}
+      </button>
+    </form>
+    @if (error()) {
+      <p class="error-box" role="alert">{{ error() }}</p>
+    }
+    @if (success()) {
+      <p role="status">{{ success() }}</p>
+    }
+  </div>
+</section>

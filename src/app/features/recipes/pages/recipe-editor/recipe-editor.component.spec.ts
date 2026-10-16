@@ -1,3 +1,6 @@
+import { CookbookContext } from '../../../../core/services/cookbook-context';
+import { HttpErrorResponse } from '@angular/common/http';
+import { SessionState } from '../../../../core/services/session-state';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -47,6 +50,12 @@ describe('Recipe editor component composition', () => {
       imports: [RecipesModule],
       providers: [provideRouter([]), { provide: RecipeApiService, useValue: api }],
     }).compileComponents();
+    TestBed.inject(ActivatedRoute).snapshot.params = { cookbookId: 'cookbook-1' };
+    TestBed.inject(CookbookContext).current.set({
+      id: 'cookbook-1',
+      name: 'Test cookbook',
+      role: 'Owner',
+    });
     vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
   });
 
@@ -68,7 +77,7 @@ describe('Recipe editor component composition', () => {
       .querySelector('form')
       .dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     await fixture.whenStable();
-    expect(api.create).toHaveBeenCalledExactlyOnceWith({
+    expect(api.create).toHaveBeenCalledExactlyOnceWith('cookbook-1', {
       title: 'Pasta',
       description: null,
       sourceUrl: null,
@@ -187,7 +196,7 @@ describe('Recipe editor component composition', () => {
       steps: ['Cook.'],
     });
     await editor.save();
-    expect(api.create.mock.calls[0][0].ingredients[0].quantity).toBe('3-4');
+    expect(api.create.mock.calls[0][1].ingredients[0].quantity).toBe('3-4');
     api.create.mockClear();
     editor.ingredients.at(0).controls.quantity.setValue('1/0');
     await editor.save();
@@ -304,13 +313,13 @@ describe('Recipe editor component composition', () => {
     expect(fixture.nativeElement.querySelector('button[type="submit"]').disabled).toBe(false);
     await editor.save();
     expect(
-      api.create.mock.calls[0][0].ingredients.map((item: { quantity: string }) => item.quantity),
+      api.create.mock.calls[0][1].ingredients.map((item: { quantity: string }) => item.quantity),
     ).toEqual(['3-4', '0.5']);
     expect(editor.importedIngredients.get(row)?.originalText).toBe('Fett für das Blech');
   });
 
   it('loads and edits an existing range without coercing it to a number', async () => {
-    TestBed.inject(ActivatedRoute).snapshot.params = { id: 'recipe-1' };
+    TestBed.inject(ActivatedRoute).snapshot.params = { id: 'recipe-1', cookbookId: 'cookbook-1' };
     api.get.mockResolvedValue({
       ...saved,
       ingredients: [{ name: 'Eggs', quantity: '3-4', unit: 'piece', note: null }],
@@ -325,7 +334,7 @@ describe('Recipe editor component composition', () => {
     expect(input.value).toBe('3-4');
     expect(fixture.nativeElement.querySelector('button[type="submit"]').disabled).toBe(false);
     await fixture.componentInstance.save();
-    expect(api.update.mock.calls[0][1].ingredients[0].quantity).toBe('3-4');
+    expect(api.update.mock.calls[0][2].ingredients[0].quantity).toBe('3-4');
   });
   it('isolates form, review and photo state between editor instances', async () => {
     const first = TestBed.createComponent(RecipeEditorComponent);
@@ -373,4 +382,38 @@ describe('Recipe editor component composition', () => {
     expect(editor.preview()).toBeNull();
   });
 
+  for (const status of [403, 404])
+    it(`retains unsaved contents after access is revoked (${status})`, async () => {
+      const fixture = TestBed.createComponent(RecipeEditorComponent);
+      await fixture.whenStable();
+      const editor = fixture.componentInstance;
+      editor.form.patchValue({
+        title: 'Keep my draft',
+        ingredients: saved.ingredients.map((i) => ({ ...i, note: '' })),
+        steps: saved.steps,
+      });
+      editor.form.markAsDirty();
+      api.create.mockRejectedValueOnce(new HttpErrorResponse({ status }));
+      await editor.save();
+      expect(editor.form.controls.title.value).toBe('Keep my draft');
+      expect(editor.hasUnsavedChanges()).toBe(true);
+      expect(editor.error()).toContain('unsaved edits are still here');
+      expect(editor.canSave()).toBe(false);
+      expect(TestBed.inject(Router).navigate).not.toHaveBeenCalled();
+    });
+  it('keeps expired-session work available, then clears it on explicit account change', async () => {
+    const fixture = TestBed.createComponent(RecipeEditorComponent);
+    await fixture.whenStable();
+    const editor = fixture.componentInstance;
+    editor.form.controls.title.setValue('Private draft');
+    editor.form.markAsDirty();
+    const session = TestBed.inject(SessionState);
+    session.user.set({ id: 'u', username: 'user', displayName: 'User', isAdministrator: false });
+    session.clear('expired');
+    expect(editor.form.controls.title.value).toBe('Private draft');
+    expect(editor.canSave()).toBe(false);
+    session.clear('login');
+    expect(editor.form.controls.title.value).toBe('');
+    expect(editor.preview()).toBeNull();
+  });
 });

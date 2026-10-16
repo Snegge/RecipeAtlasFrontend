@@ -1,6 +1,9 @@
+import { HttpErrorResponse } from '@angular/common/http';
+import { CookbookContext } from '../../../../core/services/cookbook-context';
+import { SessionState } from '../../../../core/services/session-state';
 import { Component, DestroyRef, effect, inject, signal, untracked } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged, firstValueFrom } from 'rxjs';
 
@@ -21,6 +24,12 @@ import { RecipeImportDialogComponent } from '../../components/recipe-import-dial
   styleUrl: './recipe-list.component.scss',
 })
 export class RecipeListComponent {
+  readonly cookbooks = inject(CookbookContext);
+  private readonly session = inject(SessionState);
+  readonly cookbookId = inject(ActivatedRoute).snapshot.paramMap.get('cookbookId')!;
+  readonly recipeRoot = ['/cookbooks', this.cookbookId, 'recipes'];
+  readonly message = inject(ActivatedRoute).snapshot.queryParamMap?.get('message') ?? '';
+  private readonly instanceEpoch = this.session.epoch();
   private readonly api = inject(RecipeApiService);
   private readonly drafts = inject(RecipeDraftService);
   private readonly dialog = inject(MatDialog);
@@ -44,6 +53,10 @@ export class RecipeListComponent {
   });
 
   constructor() {
+    this.session.changes.pipe(takeUntilDestroyed()).subscribe(() => {
+      this.result.set({ items: [], total: 0, page: 1, pageSize: 12 });
+      this.importError.set('Session changed. Choose a cookbook again.');
+    });
     this.search.valueChanges
       .pipe(debounceTime(250), distinctUntilChanged(), takeUntilDestroyed())
       .subscribe((value) => {
@@ -52,6 +65,7 @@ export class RecipeListComponent {
       });
 
     effect((cleanup) => {
+      if (this.session.epoch() !== this.instanceEpoch) return;
       this.refresh();
 
       const query = this.query();
@@ -61,12 +75,20 @@ export class RecipeListComponent {
       this.error.set('');
 
       const subscription = untracked(() =>
-        this.api.list(query, page).subscribe({
+        this.api.list(this.cookbookId, query, page).subscribe({
           next: (result) => {
             this.result.set(result);
             this.loading.set(false);
           },
           error: (error) => {
+            if (error instanceof HttpErrorResponse && error.status === 404) {
+              this.cookbooks.current.set(null);
+              void this.router.navigate(['/cookbooks'], {
+                queryParams: {
+                  message: 'This cookbook is no longer accessible. Choose another cookbook.',
+                },
+              });
+            }
             this.error.set(errorMessage(error));
             this.loading.set(false);
           },
@@ -78,8 +100,9 @@ export class RecipeListComponent {
   }
 
   async openImport(): Promise<void> {
-    if (this.importDialogOpen()) return;
+    if (this.importDialogOpen() || !this.cookbooks.canWrite()) return;
 
+    const epoch = this.session.epoch();
     this.importDialogOpen.set(true);
     this.importError.set('');
 
@@ -96,16 +119,17 @@ export class RecipeListComponent {
       },
     );
 
+    const closeOnSession = this.session.changes.subscribe(() => ref.close());
     const unregisterDestroy = this.destroyRef.onDestroy(() => ref.close());
 
     try {
       const result = await firstValueFrom(ref.afterClosed());
 
-      if (!result || this.destroyRef.destroyed) return;
+      if (!result || this.destroyRef.destroyed || epoch !== this.session.epoch()) return;
 
       draftId = this.drafts.put(result);
 
-      const navigated = await this.router.navigate(['/recipes/new'], {
+      const navigated = await this.router.navigate([...this.recipeRoot, 'new'], {
         queryParams: { import: draftId },
       });
 
@@ -121,6 +145,7 @@ export class RecipeListComponent {
       }
     } finally {
       unregisterDestroy();
+      closeOnSession.unsubscribe();
 
       if (!this.destroyRef.destroyed) {
         this.importDialogOpen.set(false);

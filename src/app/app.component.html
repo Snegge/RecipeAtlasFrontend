@@ -1,18 +1,35 @@
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="app-header">
   <div class="header-inner">
-    <a class="brand" routerLink="/recipes" aria-label="Recipoke home">
+    <a class="brand" routerLink="/cookbooks" aria-label="Recipoke home">
       <span class="brand-mark"><app-icon name="book" /></span><span>Recipoke</span>
     </a>
+    @if (auth.signedIn()) {
+      <nav class="account-navigation" aria-label="Account navigation">
+        <a mat-button routerLink="/cookbooks">Cookbooks</a
+        ><a mat-button routerLink="/account">Account</a>
+        @if (auth.user()?.isAdministrator) {
+          <a mat-button routerLink="/admin">Accounts</a>
+        }
+      </nav>
+    }
     @if (auth.signedIn() && !isEditor()) {
-      <button mat-button (click)="logout()" [disabled]="leaving()" class="signout" [class.hide-signout-mobile]="showRecipesBack()">
+      <button
+        mat-button
+        (click)="logout()"
+        [disabled]="leaving()"
+        class="signout"
+        [class.hide-signout-mobile]="showRecipesBack()"
+      >
         <app-icon name="logout" /><span>Sign out</span>
       </button>
     }
     @if (showRecipesBack()) {
       <a
         mat-icon-button
-        routerLink="/recipes"
+        [routerLink]="
+          cookbooks.current() ? ['/cookbooks', cookbooks.current()!.id, 'recipes'] : ['/cookbooks']
+        "
         class="mobile-recipes-back"
         aria-label="Back to all recipes"
       >

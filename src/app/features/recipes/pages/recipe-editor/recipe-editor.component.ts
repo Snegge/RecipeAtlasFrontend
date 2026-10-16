@@ -14,6 +14,8 @@ import { RecipeEditorPhoto } from './recipe-editor-photo';
 })
 export class RecipeEditorComponent {
   readonly editor = inject(RecipeEditorCoordinator);
+  readonly cookbookId = this.editor.cookbookId;
+  readonly recipeRoot = this.editor.recipeRoot;
   readonly photos = this.editor.photos;
   readonly savedId = this.editor.savedId;
   readonly loading = this.editor.loading;

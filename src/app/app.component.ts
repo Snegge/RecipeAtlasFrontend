@@ -1,3 +1,4 @@
+import { CookbookContext } from './core/services/cookbook-context';
 import { Component, inject, signal } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 
@@ -14,6 +15,7 @@ import { distinctUntilChanged, filter, map, startWith } from 'rxjs';
   styleUrl: './app.component.scss',
 })
 export class AppComponent {
+  readonly cookbooks = inject(CookbookContext);
   readonly auth = inject(AuthService);
   readonly router = inject(Router);
   private readonly snack = inject(MatSnackBar);
@@ -40,7 +42,7 @@ export class AppComponent {
       startWith(this.router.url),
       map((url) => {
         const path = url.split(/[?#]/)[0];
-        return path.startsWith('/recipes/');
+        return path.includes('/recipes/');
       }),
       distinctUntilChanged(),
     ),

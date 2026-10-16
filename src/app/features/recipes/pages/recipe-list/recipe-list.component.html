@@ -3,32 +3,38 @@
     <div>
       <p class="eyebrow">RECIPOKE</p>
       <h1>Your recipes</h1>
-      <p class="muted">Good food, worth keeping.</p>
+      <p class="muted">{{ cookbooks.current()?.name }} · {{ cookbooks.current()?.role }}</p>
+      <a mat-button routerLink="/cookbooks">All cookbooks</a>
     </div>
 
-    <div class="recipe-actions">
-      <a
-        mat-flat-button
-        routerLink="/recipes/new"
-        class="recipe-action add-recipe"
-      >
-        <app-icon name="plus" />
-        Add recipe
-      </a>
+    @if (cookbooks.canWrite()) {
+      <div class="recipe-actions">
+        <a
+          mat-flat-button
+          [routerLink]="['/cookbooks', cookbookId, 'recipes', 'new']"
+          class="recipe-action add-recipe"
+        >
+          <app-icon name="plus" />
+          Add recipe
+        </a>
 
-      <button
-        mat-stroked-button
-        type="button"
-        class="recipe-action import-recipe"
-        (click)="openImport()"
-        [disabled]="importDialogOpen()"
-      >
-        <app-icon name="link" />
-        Import recipe
-      </button>
-    </div>
+        <button
+          mat-stroked-button
+          type="button"
+          class="recipe-action import-recipe"
+          (click)="openImport()"
+          [disabled]="importDialogOpen()"
+        >
+          <app-icon name="link" />
+          Import recipe
+        </button>
+      </div>
+    }
   </div>
 
+  @if (message) {
+    <p role="status">{{ message }}</p>
+  }
   @if (importError()) {
     <p class="error-box" role="alert">{{ importError() }}</p>
   }
@@ -37,12 +43,7 @@
     <mat-label>Find a recipe or ingredient</mat-label>
     <app-icon matPrefix name="search" />
 
-    <input
-      matInput
-      [formControl]="search"
-      maxlength="200"
-      autocomplete="off"
-    />
+    <input matInput [formControl]="search" maxlength="200" autocomplete="off" />
 
     @if (search.value) {
       <button
@@ -75,18 +76,12 @@
       <h2>Couldn’t load your recipes</h2>
       <p>{{ error() }}</p>
 
-      <button mat-stroked-button type="button" (click)="retry()">
-        Try again
-      </button>
+      <button mat-stroked-button type="button" (click)="retry()">Try again</button>
 
       <a mat-button routerLink="/login">Sign in</a>
     </div>
   } @else if (loading()) {
-    <div
-      class="recipe-grid"
-      aria-label="Loading recipes"
-      aria-busy="true"
-    >
+    <div class="recipe-grid" aria-label="Loading recipes" aria-busy="true">
       @for (item of [1, 2, 3]; track item) {
         <div class="skeleton-card">
           <div></div>
@@ -114,15 +109,9 @@
       </p>
 
       @if (query()) {
-        <button
-          mat-stroked-button
-          type="button"
-          (click)="search.setValue('')"
-        >
-          Clear search
-        </button>
-      } @else {
-        <a mat-flat-button routerLink="/recipes/new">
+        <button mat-stroked-button type="button" (click)="search.setValue('')">Clear search</button>
+      } @else if (cookbooks.canWrite()) {
+        <a mat-flat-button [routerLink]="['/cookbooks', cookbookId, 'recipes', 'new']">
           <app-icon name="plus" />
           Add your first recipe
         </a>

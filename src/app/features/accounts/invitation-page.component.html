@@ -1,0 +1,64 @@
+<section class="account-page">
+  <div class="account-card">
+    <h1>Join Recipoke</h1>
+    <p>Accounts are created by invitation only. No email address is required.</p>
+    @if (status() === 'Loading') {
+      <p role="status">Checking invitation…</p>
+    } @else if (status() === 'Pending') {
+      <p>
+        This invitation can create one account. Choose a username, a display name and a password.
+      </p>
+      <form [formGroup]="form" (ngSubmit)="accept()">
+        <mat-form-field
+          ><mat-label>Username</mat-label
+          ><input
+            matInput
+            formControlName="username"
+            autocomplete="username"
+            maxlength="32"
+            required
+          /><mat-error
+            >Use 3–32 letters, digits, dots, underscores or hyphens.</mat-error
+          ></mat-form-field
+        >
+        <mat-form-field
+          ><mat-label>Display name</mat-label
+          ><input
+            matInput
+            formControlName="displayName"
+            autocomplete="nickname"
+            maxlength="100"
+            required
+          /><mat-error>Enter a display name, up to 100 characters.</mat-error></mat-form-field
+        >
+        <mat-form-field
+          ><mat-label>Password</mat-label
+          ><input
+            matInput
+            type="password"
+            formControlName="password"
+            autocomplete="new-password"
+            minlength="12"
+            maxlength="256"
+            required
+          /><mat-error>Use 12–256 characters.</mat-error></mat-form-field
+        >
+        <button mat-flat-button type="submit" [disabled]="busy()">
+          {{ busy() ? 'Creating account…' : 'Create account' }}
+        </button>
+      </form>
+    } @else if (status() === 'Created') {
+      <p role="status">Your account and personal cookbook are ready.</p>
+      <a mat-flat-button routerLink="/login">Sign in</a>
+    } @else {
+      <p role="alert">
+        This invitation is {{ status() === 'Consumed' ? 'already used' : status().toLowerCase() }}.
+        Ask the administrator for a new invitation.
+      </p>
+      <a mat-button routerLink="/login">Back to sign in</a>
+    }
+    @if (error()) {
+      <p class="error-box" role="alert">{{ error() }}</p>
+    }
+  </div>
+</section>

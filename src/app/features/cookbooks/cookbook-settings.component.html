@@ -1,0 +1,59 @@
+<section class="account-page">
+  <a mat-button [routerLink]="['/cookbooks', id, 'recipes']">Back to recipes</a>
+  <h1>Cookbook settings</h1>
+  <p>Ownership is permanent. Members receive Viewer or Editor access.</p>
+  @if (error()) {
+    <p class="error-box" role="alert">{{ error() }}</p>
+  }
+  @if (notice()) {
+    <p role="status">{{ notice() }}</p>
+  }
+  <div class="account-card">
+    <h2>Rename cookbook</h2>
+    <form [formGroup]="name" (ngSubmit)="rename()">
+      <mat-form-field
+        ><mat-label>Cookbook name</mat-label
+        ><input matInput formControlName="name" maxlength="100" required /></mat-form-field
+      ><button mat-flat-button [disabled]="busy() || name.invalid">Save name</button>
+    </form>
+  </div>
+  <div class="account-card">
+    <h2>Add an existing account</h2>
+    <p>Enter its exact username. This does not create a new account.</p>
+    <form [formGroup]="member" (ngSubmit)="add()">
+      <mat-form-field
+        ><mat-label>Username</mat-label
+        ><input matInput formControlName="username" autocomplete="off" required /></mat-form-field
+      ><mat-form-field
+        ><mat-label>Role</mat-label
+        ><mat-select formControlName="role"
+          ><mat-option value="Viewer">Viewer — read only</mat-option
+          ><mat-option value="Editor">Editor — edit recipes</mat-option></mat-select
+        ></mat-form-field
+      ><button mat-flat-button [disabled]="busy() || member.invalid">Add member</button>
+    </form>
+  </div>
+  <h2>Members</h2>
+  @if (loading()) {
+    <p role="status">Loading members…</p>
+  }
+  @for (person of members(); track person.userId) {
+    <article class="account-card">
+      <h3>{{ person.displayName }}</h3>
+      <p>
+        {{ person.username }} · {{ person.role }} · {{ person.isActive ? 'Active' : 'Deactivated' }}
+      </p>
+      @if (person.role !== 'Owner') {
+        <div class="account-actions">
+          <button
+            mat-stroked-button
+            [disabled]="busy()"
+            (click)="role(person, person.role === 'Viewer' ? 'Editor' : 'Viewer')"
+          >
+            Make {{ person.role === 'Viewer' ? 'Editor' : 'Viewer' }}</button
+          ><button mat-button [disabled]="busy()" (click)="remove(person)">Remove member</button>
+        </div>
+      }
+    </article>
+  }
+</section>

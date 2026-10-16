@@ -1,5 +1,5 @@
 <section class="page detail-page">
-  <a mat-button routerLink="/recipes" class="back-link"><app-icon name="back" /> All recipes</a>
+  <a mat-button [routerLink]="recipeRoot" class="back-link"><app-icon name="back" /> All recipes</a>
   @if (loading()) {
     <div class="loading-state"><mat-spinner diameter="36" aria-label="Loading recipe" /></div>
   } @else if (error()) {
@@ -36,23 +36,28 @@
             </a>
           }
         </div>
-        <div class="recipe-actions">
-          <a mat-stroked-button [routerLink]="['/recipes', recipe.id, 'edit']">
-            <app-icon name="edit" />
-            Edit recipe
-          </a>
+        @if (cookbooks.canWrite()) {
+          <div class="recipe-actions">
+            <a
+              mat-stroked-button
+              [routerLink]="['/cookbooks', cookbookId, 'recipes', recipe.id, 'edit']"
+            >
+              <app-icon name="edit" />
+              Edit recipe
+            </a>
 
-          <button
-            mat-stroked-button
-            type="button"
-            class="danger-text"
-            (click)="remove()"
-            [disabled]="deleting()"
-          >
-            <app-icon name="trash" />
-            Delete
-          </button>
-        </div>
+            <button
+              mat-stroked-button
+              type="button"
+              class="danger-text"
+              (click)="remove()"
+              [disabled]="deleting()"
+            >
+              <app-icon name="trash" />
+              Delete
+            </button>
+          </div>
+        }
       </div>
       @if (recipe.imageUrl && !imageFailed()) {
         <img

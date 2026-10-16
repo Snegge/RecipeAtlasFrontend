@@ -7,11 +7,20 @@ const routes: Routes = [
     loadChildren: () => import('./features/auth/auth.module').then((m) => m.AuthModule),
   },
   {
-    path: 'recipes',
+    path: 'cookbooks/:cookbookId/recipes',
     loadChildren: () => import('./features/recipes/recipes.module').then((m) => m.RecipesModule),
   },
-  { path: '', pathMatch: 'full', redirectTo: 'recipes' },
-  { path: '**', redirectTo: 'recipes' },
+  {
+    path: 'cookbooks',
+    loadChildren: () =>
+      import('./features/cookbooks/cookbooks.module').then((m) => m.CookbooksModule),
+  },
+  { path: '', pathMatch: 'full', redirectTo: 'cookbooks' },
+  {
+    path: '',
+    loadChildren: () => import('./features/accounts/accounts.module').then((m) => m.AccountsModule),
+  },
+  { path: '**', redirectTo: 'cookbooks' },
 ];
 
 @NgModule({

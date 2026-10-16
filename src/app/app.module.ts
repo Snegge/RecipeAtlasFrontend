@@ -1,3 +1,5 @@
+import { RouteReuseStrategy } from '@angular/router';
+import { CookbookRouteReuseStrategy } from './core/guards/cookbook-route-reuse.strategy';
 import { NgModule, provideZonelessChangeDetection } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
@@ -11,6 +13,7 @@ import { apiInterceptor } from './core/interceptors/api.interceptor';
   imports: [BrowserModule, SharedModule, AppRoutingModule],
   providers: [
     provideZonelessChangeDetection(),
+    { provide: RouteReuseStrategy, useClass: CookbookRouteReuseStrategy },
     provideHttpClient(withInterceptors([apiInterceptor])),
   ],
   bootstrap: [AppComponent],

@@ -11,7 +11,7 @@ for (const [path, digest] of Object.entries(readJson('contracts/quantity-fingerp
 }
 const api = readJson('contracts/recipoke.openapi.json');
 const schemas = api.components.schemas;
-const program = ts.createProgram(['src/app/core/models/recipe.model.ts', 'src/app/core/models/recipe-import.model.ts'], { strict: true, noEmit: true, target: ts.ScriptTarget.ES2022 });
+const program = ts.createProgram(['src/app/core/models/recipe.model.ts', 'src/app/core/models/recipe-import.model.ts', 'src/app/core/models/account.model.ts'], { strict: true, noEmit: true, target: ts.ScriptTarget.ES2022 });
 const checker = program.getTypeChecker();
 const interfaces = new Map();
 for (const source of program.getSourceFiles()) {
@@ -47,7 +47,7 @@ function compare(type, schema, path, input = false) {
     }
   } else throw new Error(`Unsupported schema at ${path}; extend the focused contract checker explicitly`);
 }
-for (const [frontend, backend] of Object.entries({ Ingredient: 'IngredientResponse', Recipe: 'RecipeResponse', RecipeCard: 'RecipeCard', RecipePage: 'RecipePage', Unit: 'UnitDefinition', ImportedIngredient: 'ImportedIngredient', RecipeImportDraft: 'RecipeImportDraft', RecipeImportResult: 'RecipeImportResult' })) {
+for (const [frontend, backend] of Object.entries({ Ingredient: 'IngredientResponse', Recipe: 'RecipeResponse', RecipeCard: 'RecipeCard', RecipePage: 'RecipePage', Unit: 'UnitDefinition', ImportedIngredient: 'ImportedIngredient', RecipeImportDraft: 'RecipeImportDraft', RecipeImportResult: 'RecipeImportResult', CurrentUserResponse:'CurrentUserResponse', AccountResponse:'AccountResponse', InvitationResponse:'InvitationResponse', CreatedInvitation:'CreatedInvitation', InvitationValidity:'InvitationValidity', CookbookResponse:'CookbookResponse', MemberResponse:'MemberResponse' })) {
   assert(interfaces.has(frontend), `Missing frontend interface ${frontend}`);
   compare(interfaces.get(frontend), schemas[backend], frontend);
 }
@@ -56,10 +56,10 @@ assert.deepEqual(schemas.IngredientInput.properties.quantity.type, ['null', 'str
 assert.equal(schemas.IngredientResponse.properties.quantity.type, 'string');
 assert.throws(() => compare(interfaces.get('Ingredient'), { ...schemas.IngredientResponse, properties: { ...schemas.IngredientResponse.properties, quantity: { type: 'number' } } }, 'negative.quantity'), /expected number/);
 const paths = new Set(Object.keys(api.paths).map(path => path.replace(/\/$/, '')));
-for (const file of ['recipe-api.service.ts', 'recipe-import.service.ts', 'auth.service.ts']) {
+for (const file of ['recipe-api.service.ts', 'recipe-import.service.ts', 'auth.service.ts','cookbook.service.ts','account-admin.service.ts']) {
   const source = readFileSync(`src/app/core/services/${file}`, 'utf8');
   for (const match of source.matchAll(/['`"](\/api\/[^'`"]+)['`"]/g)) {
-    const path = match[1].replace(/\$\{id\}/g, '{id}').replace(/\/$/, '');
+    const path = match[1].replace(/\$\{([^}]+)\}/g, '{$1}').replace(/\/$/, '');
     assert(paths.has(path), `Unknown frontend API route ${path}`);
   }
 }

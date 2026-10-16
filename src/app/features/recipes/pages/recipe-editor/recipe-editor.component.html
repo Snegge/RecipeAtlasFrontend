@@ -1,5 +1,9 @@
 <section class="page editor-page">
-  <a mat-button [routerLink]="savedId() ? ['/recipes', savedId()] : ['/recipes']" class="back-link">
+  <a
+    mat-button
+    [routerLink]="savedId() ? ['/cookbooks', cookbookId, 'recipes', savedId()] : recipeRoot"
+    class="back-link"
+  >
     <app-icon name="back" />
     {{ savedId() ? 'Back to recipe' : 'All recipes' }}
   </a>
@@ -22,7 +26,7 @@
 
       <button mat-stroked-button type="button" (click)="load()">Try again</button>
 
-      <a mat-button routerLink="/recipes">All recipes</a>
+      <a mat-button [routerLink]="recipeRoot">All recipes</a>
       <a mat-button routerLink="/login">Sign in</a>
     </div>
   } @else {

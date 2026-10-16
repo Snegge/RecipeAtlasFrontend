@@ -5,6 +5,16 @@
     <h1>Welcome to your kitchen.</h1>
     <p class="muted">Sign in to find a favorite or save something new.</p>
     <form [formGroup]="form" (ngSubmit)="login()">
+      <mat-form-field class="full-width"
+        ><mat-label>Username</mat-label
+        ><input
+          matInput
+          formControlName="username"
+          autocomplete="username"
+          maxlength="32"
+          required
+        /><mat-error>Enter your username.</mat-error></mat-form-field
+      >
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Password</mat-label>
         <input
@@ -34,10 +44,12 @@
         @if (busy()) {
           <mat-spinner diameter="20" />
         } @else {
-          <span>Open my recipe book</span>
+          <span>Sign in</span>
         }
       </button>
     </form>
-    <p class="login-footer"><app-icon name="lock" /> Just your recipes. Just for you.</p>
+    <p class="login-footer">
+      <app-icon name="lock" /> Invitation-only accounts. Cookbooks you choose to share.
+    </p>
   </div>
 </section>

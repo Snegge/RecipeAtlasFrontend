@@ -236,6 +236,17 @@ export class RecipeEditorForm {
     return '';
   }
 
+  clear(): void {
+    this.form.reset();
+    this.ingredients.clear();
+    this.steps.clear();
+    this.importedIngredients.clear();
+    this.importWarnings.set([]);
+    this.importedYield.set(null);
+    this.units.set([]);
+    this.ingredientDraftPending = false;
+    this.importDraftPending = false;
+  }
   applyRecipe(recipe: Recipe): void {
     this.form.patchValue({
       title: recipe.title,

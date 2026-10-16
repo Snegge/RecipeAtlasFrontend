@@ -1,0 +1,75 @@
+.account-page {
+  max-width: 960px;
+  margin: auto;
+  padding: 24px 16px 100px;
+}
+.account-page form {
+  display: grid;
+  gap: 12px;
+}
+.account-page mat-form-field {
+  width: 100%;
+}
+.account-card {
+  padding: 20px;
+  margin: 16px 0;
+  background: var(--surface, #fff);
+  border: 1px solid #d7e2dc;
+  border-radius: 16px;
+  overflow-wrap: anywhere;
+}
+.account-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.account-actions button,
+.account-actions a {
+  min-height: 44px;
+}
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 20px;
+}
+.account-card input.link-value {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  font: inherit;
+}
+.account-card h2 {
+  margin-top: 0;
+}
+.role-label {
+  font-weight: 600;
+  color: #175c46;
+}
+.error-box {
+  overflow-wrap: anywhere;
+}
+.account-card ul {
+  padding-left: 20px;
+}
+@media (max-width: 480px) {
+  .account-page {
+    padding-inline: 12px;
+  }
+  .account-card {
+    padding: 16px;
+  }
+  .account-actions > * {
+    flex: 1 1 auto;
+  }
+  .account-page h1 {
+    font-size: 1.8rem;
+  }
+}
+
+.account-page button,
+.account-page a[mat-button],
+.account-page a[mat-flat-button],
+.account-page a[mat-stroked-button] {
+  min-height: 44px;
+}
