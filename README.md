@@ -2,12 +2,15 @@
 
 This version refactors the Recipoke frontend into NgModules and separate component files. It uses the same C# API and the same recipe data contract. Angular and Angular Material versions remain unchanged.
 
+See the [German architecture guide](docs/architecture.md) for editor state ownership, contract synchronisation and verification.
+
 ## Local development
 
 Use the existing `Snegge/RecipeAtlasFrontend` checkout on `main`. The GitHub repository and checkout directory have not been renamed. From that directory:
 
 ```sh
 npm ci
+npm run check:contracts
 npm test
 npm run build
 npm start
@@ -220,7 +223,7 @@ The detail serving selector scales the original stored quantities, including bot
 
 Deploy the current frontend and backend `main` versions together and its `StringIngredientQuantities` migration. Old numeric/null API payloads are incompatible. See the backend's `docs/quantity-strings.md` for exact migration/startup commands, data backup requirements and conversion definitions. The existing URL import dialog, imported-photo fallback, mobile layout and unsaved-draft protection are retained.
 
-`src/app/core/utils/measurement-units.json` and `fixtures/quantity-cases.json` mirror the backend definitions/cases. Keep both copies synchronized and run `python3 tests/check_shared_contracts.py ../RecipeAtlasFrontend` from the backend checkout. Frontend checks remain `npm test` and `npm run build`.
+`src/app/core/utils/measurement-units.json` and `fixtures/quantity-cases.json` mirror the backend definitions/cases. The backend Domain resource and backend fixtures are authoritative. Use `scripts/sync_frontend_contracts.py` from the backend to synchronise them; see `docs/architecture.md`. Keep both copies synchronized and run `python3 tests/check_shared_contracts.py ../RecipeAtlasFrontend` from the backend checkout. Frontend checks remain `npm test` and `npm run build`.
 
 ## Social description and pasted-text import
 
