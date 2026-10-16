@@ -148,7 +148,7 @@ export class RecipeImportDialogComponent {
         return error.error.title;
       switch (error.status) {
         case 0:
-          return 'Cannot reach RecipeAtlas. Check your connection and try again.';
+          return 'Cannot reach Recipoke. Check your connection and try again.';
         case 401:
           return 'Your session has ended. Close this dialog and sign in again.';
         case 429:

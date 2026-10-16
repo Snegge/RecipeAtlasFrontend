@@ -476,13 +476,13 @@
       "code": "tsp",
       "aliases": ["tsp", "tsps", "teaspoon", "teaspoons"],
       "factor": "1",
-      "reviewReason": "Assumed RecipeAtlas metric spoon (5 ml); confirm the source."
+      "reviewReason": "Assumed Recipoke metric spoon (5 ml); confirm the source."
     },
     {
       "code": "tbsp",
       "aliases": ["tbsp", "tbsps", "tablespoon", "tablespoons"],
       "factor": "1",
-      "reviewReason": "Assumed RecipeAtlas metric spoon (15 ml); confirm the source."
+      "reviewReason": "Assumed Recipoke metric spoon (15 ml); confirm the source."
     },
     {
       "code": "ml",

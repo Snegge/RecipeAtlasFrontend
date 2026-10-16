@@ -45,7 +45,7 @@ export class RecipeDetailComponent {
       const recipe = await this.api.get(this.route.snapshot.paramMap.get('id')!);
       this.recipe.set(recipe);
       this.selectedServings.set(recipe.servings);
-      this.title.setTitle(`${recipe.title} · Recipe Atlas`);
+      this.title.setTitle(`${recipe.title} · Recipoke`);
     } catch (error) {
       this.error.set(errorMessage(error));
     } finally {

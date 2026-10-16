@@ -11,27 +11,27 @@ const routes: Routes = [
     path: '',
     component: RecipeListComponent,
     canActivate: [authGuard],
-    title: 'Your recipes · Recipe Atlas',
+    title: 'Your recipes · Recipoke',
   },
   {
     path: 'new',
     component: RecipeEditorComponent,
     canActivate: [authGuard],
     canDeactivate: [unsavedGuard],
-    title: 'Add recipe · Recipe Atlas',
+    title: 'Add recipe · Recipoke',
   },
   {
     path: ':id/edit',
     component: RecipeEditorComponent,
     canActivate: [authGuard],
     canDeactivate: [unsavedGuard],
-    title: 'Edit recipe · Recipe Atlas',
+    title: 'Edit recipe · Recipoke',
   },
   {
     path: ':id',
     component: RecipeDetailComponent,
     canActivate: [authGuard],
-    title: 'Recipe · Recipe Atlas',
+    title: 'Recipe · Recipoke',
   },
 ];
 

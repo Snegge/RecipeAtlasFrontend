@@ -31,12 +31,16 @@ describe('NgModule application routes', () => {
     fixture.detectChanges();
     await router.navigateByUrl('/recipes');
     await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('.brand').textContent).toContain('Recipoke');
+    expect(fixture.nativeElement.querySelector('.brand').getAttribute('aria-label')).toBe('Recipoke home');
+    expect(document.title).toBe('Your recipes · Recipoke');
     expect(fixture.nativeElement.querySelector('h1').textContent).toBe('Your recipes');
     await router.navigateByUrl('/recipes/new');
     await fixture.whenStable();
     expect(fixture.nativeElement.querySelector('app-ingredient-editor')).not.toBeNull();
     await router.navigateByUrl('/login');
     await fixture.whenStable();
+    expect(document.title).toBe('Sign in · Recipoke');
     expect(fixture.nativeElement.querySelector('input[type="password"]')).not.toBeNull();
   });
 });

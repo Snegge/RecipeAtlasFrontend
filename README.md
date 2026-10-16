@@ -1,37 +1,31 @@
-# Recipe Atlas: module-based Angular frontend
+# Recipoke: module-based Angular frontend
 
-This version refactors the RecipeAtlas frontend into NgModules and separate component files. It uses the same C# API and the same recipe data contract. Angular and Angular Material versions remain unchanged.
+This version refactors the Recipoke frontend into NgModules and separate component files. It uses the same C# API and the same recipe data contract. Angular and Angular Material versions remain unchanged.
 
-## Replace your current frontend
+## Local development
 
-Your current frontend path is `D:\Programmier Umgebung\RecipeAtlasFrontend`.
+Use the existing `Snegge/RecipeAtlasFrontend` checkout on `main`. The GitHub repository and checkout directory have not been renamed. From that directory:
 
-1. Stop `npm start` with Ctrl+C.
-2. Commit or back up your current frontend, especially any changes you made locally.
-3. Extract this archive to a temporary directory. It contains a `frontend` folder.
-4. Replace the old project's `src` folder with the new `frontend/src` folder. Replace it completely instead of merging, so the old `pages` directory and standalone routing files do not remain.
-5. Copy the other files from `frontend` into your frontend project root, including `angular.json`, `package.json`, `package-lock.json`, all `tsconfig` files, and the formatting configuration. Preserve your existing `.git` directory. If you changed the API port, retain that target in `proxy.conf.json`.
-6. Run:
-
-```powershell
-cd "D:\Programmier Umgebung\RecipeAtlasFrontend"
+```sh
 npm ci
 npm test
+npm run build
 npm start
 ```
 
-Keep the backend running in its own terminal:
+Use Node.js 24.15+ within version 24, or another version supported by `engines` in package.json. In a separate terminal in the sibling `RecipeAtlas` checkout, after configuring the existing owner password as described in the backend README:
 
-```powershell
-cd "D:\Programmier Umgebung\RecipeAtlas"
-dotnet run --project backend/RecipeAtlas.Api --launch-profile http
+```sh
+dotnet run --project backend/RecipeAtlas.Api/Recipoke.Api.csproj --launch-profile http
 ```
 
-Open http://localhost:4200 and use your existing owner password. No database migration, password reset, or backend changes are needed for this refactor.
+The frontend runs on port 4200 and proxies `/api` to port 5080. Keep using your existing owner password. No database migration or password reset is required by this rename.
 
-Use Node.js 24.15+ within version 24, or another version supported by the `engines` entry in package.json. If PowerShell blocks npm.ps1, use `npm.cmd` for the commands above.
+## Recipoke rename compatibility
 
-This package includes the login correction from our conversation. It cannot include any other edits made only on your computer, so compare those before replacing your files.
+The npm package is `recipoke-frontend`, the Angular project is `recipoke`, and production output is `dist/recipoke`. The Dockerfile copies that new output path. Browser titles, navigation, accessibility labels and import messages use Recipoke. The book favicon contains no text; there is no web app manifest to rename.
+
+`X-RecipeAtlas: 1` remains the write header so existing clients and the API stay compatible. The backend retains its `RecipeAtlas.Session` cookie, `RecipeAtlas` data-protection identity and `RecipeAtlas.LocalDevelopment` user-secrets ID. Deployment variables `RECIPE_ATLAS_DOMAIN` and `RECIPE_ATLAS_PASSWORD_HASH`, Compose project/volume names, `/app/data`, API routes and JSON contracts remain unchanged. Keep the existing Compose project name and data/key volumes. No browser storage keys need migration; imported drafts remain in memory. Repository names, remote URLs and sibling checkout paths remain unchanged.
 
 ## Structure
 
@@ -176,7 +170,7 @@ npm run build
 
 Tests use Angular TestBed with Vitest and jsdom. They do not require Chrome, a running API, or your password. HTTP-facing services are stubbed so the checks isolate form submission, module routing, and component wiring.
 
-`npm run build` produces the deployable app in `dist/recipeatlas`. Auth and recipes are lazy-loaded feature modules.
+`npm run build` produces the deployable app in `dist/recipoke`. Auth and recipes are lazy-loaded feature modules.
 
 To format the source files consistently:
 
@@ -224,15 +218,13 @@ Ingredient quantities are strings across the API, import drafts and forms: `2`, 
 
 The detail serving selector scales the original stored quantities, including both range endpoints, without changing the recipe. Fractions are retained where possible. Unparseable values display their original text with “not scaled”.
 
-Deploy this frontend branch (`WebsiteReipeEctraction`) together with the backend `WebsiteScraping` branch and its `StringIngredientQuantities` migration. Old numeric/null API payloads are incompatible. See the backend's `docs/quantity-strings.md` for exact migration/startup commands, data backup requirements and conversion definitions. The existing URL import dialog, imported-photo fallback, mobile layout and unsaved-draft protection are retained.
+Deploy the current frontend and backend `main` versions together and its `StringIngredientQuantities` migration. Old numeric/null API payloads are incompatible. See the backend's `docs/quantity-strings.md` for exact migration/startup commands, data backup requirements and conversion definitions. The existing URL import dialog, imported-photo fallback, mobile layout and unsaved-draft protection are retained.
 
 `src/app/core/utils/measurement-units.json` and `fixtures/quantity-cases.json` mirror the backend definitions/cases. Keep both copies synchronized and run `python3 tests/check_shared_contracts.py ../RecipeAtlasFrontend` from the backend checkout. Frontend checks remain `npm test` and `npm run build`.
 
 ## Social description and pasted-text import
 
-Use `feature/social-description-import` in both repositories. Its backend base is
-`WebsiteScraping`; the existing frontend base is spelled `WebsiteReipeEctraction`
-(`WebsiteRecipeExtraction` was absent). The existing link dialog now supports
+The social/text import feature is included in `main` in both repositories. Historically it was developed on `feature/social-description-import`, based on backend `WebsiteScraping` and frontend `WebsiteReipeEctraction`. The existing link dialog now supports
 public YouTube videos/Shorts, TikTok videos and Instagram Reels, plus **Text**.
 On caption retrieval failure, **Paste description instead** keeps the original
 URL. Standalone text needs no URL. Loading prevents duplicate requests, closing
@@ -241,8 +233,6 @@ remains disabled. Drafts use the existing editor, review confirmation and unsave
 change protection; missing fields must be supplied before saving.
 
 ```bash
-git fetch origin WebsiteReipeEctraction feature/social-description-import
-git switch feature/social-description-import
 npm ci
 npm test
 npm run build
@@ -253,7 +243,7 @@ Start the matching backend at `http://localhost:5080`; Angular proxies `/api`.
 No AI credentials or platform selection belong in Angular. Backend installation,
 pinned yt-dlp version, secure model/key configuration, authenticated example
 requests, limits and live verification steps are documented in
-[the backend setup guide](https://github.com/Snegge/RecipeAtlas/blob/feature/social-description-import/docs/social-description-import.md).
+[the backend setup guide](https://github.com/Snegge/RecipeAtlas/blob/main/docs/social-description-import.md).
 No new database migration is required. Social import is description-only:
 no video/audio, subtitles, comments, bios or linked pages are read. Missing or
 blocked captions yield an actionable error rather than an invented recipe.
