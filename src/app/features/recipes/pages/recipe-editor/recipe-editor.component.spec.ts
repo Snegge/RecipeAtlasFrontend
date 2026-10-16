@@ -160,7 +160,7 @@ describe('Recipe editor component composition', () => {
       steps: saved.steps,
     });
     // Isolate upload orchestration from browser-only photo decoding.
-    Object.assign(editor, { pendingPhoto: new Blob(['fixture'], { type: 'image/jpeg' }) });
+    Object.assign(editor.photos, { pendingPhoto: new Blob(['fixture'], { type: 'image/jpeg' }) });
     api.upload.mockRejectedValueOnce(new Error('Upload interrupted'));
     await editor.save();
     expect(editor.savedId()).toBe('recipe-1');
@@ -326,5 +326,39 @@ describe('Recipe editor component composition', () => {
     expect(fixture.nativeElement.querySelector('button[type="submit"]').disabled).toBe(false);
     await fixture.componentInstance.save();
     expect(api.update.mock.calls[0][1].ingredients[0].quantity).toBe('3-4');
+  });
+  it('isolates form, review and photo state between editor instances', async () => {
+    const first = TestBed.createComponent(RecipeEditorComponent);
+    const second = TestBed.createComponent(RecipeEditorComponent);
+    await Promise.all([first.whenStable(), second.whenStable()]);
+    first.componentInstance.form.controls.title.setValue('Only first');
+    first.componentInstance.ingredientDraftPending = true;
+    first.componentInstance.photoError.set('First photo failed');
+    expect(second.componentInstance.form.controls.title.value).toBe('');
+    expect(second.componentInstance.ingredientDraftPending).toBe(false);
+    expect(second.componentInstance.photoError()).toBe('');
+    expect(first.componentInstance.editor).not.toBe(second.componentInstance.editor);
+    first.destroy();
+    expect(second.componentInstance.form.controls.title.value).toBe('');
+  });
+
+  it('prevents duplicate saves and navigation after the editor is destroyed', async () => {
+    let complete!: (recipe: Recipe) => void;
+    api.create.mockReturnValue(new Promise<Recipe>((resolve) => (complete = resolve)));
+    const fixture = TestBed.createComponent(RecipeEditorComponent);
+    await fixture.whenStable();
+    const editor = fixture.componentInstance;
+    editor.form.patchValue({
+      title: 'Pasta',
+      ingredients: saved.ingredients.map((i) => ({ ...i, note: '' })),
+      steps: saved.steps,
+    });
+    const saving = editor.save();
+    await editor.save();
+    expect(api.create).toHaveBeenCalledTimes(1);
+    fixture.destroy();
+    complete(saved);
+    await saving;
+    expect(TestBed.inject(Router).navigate).not.toHaveBeenCalled();
   });
 });
