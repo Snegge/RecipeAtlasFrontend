@@ -50,7 +50,7 @@ npm run build
 npm start
 ```
 
-Aus dem Backend-Checkout, wenn ein Vertrag bewusst geändert wurde:
+Die Befehle benötigen lokal keine Cloud-Datei `/workspace/.setup/env.sh`. Aus dem Backend-Checkout, wenn ein Vertrag bewusst geändert wurde:
 
 ```sh
 dotnet build
@@ -59,6 +59,8 @@ python3 scripts/sync_frontend_contracts.py ../RecipeAtlasFrontend
 python3 tests/check_shared_contracts.py ../RecipeAtlasFrontend
 python3 scripts/sync_frontend_contracts.py ../RecipeAtlasFrontend --check
 ```
+
+`../RecipeAtlasFrontend` ist nur ein Beispiel für direkt benachbarte Checkouts. Bei einer anderen Verzeichnisstruktur muss der tatsächliche, gegebenenfalls in Anführungszeichen gesetzte absolute Pfad zum Frontend-Verzeichnis mit `package.json` verwendet werden.
 
 Danach im Frontend `npm run check:contracts`, `npm test` und `npm run build` ausführen und beide Diffs prüfen. Autoritative Dateien sind `backend/Recipoke.Domain/Quantities/MeasurementUnits.json` und `tests/fixtures/quantity-cases.json` im Backend. Kopien werden nicht unabhängig fachlich weiterentwickelt. Der Sync überschreibt semantisch identische Fixtures nicht nur wegen Formatierung.
 
