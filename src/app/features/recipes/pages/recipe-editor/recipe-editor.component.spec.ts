@@ -361,4 +361,16 @@ describe('Recipe editor component composition', () => {
     await saving;
     expect(TestBed.inject(Router).navigate).not.toHaveBeenCalled();
   });
+  it('clears the file input while ignoring photo selection during a save', async () => {
+    const fixture = TestBed.createComponent(RecipeEditorComponent);
+    await fixture.whenStable();
+    const editor = fixture.componentInstance;
+    editor.busy.set(true);
+    const input = { value: 'selected-photo', files: [new File(['fixture'], 'photo.png')] };
+    await editor.choosePhoto({ target: input } as unknown as Event);
+    expect(input.value).toBe('');
+    expect(editor.preparingPhoto()).toBe(false);
+    expect(editor.preview()).toBeNull();
+  });
+
 });

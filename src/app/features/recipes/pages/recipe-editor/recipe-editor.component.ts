@@ -80,7 +80,7 @@ export class RecipeEditorComponent {
     this.editor.forms.confirmIngredientReview(row, this.busy());
   }
   async choosePhoto(event: Event): Promise<void> {
-    if (!this.busy()) await this.photos.choosePhoto(event);
+    await this.photos.choosePhoto(event, this.busy());
   }
   removePhoto() {
     if (!this.busy()) this.photos.removePhoto();

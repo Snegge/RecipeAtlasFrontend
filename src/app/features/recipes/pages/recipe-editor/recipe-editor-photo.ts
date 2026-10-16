@@ -53,13 +53,13 @@ export class RecipeEditorPhoto {
     }
   }
 
-  async choosePhoto(event: Event): Promise<void> {
+  async choosePhoto(event: Event, busy = false): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
 
     input.value = '';
 
-    if (!file || this.preparingPhoto()) return;
+    if (!file || busy || this.preparingPhoto()) return;
 
     this.preparingPhoto.set(true);
     this.photoError.set('');
