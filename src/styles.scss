@@ -134,6 +134,9 @@ img {
 .mat-mdc-button-base {
   min-height: 44px;
 }
+.mat-mdc-button-base .mat-icon[svgIcon] {
+  display: inline-flex;
+}
 .mat-mdc-unelevated-button,
 .mat-mdc-outlined-button {
   border-radius: 10px !important;
@@ -142,6 +145,17 @@ img {
 .mat-icon {
   vertical-align: middle;
   flex-shrink: 0;
+  display: inline-flex;
+}
+.mat-mdc-button > mat-icon.mat-icon,
+.mat-mdc-unelevated-button > mat-icon.mat-icon,
+.mat-mdc-raised-button > mat-icon.mat-icon,
+.mat-mdc-outlined-button > mat-icon.mat-icon,
+.mat-tonal-button > mat-icon.mat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
 }
 .mat-mdc-icon-button.mat-mdc-button-base {
   display: inline-flex;
