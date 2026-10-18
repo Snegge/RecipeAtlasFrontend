@@ -14,7 +14,7 @@
   } @else if (recipe(); as recipe) {
     <div class="recipe-intro" [class.with-photo]="recipe.imageUrl && !imageFailed()">
       <div class="recipe-intro-copy">
-        <p class="eyebrow">FROM YOUR COLLECTION</p>
+        <p class="eyebrow desktop-page-intro">FROM YOUR COLLECTION</p>
         <h1>{{ recipe.title }}</h1>
         @if (recipe.description) {
           <p class="recipe-description">{{ recipe.description }}</p>

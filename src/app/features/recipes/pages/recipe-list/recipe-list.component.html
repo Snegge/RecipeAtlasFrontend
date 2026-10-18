@@ -1,9 +1,11 @@
 <section class="page collection-page">
   <div class="page-heading">
     <div>
-      <p class="eyebrow">RECIPOKE</p>
-      <h1>Your recipes</h1>
-      <p class="muted">{{ cookbooks.current()?.name }} · {{ cookbooks.current()?.role }}</p>
+      <div class="desktop-page-intro">
+        <p class="eyebrow">RECIPOKE</p>
+        <h1>Your recipes</h1>
+        <p class="muted">{{ cookbooks.current()?.name }} · {{ cookbooks.current()?.role }}</p>
+      </div>
       <a mat-button routerLink="/cookbooks">All cookbooks</a>
     </div>
 

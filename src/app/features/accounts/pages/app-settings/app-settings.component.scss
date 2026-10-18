@@ -18,3 +18,8 @@
 .settings-placeholder p {
   font-size: 0.85rem;
 }
+@media (max-width: 899px) {
+  .settings-placeholder {
+    margin-top: 0;
+  }
+}

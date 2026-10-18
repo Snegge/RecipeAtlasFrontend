@@ -1,9 +1,11 @@
 <section class="login-layout">
   <div class="login-card">
     <div class="large-mark"><mat-icon svgIcon="book" /></div>
-    <p class="eyebrow">YOUR PERSONAL RECIPE BOOK</p>
-    <h1>Welcome to your kitchen.</h1>
-    <p class="muted">Sign in to find a favorite or save something new.</p>
+    <div class="desktop-page-intro">
+      <p class="eyebrow">YOUR PERSONAL RECIPE BOOK</p>
+      <h1>Welcome to your kitchen.</h1>
+      <p class="muted">Sign in to find a favorite or save something new.</p>
+    </div>
     <form [formGroup]="form" (ngSubmit)="login()">
       <mat-form-field class="full-width"
         ><mat-label>Username</mat-label

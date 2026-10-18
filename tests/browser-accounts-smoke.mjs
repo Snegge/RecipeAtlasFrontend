@@ -199,6 +199,14 @@ try {
         await evaluate('document.documentElement.scrollWidth <= innerWidth'),
         label + ' horizontal layout',
       );
+      check(
+        await evaluate(`(() => {
+          const intros = [...document.querySelectorAll('.desktop-page-intro')];
+          return intros.length > 0 && intros.every(intro =>
+            (getComputedStyle(intro).display === 'none') === (innerWidth < 900));
+        })()`),
+        label + ' page headings follow the app-header breakpoint',
+      );
       const iconLayout = await evaluate(`(() => {
           const buttons = [...document.querySelectorAll('.mat-mdc-icon-button')].filter(button => {
             const rect = button.getBoundingClientRect();
@@ -361,8 +369,9 @@ try {
   await admin.fill('textarea[formcontrolname=description]', 'Recipes for the whole table.');
   await admin.click('Save cookbook');
   await admin.wait('document.body.textContent.includes("Cookbook saved.")');
+  await admin.wait('!document.querySelector("input[formcontrolname=username]").disabled');
   await admin.fill('input[formcontrolname=username]', 'invited-reader');
-  await admin.click('Send invitation');
+  await admin.click('Invite');
   await admin.wait('document.body.textContent.includes("Invitation pending")');
   check(
     (await admin.api(`/api/cookbooks/${book.id}/members`)).some(
@@ -443,6 +452,13 @@ try {
   await recipient.wait('document.body.textContent.includes("Discard your changes?")');
   await recipient.click('Discard changes');
   await recipient.wait('!!document.querySelector("app-recipe-detail")');
+  await recipient.wait('!!document.querySelector(".recipe-intro h1")');
+  check(
+    await recipient.evaluate(
+      'document.querySelector(".recipe-intro h1").getClientRects().length > 0',
+    ),
+    'Recipe title remains visible on mobile',
+  );
   await recipient.clickAria('Open menu');
   await recipient.click('Account');
   await recipient.wait('!!document.querySelector("app-account-settings")');
@@ -577,8 +593,12 @@ try {
   );
   await admin.fit('1280px cookbook settings');
   await admin.screenshot('desktop-cookbook-settings');
+  await admin.resize(899);
+  await admin.fit('899px cookbook settings');
+  await admin.resize(900);
+  await admin.fit('900px cookbook settings');
   console.log(
-    `Passed ${checks} real Chromium navigation, consent, profile, creation, deletion, import-entry and layout checks at 320px, 390px and 1280px.`,
+    `Passed ${checks} real Chromium navigation, consent, profile, creation, deletion, import-entry and layout checks at 320px, 390px, 899px, 900px and 1280px.`,
   );
 } finally {
   for (const socket of sockets) socket.close();

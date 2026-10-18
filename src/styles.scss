@@ -117,6 +117,20 @@ img {
 .page-heading .muted {
   margin-top: 12px;
 }
+// The app header supplies the page title below the desktop navigation breakpoint.
+@media (max-width: 899px) {
+  .desktop-page-intro {
+    display: none;
+  }
+  .page .page-heading:has(.desktop-page-intro) {
+    gap: 0;
+  }
+}
+@media (max-width: 599px) {
+  .page .page-heading:has(.desktop-page-intro) {
+    margin-bottom: 0;
+  }
+}
 .large-mark {
   width: 68px;
   height: 68px;
