@@ -24,7 +24,7 @@ dotnet tool restore
 dotnet build --no-restore
 dotnet user-secrets set 'Accounts:PublicAppUrl' 'http://localhost:4200' --project backend/RecipeAtlas.Api
 dotnet run --no-build --project backend/RecipeAtlas.Api -- --bootstrap-admin
-dotnet run --no-build --project backend/RecipeAtlas.Api --launch-profile http
+dotnet run --project backend/RecipeAtlas.Api --launch-profile http
 ```
 
 The bootstrap command is a one-time setup operation and exits; the second `dotnet run` starts the API. Skip bootstrap when your account setup is already complete. Bootstrap prompts for a username, display name and hidden password (12–256 characters). No default password or public registration exists. It creates/claims the initial personal cookbook and safely refuses reinitialisation. Existing installations must stop writes and follow the backup/upgrade runbook first. During the original single-owner upgrade the obsolete owner hash is not reused. The current UI/profile update preserves existing account sessions and accepted memberships; see the runbook for the distinction.
@@ -109,4 +109,27 @@ Optional real-browser smoke with both local checkouts and installed Chromium (ba
 node tests/browser-accounts-smoke.mjs /absolute/path/to/RecipeAtlas /path/to/chromium
 ```
 
-This starts isolated backend/frontend instances with synthetic data and separate browser contexts, exercises the invitation/sharing/editor/account flows and measures horizontal layout at 320px/390px/1280px. The current suite has 35 checks, including profile/cover upload, pending cookbook invitations, role controls, mobile navigation, cookbook creation and deletion confirmation. It passed with Chromium 154. No external provider, existing browser profile or user database is used. This cross-repository check is not part of frontend-only CI. Set `RECIPOKE_SCREENSHOTS=/absolute/output/directory` to retain synthetic mobile/desktop screenshots for visual review; otherwise no screenshots are saved. It does not replace testing on physical mobile devices.
+This starts isolated backend/frontend instances with synthetic data and separate browser contexts, exercises the invitation/sharing/editor/account flows and measures horizontal layout at 320px/390px/1280px. The current suite has 48 checks, including profile/cover upload, pending cookbook invitations, role controls, mobile navigation, cookbook creation, deletion confirmation, Material icon centering and member-field spacing. It passed with Chromium 154. No external provider, existing browser profile or user database is used. This cross-repository check is not part of frontend-only CI. Set `RECIPOKE_SCREENSHOTS=/absolute/output/directory` to retain synthetic mobile/desktop screenshots for visual review; otherwise no screenshots are saved. It does not replace testing on physical mobile devices.
+
+
+## Invitation troubleshooting and component conventions
+
+After pulling backend changes, stop the old process and start with `dotnet run --project backend/RecipeAtlas.Api --launch-profile http` **without `--no-build`**. Pulling changes does not replace the compiled DLL. An older running backend can return 404 for `/api/cookbook-invitations` and add members immediately. The current UI explains a missing consent API and refuses to send member invitations to it. Existing accepted memberships are preserved; remove a test member first before testing a new invitation. See the backend runbook for the read-only endpoint checks.
+
+Icons now use Angular Material **`mat-icon`** with 22 official Material Design SVGs bundled locally. `SharedModule` initializes the allowlisted `MatIconRegistry`; there are no external icon/font/CDN requests or new npm dependencies. Source revision and Apache-2.0 attribution are in `public/licenses/material-design-icons/`. Icon-only controls are centered independently of the body line height.
+
+Accounts and Cookbooks follow the existing page/component convention. Every component has its own folder and matching `.component.ts`, `.component.html` and `.component.scss`; shared layout rules live in small Sass partials under each feature's `styles/`. Component-specific styles remain next to their template. The Settings and Avatar components also use external template/style files. Paginator and Checkbox modules are loaded only with Recipes, where they are used.
+
+```text
+features/accounts/
+  pages/account-settings/
+  pages/account-admin/
+  pages/invitation-page/
+  pages/app-settings/
+  styles/_account-layout.scss
+features/cookbooks/
+  pages/cookbook-overview/
+  pages/cookbook-editor/
+  components/cookbook-invitations/
+  styles/_cookbook-layout.scss
+```
