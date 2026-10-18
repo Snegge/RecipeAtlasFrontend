@@ -307,12 +307,10 @@ describe('Cookbook shelf, consent and editor', () => {
     expect(page.form.controls.name.value).toBe('Local cookbook');
     expect(page.baseline()?.version).toBe('displayed-v1');
     expect(page.conflict()).toBe(true);
-    const review = vi
-      .spyOn(MatDialog.prototype, 'open')
-      .mockReturnValue({
-        afterClosed: () => of({ name: 'local', description: 'server', photo: 'server' }),
-        close: vi.fn(),
-      } as never);
+    const review = vi.spyOn(MatDialog.prototype, 'open').mockReturnValue({
+      afterClosed: () => of({ name: 'local', description: 'server', photo: 'server' }),
+      close: vi.fn(),
+    } as never);
     await page.review();
     review.mockRestore();
     expect(page.form.controls.name.value).toBe('Local cookbook');
@@ -336,5 +334,49 @@ describe('Cookbook shelf, consent and editor', () => {
     expect(fixture.componentInstance.error()).toContain('confirm again');
     expect(confirm).toHaveBeenCalledTimes(1);
     confirm.mockRestore();
+  });
+  it('preserves local cookbook fields and pending cover after expiry and clears them on an account switch', async () => {
+    const fixture = TestBed.createComponent(CookbookEditorComponent);
+    await fixture.whenStable();
+    const page = fixture.componentInstance;
+    page.form.controls.name.setValue('Private local cookbook');
+    page.form.markAsDirty();
+    const blob = new Blob(['pending cover']);
+    page.picture.blob = blob;
+    page.picture.changed.set(true);
+    const session = TestBed.inject(SessionState);
+    session.user.set({
+      id: 'u',
+      username: 'owner',
+      displayName: 'Owner',
+      isAdministrator: false,
+      email: null,
+      avatarUrl: null,
+    });
+    session.clear('expired');
+    expect(page.form.controls.name.value).toBe('Private local cookbook');
+    expect(page.picture.blob).toBe(blob);
+    expect(page.baseline()).toBeNull();
+    expect(page.unavailable()).toBe(true);
+    expect(page.busy()).toBe(false);
+    page.picture.clear();
+    expect(page.hasUnsavedChanges()).toBe(true);
+    session.clear('login');
+    expect(page.form.controls.name.value).toBe('');
+    expect(page.picture.blob).toBeNull();
+  });
+  it('reports committed details when the cover request loses access', async () => {
+    const fixture = TestBed.createComponent(CookbookEditorComponent);
+    await fixture.whenStable();
+    const page = fixture.componentInstance;
+    page.picture.blob = new Blob(['cover']);
+    page.picture.changed.set(true);
+    upload.mockRejectedValueOnce(new HttpErrorResponse({ status: 403 }));
+    await page.save();
+    expect(page.error()).toContain('Cookbook details were saved');
+    expect(page.error()).toContain('picture remains pending');
+    expect(page.picture.changed()).toBe(true);
+    expect(page.unavailable()).toBe(true);
+    expect(page.baseline()?.version).toBe('renamed-v2');
   });
 });

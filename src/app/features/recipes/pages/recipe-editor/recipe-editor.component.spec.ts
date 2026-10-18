@@ -485,21 +485,19 @@ describe('Recipe editor component composition', () => {
     };
     api.get.mockResolvedValue(server);
     await page.save();
-    const review = vi
-      .spyOn(MatDialog.prototype, 'open')
-      .mockReturnValue({
-        afterClosed: () =>
-          of({
-            title: 'local',
-            description: 'server',
-            servings: 'server',
-            sourceUrl: 'server',
-            ingredients: 'server',
-            steps: 'server',
-            photo: 'server',
-          }),
-        close: vi.fn(),
-      } as never);
+    const review = vi.spyOn(MatDialog.prototype, 'open').mockReturnValue({
+      afterClosed: () =>
+        of({
+          title: 'local',
+          description: 'server',
+          servings: 'server',
+          sourceUrl: 'server',
+          ingredients: 'server',
+          steps: 'server',
+          photo: 'server',
+        }),
+      close: vi.fn(),
+    } as never);
     await page.editor.review();
     review.mockRestore();
     expect(page.editor.baseline()).toBe(server);
@@ -623,5 +621,46 @@ describe('Recipe editor component composition', () => {
     expect(page.editor.latest()).toBeNull();
     expect(page.editor.baseline()).toBeNull();
     expect(page.form.controls.title.value).toBe('');
+  });
+  it('reports already saved fields when photo saving loses access', async () => {
+    const fixture = await existingEditor(),
+      page = fixture.componentInstance;
+    Object.assign(page.photos, { pendingPhoto: new Blob(['pending']) });
+    api.update.mockResolvedValue({ ...saved, version: 'text-v2' });
+    api.upload.mockRejectedValueOnce(new HttpErrorResponse({ status: 403 }));
+    await page.save();
+    expect(page.error()).toContain('Recipe fields were saved');
+    expect(page.error()).toContain('picture change remains pending');
+    expect(page.photos.hasUnsavedChanges()).toBe(true);
+    expect(page.canSave()).toBe(false);
+    expect(page.editor.baseline()?.version).toBe('text-v2');
+  });
+  it('keeps partial success visible and releases busy state after session expiry during photo saving', async () => {
+    const fixture = await existingEditor(),
+      page = fixture.componentInstance;
+    Object.assign(page.photos, { pendingPhoto: new Blob(['pending']) });
+    api.update.mockResolvedValue({ ...saved, version: 'text-v2' });
+    let fail!: (error: unknown) => void;
+    api.upload.mockReturnValueOnce(new Promise((_, reject) => (fail = reject)));
+    const saving = page.save();
+    await Promise.resolve();
+    await Promise.resolve();
+    const session = TestBed.inject(SessionState);
+    session.user.set({
+      id: 'u',
+      username: 'owner',
+      displayName: 'Owner',
+      isAdministrator: false,
+      email: null,
+      avatarUrl: null,
+    });
+    session.clear('expired');
+    fail(new HttpErrorResponse({ status: 401 }));
+    await saving;
+    expect(page.error()).toContain('Recipe fields were saved');
+    expect(page.photos.hasUnsavedChanges()).toBe(true);
+    expect(page.busy()).toBe(false);
+    expect(page.canSave()).toBe(false);
+    expect(page.editor.baseline()).toBeNull();
   });
 });

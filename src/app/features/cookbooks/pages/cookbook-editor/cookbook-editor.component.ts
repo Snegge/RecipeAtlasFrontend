@@ -76,13 +76,29 @@ export class CookbookEditorComponent {
     role: ['Viewer', Validators.required],
   });
   constructor() {
-    this.session.changes.pipe(takeUntilDestroyed()).subscribe(() => {
+    this.picture.keepDraftAfterExpiry();
+    this.session.changes.pipe(takeUntilDestroyed()).subscribe((reason) => {
+      const wasDirty = this.form.dirty;
       ++this.readGeneration;
       this.busy.set(false);
       this.refreshing.set(false);
       this.loading.set(false);
       this.form.enable();
       this.member.enable();
+      if (reason === 'expired') {
+        if (wasDirty) this.form.markAsDirty();
+        this.baseline.set(null);
+        this.latest.set(null);
+        this.conflict.set(false);
+        this.unavailable.set(true);
+        this.error.set(
+          (this.partialSaved()
+            ? 'Cookbook details were saved; the picture remains pending. '
+            : '') +
+            'Your session ended. Your local cookbook fields and picture are still here; copy your work before leaving.',
+        );
+        return;
+      }
       this.snack.dismiss();
       this.form.reset();
       this.member.reset();
@@ -222,10 +238,12 @@ export class CookbookEditorComponent {
         await this.refreshConflict();
       } else {
         this.failure(e);
-        if (detailsSaved && this.partialSaved() && !this.unavailable())
+        if (detailsSaved && this.partialSaved())
           this.error.set(
-            'Cookbook details were saved; the picture remains pending. Save again to retry only the picture. ' +
-              errorMessage(e),
+            'Cookbook details were saved; the picture remains pending. ' +
+              (this.unavailable()
+                ? this.error()
+                : 'Save again to retry only the picture. ' + errorMessage(e)),
           );
       }
     } finally {

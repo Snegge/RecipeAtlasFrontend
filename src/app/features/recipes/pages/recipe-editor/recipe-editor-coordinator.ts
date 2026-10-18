@@ -66,6 +66,7 @@ export class RecipeEditorCoordinator {
 
   constructor() {
     this.session.changes.pipe(takeUntilDestroyed()).subscribe((reason) => {
+      const partiallySaved = this.partialSaved();
       ++this.readGeneration;
       this.busy.set(false);
       this.refreshing.set(false);
@@ -78,7 +79,10 @@ export class RecipeEditorCoordinator {
       if (reason === 'expired') {
         this.permissionLost.set(true);
         this.photos.preparingPhoto.set(false);
-        this.error.set('Your session ended. Your unsaved edits are still here.');
+        this.error.set(
+          (partiallySaved ? 'Recipe fields were saved. The picture change remains pending. ' : '') +
+            'Your session ended. Your unsaved edits are still here.',
+        );
         return;
       }
       this.forms.clear();
@@ -325,7 +329,10 @@ export class RecipeEditorCoordinator {
       if (error instanceof HttpErrorResponse && [403, 404].includes(error.status)) {
         this.permissionLost.set(true);
         this.error.set(
-          'Your cookbook access changed. Your unsaved edits are still here; copy them before leaving.',
+          (textSaved && this.partialSaved()
+            ? 'Recipe fields were saved. The picture change remains pending. '
+            : '') +
+            'Your cookbook access changed. Your unsaved edits are still here; copy them before leaving.',
         );
         return;
       }
