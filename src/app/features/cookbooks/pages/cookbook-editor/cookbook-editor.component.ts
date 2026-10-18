@@ -2,6 +2,7 @@ import { Component, DestroyRef, ViewChild, HostListener, inject, signal } from '
 import { NonNullableFormBuilder, FormGroupDirective, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { CookbookService } from '../../../../core/services/cookbook.service';
 import { SessionState } from '../../../../core/services/session-state';
 import { CookbookMemberInput, MemberResponse } from '../../../../core/models/account.model';
@@ -26,6 +27,7 @@ export class CookbookEditorComponent {
   private readonly destroy = inject(DestroyRef);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly snack = inject(MatSnackBar);
   readonly isNew = Boolean(this.route.snapshot.data?.['create']);
   readonly savedId = signal<string | null>(
     this.isNew ? null : this.route.snapshot.paramMap.get('cookbookId'),
@@ -35,7 +37,6 @@ export class CookbookEditorComponent {
   readonly loading = signal(!this.isNew);
   readonly busy = signal(false);
   readonly error = signal('');
-  readonly notice = signal('');
   private readonly fb = inject(NonNullableFormBuilder);
   readonly form = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(100)]],
@@ -47,6 +48,7 @@ export class CookbookEditorComponent {
   });
   constructor() {
     this.session.changes.pipe(takeUntilDestroyed()).subscribe(() => {
+      this.snack.dismiss();
       this.form.reset();
       this.member.reset();
       this.members.set([]);
@@ -94,7 +96,6 @@ export class CookbookEditorComponent {
     let successful = false;
     this.busy.set(true);
     this.error.set('');
-    this.notice.set('');
     let detailsSaved = false;
     this.form.disable();
     this.member.disable();
@@ -125,7 +126,7 @@ export class CookbookEditorComponent {
       this.form.markAsPristine();
       this.picture.load(book.imageUrl);
       this.resetMember();
-      this.notice.set('Cookbook saved.');
+      this.snack.open('Cookbook saved.', 'Close', { duration: 4000 });
       successful = true;
       this.busy.set(false);
       if (this.isNew) await this.router.navigate(['/cookbooks', id, 'recipes']);
@@ -189,7 +190,7 @@ export class CookbookEditorComponent {
         member.isPending ? 'Invitation cancelled.' : 'Member removed.',
       );
   }
-  private async act(action: () => Promise<unknown>, notice: string) {
+  private async act(action: () => Promise<unknown>, message: string) {
     if (this.busy()) return;
     const epoch = this.session.epoch();
     this.busy.set(true);
@@ -197,7 +198,7 @@ export class CookbookEditorComponent {
     try {
       await action();
       if (!this.current(epoch)) return;
-      this.notice.set(notice);
+      this.snack.open(message, 'Close', { duration: 4000 });
       await this.loadMembers();
     } catch (e) {
       if (this.current(epoch)) this.error.set(errorMessage(e));

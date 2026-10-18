@@ -15,9 +15,6 @@
   @if (error()) {
     <p class="error-box" role="alert">{{ error() }}</p>
   }
-  @if (notice()) {
-    <p class="inline-notice" role="status">{{ notice() }}</p>
-  }
   @if (loading()) {
     <div class="loading-state"><mat-spinner diameter="32" aria-label="Loading cookbook" /></div>
   } @else {

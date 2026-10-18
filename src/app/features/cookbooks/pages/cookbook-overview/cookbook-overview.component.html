@@ -9,12 +9,6 @@
       ><mat-icon svgIcon="plus" />Create cookbook</a
     >
   </div>
-  @if (message) {
-    <p class="inline-notice" role="status">{{ message }}</p>
-  }
-  @if (notice()) {
-    <p class="inline-notice" role="status">{{ notice() }}</p>
-  }
   <app-cookbook-invitations (changed)="load()" />
   @if (error()) {
     <div class="error-box" role="alert">

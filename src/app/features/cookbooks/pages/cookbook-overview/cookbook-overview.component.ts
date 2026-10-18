@@ -2,6 +2,7 @@ import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CookbookService } from '../../../../core/services/cookbook.service';
 import { SessionState } from '../../../../core/services/session-state';
@@ -19,17 +20,18 @@ export class CookbookOverviewComponent {
   private readonly session = inject(SessionState);
   private readonly destroy = inject(DestroyRef);
   private readonly dialog = inject(MatDialog);
+  private readonly snack = inject(MatSnackBar);
   readonly cookbooks = signal<CookbookResponse[]>([]);
   readonly loading = signal(true);
   readonly busy = signal(false);
   readonly error = signal('');
-  readonly notice = signal('');
   readonly failedCovers = signal(new Set<string>());
-  readonly message = inject(ActivatedRoute).snapshot.queryParamMap.get('message') ?? '';
   constructor() {
+    const message = inject(ActivatedRoute).snapshot.queryParamMap.get('message');
+    if (message) this.snack.open(message, 'Close', { duration: 6000 });
     this.session.changes.pipe(takeUntilDestroyed()).subscribe(() => {
       this.cookbooks.set([]);
-      this.notice.set('');
+      this.snack.dismiss();
       this.failedCovers.set(new Set());
     });
     void this.load();
@@ -90,7 +92,9 @@ export class CookbookOverviewComponent {
       else await this.books.leave(book.id);
       if (epoch !== this.session.epoch() || this.destroy.destroyed) return;
       if (this.books.context.current()?.id === book.id) this.books.context.current.set(null);
-      this.notice.set(remove ? 'Cookbook deleted.' : 'You left the cookbook.');
+      this.snack.open(remove ? 'Cookbook deleted.' : 'You left the cookbook.', 'Close', {
+        duration: 4000,
+      });
       await this.load();
     } catch (e) {
       if (epoch === this.session.epoch() && !this.destroy.destroyed)
