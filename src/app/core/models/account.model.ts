@@ -3,6 +3,8 @@ export interface CurrentUserResponse {
   username: string;
   displayName: string;
   isAdministrator: boolean;
+  email: string | null;
+  avatarUrl: string | null;
 }
 export interface AccountResponse extends CurrentUserResponse {
   isActive: boolean;
@@ -22,14 +24,33 @@ export interface InvitationValidity {
   expiresAtUtc: string | null;
 }
 export interface CookbookResponse {
+  description: string | null;
+  imageUrl: string | null;
+  recipeCount: number;
   id: string;
   name: string;
   role: string;
 }
 export interface MemberResponse {
+  avatarUrl: string | null;
+  isPending: boolean;
   userId: string;
   username: string;
   displayName: string;
   role: string;
   isActive: boolean;
+}
+
+export interface CookbookInvitationResponse {
+  id: string;
+  cookbookId: string;
+  cookbookName: string;
+  role: string;
+  ownerDisplayName: string;
+  ownerAvatarUrl: string | null;
+  imageUrl: string | null;
+}
+export interface CookbookMemberInput {
+  username: string;
+  role: string;
 }

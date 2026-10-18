@@ -52,6 +52,9 @@ describe('Recipe editor component composition', () => {
     }).compileComponents();
     TestBed.inject(ActivatedRoute).snapshot.params = { cookbookId: 'cookbook-1' };
     TestBed.inject(CookbookContext).current.set({
+      description: null,
+      imageUrl: null,
+      recipeCount: 0,
       id: 'cookbook-1',
       name: 'Test cookbook',
       role: 'Owner',
@@ -408,7 +411,14 @@ describe('Recipe editor component composition', () => {
     editor.form.controls.title.setValue('Private draft');
     editor.form.markAsDirty();
     const session = TestBed.inject(SessionState);
-    session.user.set({ id: 'u', username: 'user', displayName: 'User', isAdministrator: false });
+    session.user.set({
+      id: 'u',
+      username: 'user',
+      displayName: 'User',
+      isAdministrator: false,
+      email: null,
+      avatarUrl: null,
+    });
     session.clear('expired');
     expect(editor.form.controls.title.value).toBe('Private draft');
     expect(editor.canSave()).toBe(false);

@@ -22,7 +22,17 @@ describe('NgModule application routes', () => {
         {
           provide: CookbookService,
           useValue: {
-            select: vi.fn().mockResolvedValue({ id: 'cookbook-1', name: 'Test', role: 'Owner' }),
+            select: vi
+              .fn()
+              .mockResolvedValue({
+                id: 'cookbook-1',
+                name: 'Test',
+                role: 'Owner',
+                description: null,
+                imageUrl: null,
+                recipeCount: 0,
+              }),
+            invitations: async () => [],
             list: () => of([{ id: 'cookbook-1', name: 'Test', role: 'Owner' }]),
           },
         },
@@ -39,6 +49,8 @@ describe('NgModule application routes', () => {
               username: 'test',
               displayName: 'Test',
               isAdministrator: false,
+              email: null,
+              avatarUrl: null,
             }),
             check: vi.fn().mockResolvedValue(true),
           },
@@ -52,7 +64,14 @@ describe('NgModule application routes', () => {
         },
       ],
     }).compileComponents();
-    TestBed.inject(CookbookContext).current.set({ id: 'cookbook-1', name: 'Test', role: 'Owner' });
+    TestBed.inject(CookbookContext).current.set({
+      description: null,
+      imageUrl: null,
+      recipeCount: 0,
+      id: 'cookbook-1',
+      name: 'Test',
+      role: 'Owner',
+    });
     const fixture = TestBed.createComponent(AppComponent);
     const router = TestBed.inject(Router);
     fixture.detectChanges();
@@ -70,6 +89,8 @@ describe('NgModule application routes', () => {
       username: 'administrator',
       displayName: 'Administrator',
       isAdministrator: true,
+      email: null,
+      avatarUrl: null,
     });
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('a[href="/admin"]')).not.toBeNull();
@@ -104,7 +125,7 @@ describe('NgModule application routes', () => {
     expect(fixture.nativeElement.querySelector('h1').textContent).toBe('Your cookbooks');
     await router.navigateByUrl('/admin');
     await fixture.whenStable();
-    expect(fixture.nativeElement.querySelector('h1').textContent).toBe('Account administration');
+    expect(fixture.nativeElement.querySelector('h1').textContent).toBe('Accounts Manager');
     await router.navigateByUrl('/invite');
     await fixture.whenStable();
     expect(fixture.nativeElement.querySelector('h1').textContent).toBe('Join Recipoke');

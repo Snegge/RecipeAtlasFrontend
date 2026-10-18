@@ -24,7 +24,14 @@ describe('Recipe list loading', () => {
       providers: [provideRouter([]), { provide: RecipeApiService, useValue: { list } }],
     }).compileComponents();
     TestBed.inject(ActivatedRoute).snapshot.params = { cookbookId: 'cookbook-1' };
-    TestBed.inject(CookbookContext).current.set({ id: 'cookbook-1', name: 'Test', role: 'Owner' });
+    TestBed.inject(CookbookContext).current.set({
+      description: null,
+      imageUrl: null,
+      recipeCount: 0,
+      id: 'cookbook-1',
+      name: 'Test',
+      role: 'Owner',
+    });
     const fixture = TestBed.createComponent(RecipeListComponent);
     await fixture.whenStable();
     expect(fixture.componentInstance.loading()).toBe(false);
@@ -35,7 +42,7 @@ describe('Recipe list loading', () => {
     expect(fixture.nativeElement.textContent).toContain('Your next favorite starts here');
   });
 
-  it('hands a partial social result to the existing editor without inventing missing fields', async () => {
+  it('imports a partial social result inside the new-recipe editor without inventing missing fields', async () => {
     const result: RecipeImportResult = {
       sourceType: 'youtube',
       warnings: ['Instructions and servings are missing.'],
@@ -75,19 +82,17 @@ describe('Recipe list loading', () => {
       ],
     }).compileComponents();
     TestBed.inject(ActivatedRoute).snapshot.params = { cookbookId: 'cookbook-1' };
-    TestBed.inject(CookbookContext).current.set({ id: 'cookbook-1', name: 'Test', role: 'Owner' });
-    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
-    const list = TestBed.createComponent(RecipeListComponent);
-    await list.whenStable();
-    await list.componentInstance.openImport();
-    expect(navigate).toHaveBeenCalledTimes(1);
-    const id = navigate.mock.calls[0][1]?.queryParams?.['import'];
-    expect(TestBed.inject(RecipeDraftService).get(id)).toEqual(result);
-    vi.spyOn(TestBed.inject(ActivatedRoute).snapshot, 'queryParamMap', 'get').mockReturnValue(
-      convertToParamMap({ import: id }),
-    );
+    TestBed.inject(CookbookContext).current.set({
+      description: null,
+      imageUrl: null,
+      recipeCount: 0,
+      id: 'cookbook-1',
+      name: 'Test',
+      role: 'Owner',
+    });
     const editorFixture = TestBed.createComponent(RecipeEditorComponent);
     await editorFixture.whenStable();
+    await editorFixture.componentInstance.openImport();
     editorFixture.detectChanges();
     const editor = editorFixture.componentInstance;
     expect(editor.form.controls.sourceUrl.value).toBe(result.draft.sourceUrl);
@@ -97,7 +102,6 @@ describe('Recipe list loading', () => {
     expect(editor.steps.value).toEqual(['']);
     expect(editorFixture.nativeElement.querySelector('button[type="submit"]').disabled).toBe(true);
     expect(editor.hasUnsavedChanges()).toBe(true);
-    expect(TestBed.inject(RecipeDraftService).get(id)).toBeNull();
   });
   it('hides recipe creation and import from viewers', async () => {
     await TestBed.configureTestingModule({
@@ -111,6 +115,9 @@ describe('Recipe list loading', () => {
       ],
     }).compileComponents();
     TestBed.inject(CookbookContext).current.set({
+      description: null,
+      imageUrl: null,
+      recipeCount: 0,
       id: 'read-only',
       name: 'Shared',
       role: 'Viewer',

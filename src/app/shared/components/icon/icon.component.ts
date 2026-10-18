@@ -2,6 +2,12 @@ import { Component, input } from '@angular/core';
 
 // Local SVG icons keep the UI independent of external font/CDN requests.
 const paths: Record<string, string> = {
+  menu: 'M4 6h16M4 12h16M4 18h16',
+  more: 'M12 5h.01M12 12h.01M12 19h.01',
+  settings:
+    'M9 4h6l1 3 3 1 2 4-2 4-3 1-1 3H9l-1-3-3-1-2-4 2-4 3-1 1-3Zm6 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0',
+  person: 'M20 21v-2a6 6 0 0 0-6-6h-4a6 6 0 0 0-6 6v2M16 5a4 4 0 1 1-8 0 4 4 0 0 1 8 0',
+  mail: 'M3 5h18v14H3V5Zm0 0 9 8 9-8',
   book: 'M4 4h12a4 4 0 0 1 4 4v13H8a4 4 0 0 1-4-4V4Zm4 0v17M12 9h4m-4 4h4',
   plus: 'M12 5v14M5 12h14',
   search: 'M21 21l-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0',

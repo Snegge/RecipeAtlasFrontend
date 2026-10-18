@@ -137,3 +137,55 @@
     display: none;
   }
 }
+
+.new-recipe-import {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #dce6d2;
+  border-radius: 14px;
+  background: #f1f6eb;
+  padding: 20px 22px;
+  margin-bottom: 28px;
+}
+.import-entry-icon {
+  width: 40px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: #e3ecd8;
+  color: #78905c;
+  flex-shrink: 0;
+}
+.new-recipe-import > div {
+  flex: 1;
+}
+.new-recipe-import h2 {
+  font-size: 1rem;
+}
+.new-recipe-import p {
+  font-size: 0.8rem;
+  color: #7d8b6d;
+  margin-top: 4px;
+}
+.new-recipe-import > button {
+  flex-shrink: 0;
+  background: #ffffffb0;
+}
+@media (max-width: 599px) {
+  .new-recipe-import {
+    flex-wrap: wrap;
+    padding: 18px 16px;
+    gap: 12px;
+  }
+  .new-recipe-import > div {
+    min-width: 0;
+  }
+  .new-recipe-import p {
+    font-size: 0.75rem;
+  }
+  .new-recipe-import > button {
+    width: 100%;
+  }
+}

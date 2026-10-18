@@ -1,39 +1,140 @@
-<section class="account-page">
-  <a mat-button routerLink="/cookbooks">All cookbooks</a>
-  <h1>Account administration</h1>
-  <p>Administrator access manages accounts. It does not grant access to private cookbooks.</p>
+<section class="account-page admin-page">
+  <div class="account-page-heading">
+    <p class="eyebrow">ADMINISTRATION</p>
+    <h1>Accounts Manager</h1>
+    <p class="muted">Manage access. Keep your community personal.</p>
+  </div>
+  <div class="admin-summary">
+    <div>
+      <strong>{{ accounts().length }}</strong
+      ><span>Accounts</span>
+    </div>
+    <div>
+      <strong>{{ invitations().length }}</strong
+      ><span>Invitations issued</span>
+    </div>
+  </div>
+  <p class="admin-privacy">
+    <app-icon name="lock" />Administrator access does not grant access to private cookbooks.
+  </p>
+  <div class="admin-tabs" role="tablist" aria-label="Account administration">
+    <button
+      id="accounts-tab"
+      role="tab"
+      [attr.aria-selected]="tab() === 'accounts'"
+      aria-controls="accounts-panel"
+      (click)="tab.set('accounts')"
+    >
+      Accounts <span>{{ accounts().length }}</span></button
+    ><button
+      id="invitations-tab"
+      role="tab"
+      [attr.aria-selected]="tab() === 'invitations'"
+      aria-controls="invitations-panel"
+      (click)="tab.set('invitations')"
+    >
+      Invitations <app-icon name="mail" />
+    </button>
+  </div>
   @if (error()) {
-    <p class="error-box" role="alert">{{ error() }}</p>
+    <div class="error-box" role="alert">
+      {{ error() }}<button mat-button (click)="load()">Try again</button>
+    </div>
   }
   @if (notice()) {
-    <p role="status">{{ notice() }}</p>
+    <p class="success-note" role="status">{{ notice() }}</p>
   }
   @if (loading()) {
-    <p role="status">Loading accounts…</p>
+    <div class="loading-state"><mat-spinner diameter="30" aria-label="Loading accounts" /></div>
   }
-  <div class="account-grid">
-    <section>
-      <h2>Invitations</h2>
-      <button mat-flat-button (click)="invite()" [disabled]="busy()">Create invitation</button>
-      @if (link()) {
-        <div class="account-card">
-          <p>Anyone possessing this valid link can create one account. Share it privately.</p>
-          <input class="link-value" aria-label="New invitation link" [value]="link()" readonly />
-          <div class="account-actions">
-            <button mat-stroked-button (click)="copy()">Copy link</button
-            ><button mat-button (click)="link.set('')">Dismiss link</button>
+  <section
+    id="accounts-panel"
+    role="tabpanel"
+    aria-labelledby="accounts-tab"
+    [hidden]="tab() !== 'accounts'"
+  >
+    <div class="admin-list-heading">
+      <h2>Your accounts</h2>
+      <span>{{ accounts().length }} total</span>
+    </div>
+    <div class="admin-account-list">
+      @for (account of accounts(); track account.id) {
+        <article class="account-card admin-account-card">
+          <div class="admin-person">
+            <app-avatar [name]="account.displayName" [imageUrl]="account.avatarUrl" />
+            <div class="person-copy">
+              <h3>{{ account.displayName }}</h3>
+              <p>{{ account.username }}</p>
+              <small>{{ account.email || 'Email not added' }}</small>
+            </div>
+            <span class="status-badge" [class.inactive]="!account.isActive">{{
+              account.isActive ? 'Active' : 'Deactivated'
+            }}</span>
           </div>
-        </div>
+          <div class="admin-account-actions">
+            @if (account.isAdministrator) {
+              <span class="admin-role"><app-icon name="lock" />Administrator</span>
+            } @else {
+              <button
+                mat-stroked-button
+                (click)="status(account)"
+                [disabled]="busy()"
+                [class.deactivate]="account.isActive"
+              >
+                <app-icon [name]="account.isActive ? 'close' : 'check'" />{{
+                  account.isActive ? 'Deactivate account' : 'Reactivate account'
+                }}
+              </button>
+            }
+          </div>
+        </article>
+      } @empty {
+        @if (!loading()) {
+          <p class="empty-account-list">No accounts to display.</p>
+        }
       }
+    </div>
+  </section>
+  <section
+    id="invitations-panel"
+    role="tabpanel"
+    aria-labelledby="invitations-tab"
+    [hidden]="tab() !== 'invitations'"
+  >
+    <div class="admin-list-heading">
+      <div>
+        <h2>Account invitations</h2>
+        <p>Invite someone new to Recipoke.</p>
+      </div>
+      <button mat-flat-button (click)="invite()" [disabled]="busy()">
+        <app-icon name="plus" />Create invitation
+      </button>
+    </div>
+    @if (link()) {
+      <div class="new-invitation-card">
+        <h3>Your invitation is ready</h3>
+        <p>
+          Anyone with this valid link can create one account. Share it privately. The link is only
+          shown now.
+        </p>
+        <input class="link-value" aria-label="New invitation link" [value]="link()" readonly />
+        <div class="account-actions">
+          <button mat-flat-button (click)="copy()"><app-icon name="link" />Copy link</button
+          ><button mat-button (click)="link.set('')">Dismiss link</button>
+        </div>
+      </div>
+    }
+    <div class="admin-invitation-list">
       @for (invitation of invitations(); track invitation.id) {
-        <article class="account-card">
-          <p>
-            <strong>{{ invitation.status }}</strong>
-          </p>
-          <p>
-            Created {{ invitation.createdAtUtc | date: 'medium' }}<br />Expires
-            {{ invitation.expiresAtUtc | date: 'medium' }}
-          </p>
+        <article class="account-card admin-invitation-card">
+          <div class="invitation-state">
+            <span class="section-icon"><app-icon name="mail" /></span>
+            <div>
+              <strong>{{ invitation.status }}</strong>
+              <p>Created {{ invitation.createdAtUtc | date: 'mediumDate' }}</p>
+            </div>
+          </div>
+          <p class="invitation-expiry">Expires {{ invitation.expiresAtUtc | date: 'medium' }}</p>
           @if (invitation.status === 'Pending') {
             <button mat-stroked-button (click)="revoke(invitation.id)" [disabled]="busy()">
               Revoke invitation
@@ -41,27 +142,14 @@
           }
         </article>
       } @empty {
-        <p>No invitations yet.</p>
+        @if (!loading()) {
+          <div class="empty-account-list">
+            <app-icon name="mail" />
+            <h3>No invitations yet</h3>
+            <p>Create an invitation to bring someone in.</p>
+          </div>
+        }
       }
-    </section>
-    <section>
-      <h2>Accounts</h2>
-      @for (account of accounts(); track account.id) {
-        <article class="account-card">
-          <h3>{{ account.displayName }}</h3>
-          <p>
-            {{ account.username }} · {{ account.isActive ? 'Active' : 'Deactivated' }}
-            @if (account.isAdministrator) {
-              · Administrator
-            }
-          </p>
-          @if (!account.isAdministrator) {
-            <button mat-stroked-button (click)="status(account)" [disabled]="busy()">
-              {{ account.isActive ? 'Deactivate account' : 'Reactivate account' }}
-            </button>
-          }
-        </article>
-      }
-    </section>
-  </div>
+    </div>
+  </section>
 </section>

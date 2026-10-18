@@ -17,26 +17,12 @@
           <app-icon name="plus" />
           Add recipe
         </a>
-
-        <button
-          mat-stroked-button
-          type="button"
-          class="recipe-action import-recipe"
-          (click)="openImport()"
-          [disabled]="importDialogOpen()"
-        >
-          <app-icon name="link" />
-          Import recipe
-        </button>
       </div>
     }
   </div>
 
   @if (message) {
     <p role="status">{{ message }}</p>
-  }
-  @if (importError()) {
-    <p class="error-box" role="alert">{{ importError() }}</p>
   }
 
   <mat-form-field appearance="outline" class="search-field">

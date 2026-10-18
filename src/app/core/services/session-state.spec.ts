@@ -10,9 +10,23 @@ import { CookbookContext } from './cookbook-context';
 import { RecipeDraftService } from './recipe-draft.service';
 import { RecipeImportResult } from '../models/recipe-import.model';
 
-const alice = { id: 'alice', username: 'alice', displayName: 'Alice', isAdministrator: false };
+const alice = {
+  id: 'alice',
+  username: 'alice',
+  displayName: 'Alice',
+  isAdministrator: false,
+  email: null,
+  avatarUrl: null,
+};
 const bob = { ...alice, id: 'bob', username: 'bob', displayName: 'Bob' };
-const book = { id: 'book-a', name: 'Private cookbook', role: 'Owner' };
+const book = {
+  id: 'book-a',
+  name: 'Private cookbook',
+  role: 'Owner',
+  description: null,
+  imageUrl: null,
+  recipeCount: 0,
+};
 describe('Session boundaries', () => {
   let http: HttpTestingController;
   let session: SessionState;
@@ -80,5 +94,28 @@ describe('Session boundaries', () => {
     const request = http.expectOne('/api/invitations/validate');
     expect(request.request.headers.get('X-RecipeAtlas')).toBe('1');
     request.flush({ status: 'Invalid' });
+  });
+  it('ignores an old profile response after switching accounts', async () => {
+    const updating = TestBed.inject(AuthService).updateProfile(
+      'Private name',
+      'alice@example.test',
+    );
+    http.expectOne('/api/account/profile').flush({ ...alice, displayName: 'Private name' });
+    session.clear('login');
+    session.user.set(bob);
+    await expect(updating).rejects.toThrow('Session changed');
+    expect(session.user()).toEqual(bob);
+  });
+
+  it('clears cached state when /me reveals an account change from another browser tab', async () => {
+    const context = TestBed.inject(CookbookContext);
+    context.current.set(book);
+    const epoch = session.epoch();
+    const checking = TestBed.inject(AuthService).check();
+    http.expectOne('/api/auth/me').flush(bob);
+    expect(await checking).toBe(true);
+    expect(session.user()).toEqual(bob);
+    expect(session.epoch()).toBeGreaterThan(epoch);
+    expect(context.current()).toBeNull();
   });
 });

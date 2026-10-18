@@ -17,12 +17,12 @@ import { administratorGuard, cookbookGuard } from './cookbook.guard';
 describe('Cookbook navigation guards', () => {
   const check = vi.fn(),
     select = vi.fn();
-  const user = signal({ isAdministrator: false });
+  const user = signal({ isAdministrator: false, email: null, avatarUrl: null });
   const current = signal<unknown>(null);
   beforeEach(() => {
     check.mockReset().mockResolvedValue(true);
     select.mockReset().mockResolvedValue({ id: 'book', role: 'Viewer' });
-    user.set({ isAdministrator: false });
+    user.set({ isAdministrator: false, email: null, avatarUrl: null });
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
@@ -68,7 +68,7 @@ describe('Cookbook navigation guards', () => {
     expect(
       await TestBed.runInInjectionContext(() => administratorGuard(route, state)),
     ).toBeInstanceOf(UrlTree);
-    user.set({ isAdministrator: true });
+    user.set({ isAdministrator: true, email: null, avatarUrl: null });
     expect(await TestBed.runInInjectionContext(() => administratorGuard(route, state))).toBe(true);
   });
 });

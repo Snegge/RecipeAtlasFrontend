@@ -1,0 +1,216 @@
+<section class="page cookbook-editor-page">
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">{{ isNew ? 'MAKE ROOM FOR GOOD FOOD' : 'YOUR SHARED COLLECTION' }}</p>
+      <h1>{{ isNew ? 'Create a cookbook' : 'Cookbook settings' }}</h1>
+      <p class="muted">
+        {{
+          isNew
+            ? 'Give your recipes a home. Invite people when you’re ready.'
+            : 'Make it your own, and choose who can join.'
+        }}
+      </p>
+    </div>
+  </div>
+  @if (error()) {
+    <p class="error-box" role="alert">{{ error() }}</p>
+  }
+  @if (notice()) {
+    <p class="inline-notice" role="status">{{ notice() }}</p>
+  }
+  @if (loading()) {
+    <div class="loading-state"><mat-spinner diameter="32" aria-label="Loading cookbook" /></div>
+  } @else {
+    <div class="cookbook-editor-grid">
+      <section class="editor-card">
+        <div class="card-section-heading">
+          <span class="section-number">01</span>
+          <div>
+            <h2>The details</h2>
+            <p>A name, a little context, and a favourite picture.</p>
+          </div>
+        </div>
+        <div class="cover-picker">
+          @if (picture.preview()) {
+            <img [src]="picture.preview()!" alt="Cookbook cover preview" />
+          } @else {
+            <div class="cover-picker-placeholder">
+              <app-icon name="image" /><span>Add a cover picture</span
+              ><small>JPEG, PNG or WebP</small>
+            </div>
+          }
+          <div class="cover-picker-actions">
+            <input
+              #coverInput
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              hidden
+              (change)="picture.choose($event)"
+              [disabled]="navigationBlocked()"
+            /><button
+              mat-stroked-button
+              type="button"
+              (click)="coverInput.click()"
+              [disabled]="navigationBlocked()"
+            >
+              <app-icon name="image" />{{
+                picture.preparing()
+                  ? 'Preparing…'
+                  : picture.preview()
+                    ? 'Change picture'
+                    : 'Choose picture'
+              }}
+            </button>
+            @if (picture.preview()) {
+              <button
+                mat-icon-button
+                type="button"
+                (click)="picture.remove()"
+                [disabled]="navigationBlocked()"
+                aria-label="Remove cookbook picture"
+              >
+                <app-icon name="trash" />
+              </button>
+            }
+          </div>
+        </div>
+        @if (picture.error()) {
+          <p class="error-box" role="alert">{{ picture.error() }}</p>
+        }
+        <form [formGroup]="form" (ngSubmit)="save()" class="details-form">
+          <mat-form-field subscriptSizing="dynamic" appearance="outline"
+            ><mat-label>Cookbook name</mat-label
+            ><input matInput formControlName="name" maxlength="100" required /><mat-error
+              >Enter a name, up to 100 characters.</mat-error
+            ></mat-form-field
+          ><mat-form-field subscriptSizing="dynamic" appearance="outline"
+            ><mat-label>Description (optional)</mat-label
+            ><textarea
+              matInput
+              formControlName="description"
+              rows="4"
+              maxlength="2000"
+              placeholder="Weeknight favourites, family traditions, or something new…"
+            ></textarea
+            ><mat-hint>What belongs in this cookbook?</mat-hint
+            ><mat-error>Use at most 2000 characters.</mat-error></mat-form-field
+          >
+        </form>
+      </section>
+      <section class="editor-card members-card" id="members">
+        <div class="card-section-heading">
+          <span class="section-number">02</span>
+          <div>
+            <h2>Members</h2>
+            <p>You are the owner. Other people join by invitation.</p>
+          </div>
+        </div>
+        <form
+          #memberForm="ngForm"
+          class="member-invite-form"
+          [formGroup]="member"
+          (ngSubmit)="add()"
+        >
+          <mat-form-field subscriptSizing="dynamic" appearance="outline" class="member-username"
+            ><mat-label>Exact username</mat-label
+            ><input
+              matInput
+              formControlName="username"
+              autocomplete="off"
+              maxlength="32"
+            /><mat-error>Enter an existing username.</mat-error></mat-form-field
+          ><mat-form-field subscriptSizing="dynamic" appearance="outline"
+            ><mat-label>Access</mat-label
+            ><mat-select formControlName="role"
+              ><mat-option value="Viewer">Viewer</mat-option
+              ><mat-option value="Editor">Editor</mat-option></mat-select
+            ></mat-form-field
+          ><button mat-flat-button type="submit" [disabled]="member.invalid || busy()">
+            {{ savedId() ? 'Send invitation' : 'Add to list' }}
+          </button>
+        </form>
+        <p class="member-help">
+          Viewers can read. Editors can add, edit and delete recipes. Invitations appear on their
+          Cookbooks page.
+        </p>
+        @for (person of pendingMembers(); track $index; let i = $index) {
+          <article class="member-row">
+            <app-avatar [name]="person.username" />
+            <div class="member-copy">
+              <h3>{{ person.username }}</h3>
+              <p>{{ person.role }} · Invite on creation</p>
+            </div>
+            <button
+              mat-icon-button
+              (click)="removePending(i)"
+              [disabled]="busy()"
+              [attr.aria-label]="'Remove ' + person.username + ' from invitation list'"
+            >
+              <app-icon name="close" />
+            </button>
+          </article>
+        }
+        @for (person of members(); track person.userId) {
+          <article class="member-row">
+            <app-avatar [name]="person.displayName" [imageUrl]="person.avatarUrl" />
+            <div class="member-copy">
+              <h3>{{ person.displayName }}</h3>
+              <p>{{ person.username }} · {{ person.role }}</p>
+              @if (person.isPending) {
+                <span class="pending-badge">Invitation pending</span>
+              } @else if (!person.isActive) {
+                <span class="pending-badge">Deactivated account</span>
+              }
+            </div>
+            @if (person.role === 'Owner') {
+              <span class="owner-label"><app-icon name="lock" />Owner</span>
+            } @else if (person.isPending) {
+              <button
+                mat-icon-button
+                (click)="remove(person)"
+                [disabled]="busy()"
+                [attr.aria-label]="'Cancel invitation for ' + person.displayName"
+              >
+                <app-icon name="close" />
+              </button>
+            } @else {
+              <button
+                mat-icon-button
+                [matMenuTriggerFor]="memberActions"
+                [disabled]="busy()"
+                [attr.aria-label]="'Manage ' + person.displayName"
+              >
+                <app-icon name="more" /></button
+              ><mat-menu #memberActions="matMenu"
+                ><button
+                  mat-menu-item
+                  (click)="role(person, person.role === 'Viewer' ? 'Editor' : 'Viewer')"
+                >
+                  Make {{ person.role === 'Viewer' ? 'Editor' : 'Viewer' }}</button
+                ><button mat-menu-item (click)="remove(person)">Remove member</button></mat-menu
+              >
+            }
+          </article>
+        }
+      </section>
+    </div>
+    <div class="editor-savebar">
+      <span>{{
+        isNew
+          ? 'Ready for your first recipe?'
+          : 'Changes are only saved when you save the cookbook.'
+      }}</span
+      ><button
+        mat-flat-button
+        class="primary-create"
+        type="button"
+        (click)="save()"
+        [disabled]="navigationBlocked() || form.invalid"
+      >
+        <app-icon [name]="isNew ? 'plus' : 'check'" />{{
+          busy() ? 'Saving…' : isNew ? 'Create cookbook' : 'Save cookbook'
+        }}
+      </button>
+    </div>
+  }
+</section>

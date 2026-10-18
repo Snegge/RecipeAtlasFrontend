@@ -30,9 +30,15 @@ export class AccountAdminService {
       this.http.post<InvitationValidity>('/api/invitations/validate', { token }),
     );
   }
-  redeem(token: string, username: string, displayName: string, password: string) {
+  redeem(token: string, username: string, displayName: string, password: string, email: string) {
     return firstValueFrom(
-      this.http.post<void>('/api/invitations/redeem', { token, username, displayName, password }),
+      this.http.post<void>('/api/invitations/redeem', {
+        token,
+        username,
+        displayName,
+        password,
+        email,
+      }),
     );
   }
 }

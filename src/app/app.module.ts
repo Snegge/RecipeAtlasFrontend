@@ -1,3 +1,4 @@
+import { MatSidenavModule } from '@angular/material/sidenav';
 import { RouteReuseStrategy } from '@angular/router';
 import { CookbookRouteReuseStrategy } from './core/guards/cookbook-route-reuse.strategy';
 import { NgModule, provideZonelessChangeDetection } from '@angular/core';
@@ -10,7 +11,7 @@ import { apiInterceptor } from './core/interceptors/api.interceptor';
 
 @NgModule({
   declarations: [AppComponent],
-  imports: [BrowserModule, SharedModule, AppRoutingModule],
+  imports: [BrowserModule, SharedModule, MatSidenavModule, AppRoutingModule],
   providers: [
     provideZonelessChangeDetection(),
     { provide: RouteReuseStrategy, useClass: CookbookRouteReuseStrategy },

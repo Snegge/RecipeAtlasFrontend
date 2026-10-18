@@ -16,6 +16,24 @@
     </div>
   </div>
 
+  @if (!savedId() && !loading() && !loadError()) {
+    <section class="new-recipe-import">
+      <span class="import-entry-icon"><app-icon name="link" /></span>
+      <div>
+        <h2>Already found a recipe?</h2>
+        <p>Import a link or paste recipe text, then make it yours.</p>
+      </div>
+      <button
+        mat-stroked-button
+        type="button"
+        (click)="openImport()"
+        [disabled]="navigationBlocked()"
+        class="import-recipe"
+      >
+        <app-icon name="link" />{{ editor.importing() ? 'Importing…' : 'Import recipe' }}
+      </button>
+    </section>
+  }
   @if (loading()) {
     <div class="loading-state">
       <mat-spinner diameter="36" aria-label="Loading editor" />

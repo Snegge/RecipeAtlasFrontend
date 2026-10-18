@@ -1,15 +1,18 @@
 <section class="account-page">
   <div class="account-card">
     <h1>Join Recipoke</h1>
-    <p>Accounts are created by invitation only. No email address is required.</p>
+    <p>
+      Accounts are created by invitation only. Choose your profile and email address to get started.
+    </p>
     @if (status() === 'Loading') {
       <p role="status">Checking invitation…</p>
     } @else if (status() === 'Pending') {
       <p>
-        This invitation can create one account. Choose a username, a display name and a password.
+        This invitation can create one account. Choose a username, a display name, an email address
+        and a password.
       </p>
       <form [formGroup]="form" (ngSubmit)="accept()">
-        <mat-form-field
+        <mat-form-field subscriptSizing="dynamic"
           ><mat-label>Username</mat-label
           ><input
             matInput
@@ -21,7 +24,7 @@
             >Use 3–32 letters, digits, dots, underscores or hyphens.</mat-error
           ></mat-form-field
         >
-        <mat-form-field
+        <mat-form-field subscriptSizing="dynamic"
           ><mat-label>Display name</mat-label
           ><input
             matInput
@@ -31,7 +34,18 @@
             required
           /><mat-error>Enter a display name, up to 100 characters.</mat-error></mat-form-field
         >
-        <mat-form-field
+        <mat-form-field subscriptSizing="dynamic"
+          ><mat-label>Email address</mat-label
+          ><input
+            matInput
+            formControlName="email"
+            type="email"
+            autocomplete="email"
+            maxlength="254"
+            required
+          /><mat-error>Enter a valid email address.</mat-error></mat-form-field
+        >
+        <mat-form-field subscriptSizing="dynamic"
           ><mat-label>Password</mat-label
           ><input
             matInput

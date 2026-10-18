@@ -1,15 +1,27 @@
+import { MatMenuModule } from '@angular/material/menu';
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { SharedModule } from '../../shared/shared.module';
 import { authGuard } from '../../core/guards/auth.guard';
 import { cookbookGuard } from '../../core/guards/cookbook.guard';
 import { CookbookOverviewComponent } from './cookbook-overview.component';
-import { CookbookSettingsComponent } from './cookbook-settings.component';
+import { CookbookEditorComponent } from './cookbook-editor.component';
+import { CookbookInvitationsComponent } from './cookbook-invitations.component';
+import { unsavedGuard } from '../../core/guards/unsaved-changes.guard';
 @NgModule({
-  declarations: [CookbookOverviewComponent, CookbookSettingsComponent],
+  declarations: [CookbookOverviewComponent, CookbookEditorComponent, CookbookInvitationsComponent],
   imports: [
     SharedModule,
+    MatMenuModule,
     RouterModule.forChild([
+      {
+        path: 'new',
+        component: CookbookEditorComponent,
+        canActivate: [authGuard],
+        canDeactivate: [unsavedGuard],
+        data: { create: true },
+        title: 'Create cookbook · Recipoke',
+      },
       {
         path: '',
         component: CookbookOverviewComponent,
@@ -18,7 +30,8 @@ import { CookbookSettingsComponent } from './cookbook-settings.component';
       },
       {
         path: ':cookbookId/settings',
-        component: CookbookSettingsComponent,
+        component: CookbookEditorComponent,
+        canDeactivate: [unsavedGuard],
         canActivate: [cookbookGuard],
         data: { manage: true },
         title: 'Cookbook settings · Recipoke',

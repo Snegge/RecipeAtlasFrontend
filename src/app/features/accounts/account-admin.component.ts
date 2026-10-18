@@ -14,6 +14,7 @@ export class AccountAdminComponent {
   private readonly api = inject(AccountAdminService);
   private readonly session = inject(SessionState);
   private readonly destroy = inject(DestroyRef);
+  readonly tab = signal<'accounts' | 'invitations'>('accounts');
   readonly accounts = signal<AccountResponse[]>([]);
   readonly invitations = signal<InvitationResponse[]>([]);
   readonly loading = signal(true);

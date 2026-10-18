@@ -14,6 +14,7 @@ export class AuthService {
     try {
       const user = await firstValueFrom(this.http.get<CurrentUserResponse>('/api/auth/me'));
       if (epoch !== this.session.epoch()) return false;
+      if (this.user()?.id && this.user()!.id !== user.id) this.session.clear('login');
       this.user.set(user);
       return true;
     } catch {
@@ -43,5 +44,31 @@ export class AuthService {
     return firstValueFrom(
       this.http.post<void>('/api/auth/password', { currentPassword, newPassword }),
     );
+  }
+  async updateProfile(displayName: string, email: string) {
+    const epoch = this.session.epoch();
+    const user = await firstValueFrom(
+      this.http.put<CurrentUserResponse>('/api/account/profile', { displayName, email }),
+    );
+    if (epoch !== this.session.epoch()) throw new Error('Session changed. Sign in again.');
+    this.user.set(user);
+    return user;
+  }
+  async uploadAvatar(picture: Blob) {
+    const epoch = this.session.epoch();
+    const user = await firstValueFrom(
+      this.http.put<CurrentUserResponse>('/api/account/avatar', picture, {
+        headers: { 'Content-Type': picture.type },
+      }),
+    );
+    if (epoch !== this.session.epoch()) throw new Error('Session changed. Sign in again.');
+    this.user.set(user);
+    return user;
+  }
+  async removeAvatar() {
+    const epoch = this.session.epoch();
+    await firstValueFrom(this.http.delete<void>('/api/account/avatar'));
+    if (epoch !== this.session.epoch()) throw new Error('Session changed. Sign in again.');
+    await this.check();
   }
 }

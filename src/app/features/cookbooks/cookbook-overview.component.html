@@ -1,47 +1,99 @@
-<section class="account-page">
-  <h1>Your cookbooks</h1>
-  <p>Choose a cookbook to browse, cook or add recipes.</p>
+<section class="page cookbook-page">
+  <div class="page-heading cookbook-heading">
+    <div>
+      <p class="eyebrow">YOUR COLLECTION</p>
+      <h1>Your cookbooks</h1>
+      <p class="muted">Good recipes belong together.</p>
+    </div>
+    <a mat-flat-button class="primary-create sticky-create" routerLink="/cookbooks/new"
+      ><app-icon name="plus" />Create cookbook</a
+    >
+  </div>
   @if (message) {
-    <p role="status">{{ message }}</p>
+    <p class="inline-notice" role="status">{{ message }}</p>
   }
+  @if (notice()) {
+    <p class="inline-notice" role="status">{{ notice() }}</p>
+  }
+  <app-cookbook-invitations (changed)="load()" />
   @if (error()) {
-    <p class="error-box" role="alert">{{ error() }}</p>
-    <button mat-button (click)="load()">Try again</button>
+    <div class="error-box" role="alert">
+      {{ error() }} <button mat-button (click)="load()">Try again</button>
+    </div>
   }
+  <div class="shelf-heading">
+    <h2>On your shelf</h2>
+    <span>{{ cookbooks().length }} {{ cookbooks().length === 1 ? 'cookbook' : 'cookbooks' }}</span>
+  </div>
   @if (loading()) {
-    <p role="status">Loading cookbooks…</p>
-  }
-  <div class="account-grid">
-    @for (book of cookbooks(); track book.id) {
-      <article class="account-card">
-        <h2>{{ book.name }}</h2>
-        <p class="role-label">{{ book.role }}{{ book.role === 'Viewer' ? ' · Read-only' : '' }}</p>
-        <div class="account-actions">
-          <a mat-flat-button [routerLink]="['/cookbooks', book.id, 'recipes']">Open cookbook</a>
-          @if (book.role === 'Owner') {
-            <a mat-stroked-button [routerLink]="['/cookbooks', book.id, 'settings']"
-              >Members and settings</a
-            >
-          } @else {
-            <button mat-button (click)="leave(book)" [disabled]="busy()">Leave cookbook</button>
-          }
-        </div>
-      </article>
-    } @empty {
-      @if (!loading()) {
-        <p>No accessible cookbooks. Create one below.</p>
+    <div class="cookbook-grid" aria-label="Loading cookbooks" aria-busy="true">
+      @for (item of [1, 2, 3, 4]; track item) {
+        <div class="cookbook-skeleton"></div>
       }
-    }
-  </div>
-  <div class="account-card">
-    <h2>Create a cookbook</h2>
-    <form [formGroup]="form" (ngSubmit)="create()">
-      <mat-form-field
-        ><mat-label>Cookbook name</mat-label
-        ><input matInput formControlName="name" maxlength="100" required /><mat-error
-          >Enter a name, up to 100 characters.</mat-error
-        ></mat-form-field
-      ><button mat-flat-button [disabled]="busy() || form.invalid">Create cookbook</button>
-    </form>
-  </div>
+    </div>
+  } @else {
+    <div class="cookbook-grid">
+      @for (book of cookbooks(); track book.id; let index = $index) {
+        <article class="cookbook-card" [class]="'cookbook-card cover-tone-' + (index % 4)">
+          <a
+            class="cookbook-card-link"
+            [routerLink]="['/cookbooks', book.id, 'recipes']"
+            [attr.aria-label]="'Open ' + book.name"
+            ><div class="cookbook-cover">
+              @if (book.imageUrl && !failedCovers().has(book.id)) {
+                <img [src]="book.imageUrl" alt="" loading="lazy" (error)="coverFailed(book.id)" />
+              } @else {
+                <div class="cover-placeholder">
+                  <span class="cover-rule"></span><app-icon name="book" /><span
+                    class="cover-caption"
+                    >RECIPES TO KEEP</span
+                  >
+                </div>
+              }
+              <span class="role-pill">{{ book.role }}</span>
+            </div>
+            <div class="cookbook-card-copy">
+              <h3>{{ book.name }}</h3>
+              <p>{{ book.recipeCount }} {{ book.recipeCount === 1 ? 'recipe' : 'recipes' }}</p>
+              @if (book.description) {
+                <span class="cookbook-description">{{ book.description }}</span>
+              }
+            </div></a
+          >
+          <button
+            mat-icon-button
+            class="cookbook-menu"
+            [matMenuTriggerFor]="actions"
+            [attr.aria-label]="'Actions for ' + book.name"
+            [disabled]="busy()"
+          >
+            <app-icon name="more" /></button
+          ><mat-menu #actions="matMenu">
+            @if (book.role === 'Owner') {
+              <a mat-menu-item [routerLink]="['/cookbooks', book.id, 'settings']"
+                ><app-icon name="edit" />Edit cookbook</a
+              ><a
+                mat-menu-item
+                [routerLink]="['/cookbooks', book.id, 'settings']"
+                fragment="members"
+                ><app-icon name="people" />Manage members</a
+              ><button mat-menu-item class="danger-text" (click)="delete(book)">
+                <app-icon name="trash" />Delete cookbook
+              </button>
+            } @else {
+              <button mat-menu-item (click)="leave(book)">
+                <app-icon name="logout" />Leave cookbook
+              </button>
+            }
+          </mat-menu>
+        </article>
+      } @empty {
+        <div class="empty-state cookbook-empty">
+          <div class="large-mark"><app-icon name="book" /></div>
+          <h2>A fresh start</h2>
+          <p>Create your first cookbook, or accept an invitation above.</p>
+        </div>
+      }
+    </div>
+  }
 </section>

@@ -1,3 +1,7 @@
+import { MatDialog } from '@angular/material/dialog';
+import { firstValueFrom } from 'rxjs';
+import { RecipeImportDialogComponent } from '../../components/recipe-import-dialog/recipe-import-dialog.component';
+import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { HttpErrorResponse } from '@angular/common/http';
 import { CookbookContext } from '../../../../core/services/cookbook-context';
 import { SessionState } from '../../../../core/services/session-state';
@@ -22,6 +26,8 @@ export class RecipeEditorCoordinator {
   private readonly session = inject(SessionState);
   readonly cookbookId = inject(ActivatedRoute).snapshot.paramMap.get('cookbookId')!;
   readonly recipeRoot = ['/cookbooks', this.cookbookId, 'recipes'];
+  private readonly dialog = inject(MatDialog);
+  readonly importing = signal(false);
   readonly permissionLost = signal(false);
   readonly forms = inject(RecipeEditorForm);
   readonly photos = inject(RecipeEditorPhoto);
@@ -116,13 +122,80 @@ export class RecipeEditorCoordinator {
     }
   }
 
+  async openImport(): Promise<boolean> {
+    if (
+      this.savedId() ||
+      this.importing() ||
+      this.navigationBlocked() ||
+      this.loading() ||
+      this.loadError() ||
+      !this.cookbooks.canWrite()
+    )
+      return false;
+    const epoch = this.session.epoch();
+    if (this.hasUnsavedChanges()) {
+      const confirm = this.dialog.open(ConfirmDialogComponent, {
+        data: {
+          title: 'Replace your draft?',
+          message: 'Importing a recipe will replace your unsaved recipe fields and picture.',
+          action: 'Import recipe',
+        },
+        maxWidth: '420px',
+        width: 'calc(100% - 32px)',
+      });
+      const close = this.session.changes.subscribe(() => confirm.close());
+      const stop = this.destroyRef.onDestroy(() => confirm.close());
+      let accepted;
+      try {
+        accepted = await firstValueFrom(confirm.afterClosed());
+      } finally {
+        close.unsubscribe();
+        stop();
+      }
+      if (!accepted || epoch !== this.session.epoch() || this.destroyRef.destroyed) return false;
+    }
+    this.importing.set(true);
+    this.error.set('');
+    const ref = this.dialog.open<RecipeImportDialogComponent, undefined, RecipeImportResult>(
+      RecipeImportDialogComponent,
+      {
+        panelClass: 'recipe-import-dialog',
+        maxWidth: '100vw',
+        autoFocus: 'dialog',
+        restoreFocus: true,
+        closeOnNavigation: true,
+      },
+    );
+    const close = this.session.changes.subscribe(() => ref.close());
+    const stop = this.destroyRef.onDestroy(() => ref.close());
+    try {
+      const result = await firstValueFrom(ref.afterClosed());
+      if (!result || epoch !== this.session.epoch() || this.destroyRef.destroyed) return false;
+      this.photos.clear();
+      this.forms.applyImportedDraft(result);
+      this.forms.ingredientDraftPending = false;
+      this.forms.ingredients.controls.forEach((_row, index) => this.forms.setUnit(index, false));
+      this.photos.externalPhotoUrl.set(result.draft.externalImageUrl);
+      if (result.draft.externalImageUrl)
+        await this.photos.importPhoto(result.draft.externalImageUrl);
+      return epoch === this.session.epoch() && !this.destroyRef.destroyed;
+    } catch (e) {
+      if (epoch === this.session.epoch() && !this.destroyRef.destroyed)
+        this.error.set(errorMessage(e));
+      return false;
+    } finally {
+      close.unsubscribe();
+      stop();
+      this.importing.set(false);
+    }
+  }
   hasUnsavedChanges(): boolean {
     return (
       this.permissionLost() || this.forms.hasUnsavedChanges() || this.photos.hasUnsavedChanges()
     );
   }
   navigationBlocked(): boolean {
-    return this.busy() || this.photos.preparingPhoto();
+    return this.busy() || this.photos.preparingPhoto() || this.importing();
   }
   saveBlockReason(): string {
     return this.forms.saveBlockReason();

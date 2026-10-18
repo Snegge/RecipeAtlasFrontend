@@ -36,7 +36,9 @@ export class LoginComponent {
       await this.auth.login(this.username.value, this.password.value);
       const target = this.route.snapshot.queryParamMap.get('returnUrl');
       await this.router.navigateByUrl(
-        target && /^\/(cookbooks|account|admin)(?:\/|[?#]|$)/.test(target) && !target.includes('\\')
+        target &&
+          /^\/(cookbooks|account|admin|settings)(?:\/|[?#]|$)/.test(target) &&
+          !target.includes('\\')
           ? target
           : '/cookbooks',
       );

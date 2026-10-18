@@ -20,6 +20,7 @@ export class InvitationPageComponent {
   readonly form = inject(NonNullableFormBuilder).group({
     username: ['', [Validators.required, Validators.pattern(/^[A-Za-z0-9][A-Za-z0-9._-]{2,31}$/)]],
     displayName: ['', [Validators.required, Validators.maxLength(100)]],
+    email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
     password: ['', [Validators.required, Validators.minLength(12), Validators.maxLength(256)]],
   });
   constructor() {
@@ -47,7 +48,13 @@ export class InvitationPageComponent {
     this.error.set('');
     try {
       const value = this.form.getRawValue();
-      await this.api.redeem(this.token, value.username, value.displayName, value.password);
+      await this.api.redeem(
+        this.token,
+        value.username,
+        value.displayName,
+        value.password,
+        value.email,
+      );
       this.token = '';
       this.form.reset();
       this.status.set('Created');

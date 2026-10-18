@@ -1,4 +1,5 @@
-import { Component, HostListener, inject } from '@angular/core';
+import { IngredientEditorComponent } from '../../components/ingredient-editor/ingredient-editor.component';
+import { Component, HostListener, ViewChild, inject } from '@angular/core';
 import { IngredientForm } from '../../models/recipe-form.model';
 import { ImportedIngredient } from '../../../../core/models/recipe-import.model';
 import { RecipeEditorCoordinator } from './recipe-editor-coordinator';
@@ -38,6 +39,10 @@ export class RecipeEditorComponent {
   }
   set ingredientDraftPending(value: boolean) {
     this.editor.forms.ingredientDraftPending = value;
+  }
+  @ViewChild(IngredientEditorComponent) ingredientsEditor?: IngredientEditorComponent;
+  async openImport() {
+    if (await this.editor.openImport()) this.ingredientsEditor?.clearQuickEntry();
   }
   load() {
     return this.editor.load();

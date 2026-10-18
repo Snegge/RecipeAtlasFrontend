@@ -1,3 +1,4 @@
+import { AvatarComponent } from './components/avatar/avatar.component';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -7,7 +8,7 @@ import { IconComponent } from './components/icon/icon.component';
 import { ConfirmDialogComponent } from './components/confirm-dialog/confirm-dialog.component';
 
 @NgModule({
-  declarations: [IconComponent, ConfirmDialogComponent],
+  declarations: [IconComponent, ConfirmDialogComponent, AvatarComponent],
   imports: [CommonModule, ReactiveFormsModule, RouterModule, MaterialModule],
   exports: [
     CommonModule,
@@ -16,6 +17,7 @@ import { ConfirmDialogComponent } from './components/confirm-dialog/confirm-dial
     MaterialModule,
     IconComponent,
     ConfirmDialogComponent,
+    AvatarComponent,
   ],
 })
 export class SharedModule {}

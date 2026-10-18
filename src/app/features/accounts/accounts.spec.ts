@@ -48,6 +48,7 @@ describe('Invitation acceptance and administration', () => {
     expect(validate).toHaveBeenCalledWith('private-test-token');
     expect(redeem).not.toHaveBeenCalled();
     fixture.componentInstance.form.setValue({
+      email: 'recipient@example.test',
       username: 'invited-user',
       displayName: 'Invited User',
       password: 'a-private-test-password',
@@ -62,6 +63,7 @@ describe('Invitation acceptance and administration', () => {
       'invited-user',
       'Invited User',
       'a-private-test-password',
+      'recipient@example.test',
     );
     expect(fixture.nativeElement.textContent).toContain('personal cookbook are ready');
     expect(fixture.componentInstance.form.controls.password.value).toBe('');
@@ -94,6 +96,7 @@ describe('Invitation acceptance and administration', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     fixture.componentInstance.form.setValue({
+      email: 'recipient@example.test',
       username: 'duplicate',
       displayName: 'Recipient',
       password: 'a-private-test-password',
