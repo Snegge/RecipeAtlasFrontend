@@ -1,14 +1,14 @@
 import { Component, DestroyRef, inject, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CookbookService } from '../../core/services/cookbook.service';
-import { SessionState } from '../../core/services/session-state';
-import { CookbookInvitationResponse } from '../../core/models/account.model';
-import { errorMessage } from '../../core/utils/api-error';
+import { CookbookService } from '../../../../core/services/cookbook.service';
+import { SessionState } from '../../../../core/services/session-state';
+import { CookbookInvitationResponse } from '../../../../core/models/account.model';
+import { errorMessage } from '../../../../core/utils/api-error';
 @Component({
   selector: 'app-cookbook-invitations',
   standalone: false,
   templateUrl: './cookbook-invitations.component.html',
-  styleUrl: './cookbooks.scss',
+  styleUrl: './cookbook-invitations.component.scss',
 })
 export class CookbookInvitationsComponent {
   private readonly books = inject(CookbookService);

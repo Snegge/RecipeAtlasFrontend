@@ -32,7 +32,7 @@
       (click)="addQuickIngredient()"
       [disabled]="busy || !quickEntry.trim()"
     >
-      <app-icon name="plus" />
+      <mat-icon svgIcon="plus" />
       Add ingredient
     </button>
 
@@ -85,7 +85,7 @@
               (click)="reviewConfirmed.emit(row)"
               [disabled]="busy || row.invalid"
             >
-              <app-icon name="check" />
+              <mat-icon svgIcon="check" />
               Confirm reviewed
             </button>
           }
@@ -159,7 +159,7 @@
           (click)="removeIngredient(index)"
           [disabled]="busy || ingredients.length <= 1"
         >
-          <app-icon name="close" />
+          <mat-icon svgIcon="close" />
         </button>
       </div>
     }
@@ -172,7 +172,7 @@
     (click)="addManually()"
     [disabled]="busy || ingredients.length >= 100"
   >
-    <app-icon name="plus" />
+    <mat-icon svgIcon="plus" />
     Add manually
   </button>
 

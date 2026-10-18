@@ -1,14 +1,14 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AccountAdminService } from '../../core/services/account-admin.service';
-import { SessionState } from '../../core/services/session-state';
-import { AccountResponse, InvitationResponse } from '../../core/models/account.model';
-import { errorMessage } from '../../core/utils/api-error';
+import { AccountAdminService } from '../../../../core/services/account-admin.service';
+import { SessionState } from '../../../../core/services/session-state';
+import { AccountResponse, InvitationResponse } from '../../../../core/models/account.model';
+import { errorMessage } from '../../../../core/utils/api-error';
 @Component({
   selector: 'app-account-admin',
   standalone: false,
   templateUrl: './account-admin.component.html',
-  styleUrl: './accounts.scss',
+  styleUrl: './account-admin.component.scss',
 })
 export class AccountAdminComponent {
   private readonly api = inject(AccountAdminService);

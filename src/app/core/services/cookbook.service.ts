@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import {
   CookbookResponse,
@@ -25,7 +25,12 @@ export class CookbookService {
     this.context.current.set(book);
     return book;
   }
-  create(name: string, description: string | null = null, members: CookbookMemberInput[] = []) {
+  async create(
+    name: string,
+    description: string | null = null,
+    members: CookbookMemberInput[] = [],
+  ) {
+    if (members.length) await this.requireInvitationSupport();
     return firstValueFrom(
       this.http.post<CookbookResponse>('/api/cookbooks', { name, description, members }),
     );
@@ -36,7 +41,9 @@ export class CookbookService {
   members(id: string) {
     return firstValueFrom(this.http.get<MemberResponse[]>(`/api/cookbooks/${id}/members`));
   }
-  add(id: string, username: string, role: string) {
+  async add(id: string, username: string, role: string) {
+    // Older backends used this route to grant immediate access. Require the consent API first.
+    await this.requireInvitationSupport();
     return firstValueFrom(this.http.post<void>(`/api/cookbooks/${id}/members`, { username, role }));
   }
   role(id: string, userId: string, role: string) {
@@ -61,8 +68,24 @@ export class CookbookService {
   delete(id: string) {
     return firstValueFrom(this.http.delete<void>(`/api/cookbooks/${id}`));
   }
-  invitations() {
-    return firstValueFrom(this.http.get<CookbookInvitationResponse[]>('/api/cookbook-invitations'));
+  async invitations() {
+    try {
+      return await firstValueFrom(
+        this.http.get<CookbookInvitationResponse[]>('/api/cookbook-invitations'),
+      );
+    } catch (error) {
+      if (error instanceof HttpErrorResponse && error.status === 404)
+        throw new Error(
+          'This backend does not provide cookbook invitations. Update, rebuild and restart the backend, then reload this page.',
+        );
+      throw error;
+    }
+  }
+  private async requireInvitationSupport() {
+    const epoch = this.session.epoch();
+    await this.invitations();
+    if (epoch !== this.session.epoch())
+      throw new Error('Session changed. Choose a cookbook again.');
   }
   respond(id: string, accept: boolean) {
     return firstValueFrom(this.http.post<void>(`/api/cookbook-invitations/${id}`, { accept }));

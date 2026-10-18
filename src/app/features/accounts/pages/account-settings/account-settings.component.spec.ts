@@ -2,10 +2,10 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { signal } from '@angular/core';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AccountsModule } from './accounts.module';
+import { AccountsModule } from '../../accounts.module';
 import { AccountSettingsComponent } from './account-settings.component';
-import { AuthService } from '../../core/services/auth.service';
-import { SessionState } from '../../core/services/session-state';
+import { AuthService } from '../../../../core/services/auth.service';
+import { SessionState } from '../../../../core/services/session-state';
 const user = {
   id: 'user',
   username: 'reader',

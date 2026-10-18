@@ -1,15 +1,15 @@
 import { Component, DestroyRef, ViewChild, HostListener, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, FormGroupDirective, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { SessionState } from '../../core/services/session-state';
-import { AuthService } from '../../core/services/auth.service';
-import { PictureSelection } from '../../shared/forms/picture-selection';
-import { errorMessage } from '../../core/utils/api-error';
+import { SessionState } from '../../../../core/services/session-state';
+import { AuthService } from '../../../../core/services/auth.service';
+import { PictureSelection } from '../../../../shared/forms/picture-selection';
+import { errorMessage } from '../../../../core/utils/api-error';
 @Component({
   selector: 'app-account-settings',
   standalone: false,
   templateUrl: './account-settings.component.html',
-  styleUrl: './accounts.scss',
+  styleUrl: './account-settings.component.scss',
   providers: [PictureSelection],
 })
 export class AccountSettingsComponent {

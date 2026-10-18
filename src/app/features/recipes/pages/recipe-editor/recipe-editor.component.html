@@ -4,7 +4,7 @@
     [routerLink]="savedId() ? ['/cookbooks', cookbookId, 'recipes', savedId()] : recipeRoot"
     class="back-link"
   >
-    <app-icon name="back" />
+    <mat-icon svgIcon="back" />
     {{ savedId() ? 'Back to recipe' : 'All recipes' }}
   </a>
 
@@ -18,7 +18,7 @@
 
   @if (!savedId() && !loading() && !loadError()) {
     <section class="new-recipe-import">
-      <span class="import-entry-icon"><app-icon name="link" /></span>
+      <span class="import-entry-icon"><mat-icon svgIcon="link" /></span>
       <div>
         <h2>Already found a recipe?</h2>
         <p>Import a link or paste recipe text, then make it yours.</p>
@@ -30,7 +30,7 @@
         [disabled]="navigationBlocked()"
         class="import-recipe"
       >
-        <app-icon name="link" />{{ editor.importing() ? 'Importing…' : 'Import recipe' }}
+        <mat-icon svgIcon="link" />{{ editor.importing() ? 'Importing…' : 'Import recipe' }}
       </button>
     </section>
   }
@@ -206,7 +206,7 @@
             @if (busy()) {
               <mat-spinner diameter="20" />
             } @else {
-              <app-icon name="check" />
+              <mat-icon svgIcon="check" />
             }
             Save recipe
           </button>

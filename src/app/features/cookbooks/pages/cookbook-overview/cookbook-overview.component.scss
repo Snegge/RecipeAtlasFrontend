@@ -1,0 +1,238 @@
+@use '../../styles/cookbook-layout';
+
+.cookbook-page {
+  padding-bottom: 120px;
+}
+.cookbook-heading {
+  align-items: flex-end;
+  margin-bottom: 34px;
+}
+.cookbook-heading .muted {
+  margin-top: 10px;
+}
+.shelf-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 30px 0 18px;
+}
+.shelf-heading h2 {
+  font-size: 1.1rem;
+}
+.shelf-heading > span {
+  color: #798176;
+  font-size: 0.85rem;
+}
+.cookbook-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 22px;
+}
+.cookbook-card {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #e1e7de;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 3px 12px #29402d04;
+  transition:
+    transform 0.18s,
+    box-shadow 0.18s;
+}
+.cookbook-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px #29402d10;
+}
+.cookbook-card-link {
+  display: block;
+  height: 100%;
+  text-decoration: none;
+  color: inherit;
+}
+.cookbook-card-link:focus-visible {
+  outline-offset: -4px;
+  border-radius: 16px;
+}
+.cookbook-cover {
+  position: relative;
+  aspect-ratio: 1.28;
+  overflow: hidden;
+  background: #dfe8df;
+}
+.cookbook-cover > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cover-placeholder {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: linear-gradient(140deg, #e3eade, #f3f4e8);
+  color: #49664d;
+}
+.cover-placeholder > mat-icon {
+  width: 42px;
+  height: 42px;
+}
+.cover-rule {
+  width: 32px;
+  border-top: 1px solid currentColor;
+  opacity: 0.4;
+}
+.cover-caption {
+  font-size: 0.55rem;
+  letter-spacing: 0.18em;
+  line-height: 1.8;
+  text-align: center;
+  font-weight: 650;
+}
+.cover-tone-1 .cover-placeholder {
+  background: linear-gradient(145deg, #eedccc, #f7eee0);
+  color: #976c46;
+}
+.cover-tone-2 .cover-placeholder {
+  background: linear-gradient(145deg, #dce4e9, #edf1ef);
+  color: #547687;
+}
+.cover-tone-3 .cover-placeholder {
+  background: linear-gradient(145deg, #e8dfe5, #f7eff0);
+  color: #956a7e;
+}
+.role-pill {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  background: #ffffffeb;
+  backdrop-filter: blur(8px);
+  border-radius: 6px;
+  color: #3a5841;
+  padding: 3px 8px;
+  font-size: 0.65rem;
+  font-weight: 650;
+}
+.cookbook-card-copy {
+  padding: 15px 16px 17px;
+}
+.cookbook-card-copy h3 {
+  font-size: 1rem;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.7em;
+}
+.cookbook-card-copy > p {
+  color: #7d867b;
+  font-size: 0.75rem;
+  margin-top: 5px;
+}
+.cookbook-description {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #7d867b;
+  margin-top: 8px;
+}
+.cookbook-menu {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  background: #ffffffee !important;
+  box-shadow: 0 2px 8px #2638210a;
+}
+.cookbook-skeleton {
+  aspect-ratio: 0.85;
+  border-radius: 16px;
+  background: linear-gradient(120deg, #e9eee6, #f4f6f0, #e9eee6);
+  background-size: 200%;
+  animation: shelf-loading 1.7s infinite;
+}
+.cookbook-empty {
+  grid-column: 1/-1;
+}
+@keyframes shelf-loading {
+  to {
+    background-position: 200% 0;
+  }
+}
+@media (max-width: 1000px) {
+  .cookbook-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 700px) {
+  .cookbook-grid {
+    gap: 16px;
+  }
+}
+@media (max-width: 599px) {
+  .cookbook-page {
+    padding-top: 26px;
+    padding-bottom: 110px;
+  }
+  .cookbook-heading {
+    margin-bottom: 26px;
+  }
+  .cookbook-heading h1 {
+    font-size: 1.85rem;
+  }
+  .cookbook-heading .muted {
+    font-size: 0.85rem;
+  }
+  .cookbook-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 12px;
+  }
+  .cookbook-cover {
+    aspect-ratio: 1.15;
+  }
+  .cookbook-card {
+    border-radius: 12px;
+  }
+  .cookbook-card-copy {
+    padding: 12px;
+  }
+  .cookbook-card-copy h3 {
+    font-size: 0.88rem;
+  }
+  .cookbook-description {
+    display: none;
+  }
+  .cover-placeholder > mat-icon {
+    width: 32px;
+    height: 32px;
+  }
+  .cover-placeholder {
+    gap: 10px;
+  }
+  .cover-caption {
+    font-size: 0.48rem;
+    letter-spacing: 0.1em;
+  }
+  .role-pill {
+    left: 8px;
+    bottom: 8px;
+    font-size: 0.6rem;
+    padding: 2px 6px;
+  }
+  .cookbook-menu {
+    top: 2px;
+    right: 2px;
+  }
+  .shelf-heading {
+    margin-top: 26px;
+  }
+}

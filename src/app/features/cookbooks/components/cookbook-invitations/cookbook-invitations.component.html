@@ -1,7 +1,7 @@
 @if (invitations().length) {
   <section class="invitation-panel" aria-labelledby="cookbook-invitations-title">
     <div class="invitation-heading">
-      <span class="invitation-icon"><app-icon name="mail" /></span>
+      <span class="invitation-icon"><mat-icon svgIcon="mail" /></span>
       <div>
         <h2 id="cookbook-invitations-title">Cookbook invitations</h2>
         <p>Accept an invitation to access its recipes.</p>
@@ -13,7 +13,7 @@
           @if (invitation.imageUrl) {
             <img [src]="invitation.imageUrl" alt="" />
           } @else {
-            <app-icon name="book" />
+            <mat-icon svgIcon="book" />
           }
         </div>
         <div class="invitation-copy">
@@ -33,7 +33,7 @@
             (click)="respond(invitation, true)"
             [disabled]="busy() !== null"
           >
-            <app-icon name="check" /></button
+            <mat-icon svgIcon="check" /></button
           ><button
             mat-icon-button
             class="decline-invitation"
@@ -41,7 +41,7 @@
             (click)="respond(invitation, false)"
             [disabled]="busy() !== null"
           >
-            <app-icon name="close" />
+            <mat-icon svgIcon="close" />
           </button>
         </div>
       </article>

@@ -127,7 +127,7 @@ img {
   place-items: center;
   margin-bottom: 24px;
 }
-.large-mark app-icon {
+.large-mark mat-icon {
   width: 32px;
   height: 32px;
 }
@@ -138,15 +138,18 @@ img {
 .mat-mdc-outlined-button {
   border-radius: 10px !important;
 }
-.mat-mdc-button-base app-icon {
-  margin-right: 8px;
-  width: 20px;
-  height: 20px;
+// Use the Material icon slots. Center icon-only controls independently of body line-height.
+.mat-icon {
+  vertical-align: middle;
+  flex-shrink: 0;
 }
-.mat-mdc-icon-button app-icon {
-  margin-right: 0;
-  width: 24px;
-  height: 24px;
+.mat-mdc-icon-button.mat-mdc-button-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.mat-mdc-icon-button .mat-icon {
+  margin: 0;
 }
 .mat-mdc-button-base mat-spinner {
   display: inline-block;
@@ -176,7 +179,7 @@ img {
 .empty-state .large-mark {
   margin: 0 auto 24px;
 }
-.empty-state > app-icon {
+.empty-state > mat-icon {
   margin-bottom: 16px;
 }
 .empty-state h2 {

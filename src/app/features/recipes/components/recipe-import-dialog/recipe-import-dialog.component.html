@@ -10,7 +10,7 @@
   </h2>
 
   <button mat-icon-button type="button" aria-label="Close import dialog" (click)="cancel()">
-    <app-icon name="close" />
+    <mat-icon svgIcon="close" />
   </button>
 </div>
 
@@ -22,7 +22,7 @@
       <div class="source-options">
         <button class="source-option" type="button" (click)="chooseLink()">
           <span class="source-icon">
-            <app-icon name="link" />
+            <mat-icon svgIcon="link" />
           </span>
 
           <span class="source-copy">
@@ -37,7 +37,7 @@
 
         <button class="source-option" type="button" (click)="chooseText()">
           <span class="source-icon">
-            <app-icon name="book" />
+            <mat-icon svgIcon="book" />
           </span>
 
           <span class="source-copy">
@@ -48,7 +48,7 @@
 
         <button class="source-option" type="button" disabled>
           <span class="source-icon">
-            <app-icon name="image" />
+            <mat-icon svgIcon="image" />
           </span>
 
           <span class="source-copy">
@@ -127,7 +127,7 @@
     }
     @if (step() !== 'source') {
       <button mat-button type="button" (click)="back()" [disabled]="busy()">
-        <app-icon name="back" />
+        <mat-icon svgIcon="back" />
         Back
       </button>
     }

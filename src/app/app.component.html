@@ -11,9 +11,9 @@
   >
     <div class="drawer-heading">
       <a class="brand" routerLink="/cookbooks" aria-label="Recipoke home"
-        ><span class="brand-mark"><app-icon name="book" /></span><span>Recipoke</span></a
+        ><span class="brand-mark"><mat-icon svgIcon="book" /></span><span>Recipoke</span></a
       ><button mat-icon-button (click)="menuOpen.set(false)" aria-label="Close menu">
-        <app-icon name="close" />
+        <mat-icon svgIcon="close" />
       </button>
     </div>
     @if (auth.user(); as user) {
@@ -31,17 +31,17 @@
             [routerLink]="link.path"
             routerLinkActive="active"
             [routerLinkActiveOptions]="{ exact: link.path === '/cookbooks' }"
-            ><app-icon [name]="link.icon" /><span>{{ link.label }}</span></a
+            ><mat-icon [svgIcon]="link.icon" /><span>{{ link.label }}</span></a
           >
         }
       } @else {
-        <a routerLink="/login"><app-icon name="person" />Sign in</a>
+        <a routerLink="/login"><mat-icon svgIcon="person" />Sign in</a>
       }
     </nav>
     @if (auth.signedIn()) {
       <div class="drawer-footer">
         <button class="drawer-signout" (click)="logout()" [disabled]="leaving()">
-          <app-icon name="logout" /><span>Sign out</span>
+          <mat-icon svgIcon="logout" /><span>Sign out</span>
         </button>
       </div>
     }
@@ -57,10 +57,10 @@
           aria-controls="mobile-navigation"
           [attr.aria-expanded]="menuOpen()"
         >
-          <app-icon name="menu" />
+          <mat-icon svgIcon="menu" />
         </button>
         <a class="brand desktop-brand" routerLink="/cookbooks" aria-label="Recipoke home"
-          ><span class="brand-mark"><app-icon name="book" /></span><span>Recipoke</span></a
+          ><span class="brand-mark"><mat-icon svgIcon="book" /></span><span>Recipoke</span></a
         >
         <span class="mobile-page-title">{{ title() }}</span>
         @if (auth.signedIn()) {
@@ -70,7 +70,7 @@
                 [routerLink]="link.path"
                 routerLinkActive="active"
                 [routerLinkActiveOptions]="{ exact: link.path === '/cookbooks' }"
-                ><app-icon [name]="link.icon" />{{ link.label }}</a
+                ><mat-icon [svgIcon]="link.icon" />{{ link.label }}</a
               >
             }
           </nav>
@@ -85,13 +85,13 @@
               [disabled]="leaving()"
               aria-label="Sign out"
             >
-              <app-icon name="logout" />
+              <mat-icon svgIcon="logout" />
             </button>
           </div>
         }
         @if (backTarget(); as target) {
           <a class="mobile-back" mat-icon-button [routerLink]="target" aria-label="Go back"
-            ><app-icon name="back"
+            ><mat-icon svgIcon="back"
           /></a>
         } @else {
           <span class="mobile-back-space" aria-hidden="true"></span>

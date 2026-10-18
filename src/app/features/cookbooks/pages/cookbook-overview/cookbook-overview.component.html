@@ -6,7 +6,7 @@
       <p class="muted">Good recipes belong together.</p>
     </div>
     <a mat-flat-button class="primary-create sticky-create" routerLink="/cookbooks/new"
-      ><app-icon name="plus" />Create cookbook</a
+      ><mat-icon svgIcon="plus" />Create cookbook</a
     >
   </div>
   @if (message) {
@@ -44,7 +44,7 @@
                 <img [src]="book.imageUrl" alt="" loading="lazy" (error)="coverFailed(book.id)" />
               } @else {
                 <div class="cover-placeholder">
-                  <span class="cover-rule"></span><app-icon name="book" /><span
+                  <span class="cover-rule"></span><mat-icon svgIcon="book" /><span
                     class="cover-caption"
                     >RECIPES TO KEEP</span
                   >
@@ -67,29 +67,29 @@
             [attr.aria-label]="'Actions for ' + book.name"
             [disabled]="busy()"
           >
-            <app-icon name="more" /></button
+            <mat-icon svgIcon="more" /></button
           ><mat-menu #actions="matMenu">
             @if (book.role === 'Owner') {
               <a mat-menu-item [routerLink]="['/cookbooks', book.id, 'settings']"
-                ><app-icon name="edit" />Edit cookbook</a
+                ><mat-icon svgIcon="edit" />Edit cookbook</a
               ><a
                 mat-menu-item
                 [routerLink]="['/cookbooks', book.id, 'settings']"
                 fragment="members"
-                ><app-icon name="people" />Manage members</a
+                ><mat-icon svgIcon="people" />Manage members</a
               ><button mat-menu-item class="danger-text" (click)="delete(book)">
-                <app-icon name="trash" />Delete cookbook
+                <mat-icon svgIcon="trash" />Delete cookbook
               </button>
             } @else {
               <button mat-menu-item (click)="leave(book)">
-                <app-icon name="logout" />Leave cookbook
+                <mat-icon svgIcon="logout" />Leave cookbook
               </button>
             }
           </mat-menu>
         </article>
       } @empty {
         <div class="empty-state cookbook-empty">
-          <div class="large-mark"><app-icon name="book" /></div>
+          <div class="large-mark"><mat-icon svgIcon="book" /></div>
           <h2>A fresh start</h2>
           <p>Create your first cookbook, or accept an invitation above.</p>
         </div>

@@ -14,7 +14,7 @@
           [routerLink]="['/cookbooks', cookbookId, 'recipes', 'new']"
           class="recipe-action add-recipe"
         >
-          <app-icon name="plus" />
+          <mat-icon svgIcon="plus" />
           Add recipe
         </a>
       </div>
@@ -27,7 +27,7 @@
 
   <mat-form-field appearance="outline" class="search-field">
     <mat-label>Find a recipe or ingredient</mat-label>
-    <app-icon matPrefix name="search" />
+    <mat-icon matPrefix svgIcon="search" />
 
     <input matInput [formControl]="search" maxlength="200" autocomplete="off" />
 
@@ -39,7 +39,7 @@
         aria-label="Clear search"
         (click)="search.setValue('')"
       >
-        <app-icon name="close" />
+        <mat-icon svgIcon="close" />
       </button>
     }
   </mat-form-field>
@@ -58,7 +58,7 @@
 
   @if (error()) {
     <div class="empty-state" role="alert">
-      <app-icon name="book" />
+      <mat-icon svgIcon="book" />
       <h2>Couldn’t load your recipes</h2>
       <p>{{ error() }}</p>
 
@@ -79,7 +79,7 @@
   } @else if (result().items.length === 0) {
     <div class="empty-state">
       <div class="large-mark">
-        <app-icon name="book" />
+        <mat-icon svgIcon="book" />
       </div>
 
       <h2>
@@ -98,7 +98,7 @@
         <button mat-stroked-button type="button" (click)="search.setValue('')">Clear search</button>
       } @else if (cookbooks.canWrite()) {
         <a mat-flat-button [routerLink]="['/cookbooks', cookbookId, 'recipes', 'new']">
-          <app-icon name="plus" />
+          <mat-icon svgIcon="plus" />
           Add your first recipe
         </a>
       }

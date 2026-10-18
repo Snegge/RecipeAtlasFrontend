@@ -4,8 +4,8 @@ import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AccountsModule } from './accounts.module';
-import { InvitationPageComponent } from './invitation-page.component';
-import { AccountAdminComponent } from './account-admin.component';
+import { InvitationPageComponent } from './pages/invitation-page/invitation-page.component';
+import { AccountAdminComponent } from './pages/account-admin/account-admin.component';
 import { AccountAdminService } from '../../core/services/account-admin.service';
 import { SessionState } from '../../core/services/session-state';
 

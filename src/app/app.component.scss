@@ -65,7 +65,7 @@
   font-size: 0.85rem;
   font-weight: 600;
 }
-.desktop-navigation a app-icon {
+.desktop-navigation a mat-icon {
   width: 18px;
   height: 18px;
 }
@@ -180,7 +180,7 @@ main:focus {
   .desktop-navigation a {
     padding-inline: 8px;
   }
-  .desktop-navigation a app-icon {
+  .desktop-navigation a mat-icon {
     display: none;
   }
   .brand {
@@ -234,8 +234,8 @@ main:focus {
     width: 44px;
     height: 44px;
   }
-  .mobile-menu app-icon,
-  .mobile-back app-icon {
+  .mobile-menu mat-icon,
+  .mobile-back mat-icon {
     width: 24px;
     height: 24px;
   }

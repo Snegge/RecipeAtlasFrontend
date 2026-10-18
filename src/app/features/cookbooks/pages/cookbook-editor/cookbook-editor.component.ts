@@ -2,16 +2,16 @@ import { Component, DestroyRef, ViewChild, HostListener, inject, signal } from '
 import { NonNullableFormBuilder, FormGroupDirective, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CookbookService } from '../../core/services/cookbook.service';
-import { SessionState } from '../../core/services/session-state';
-import { CookbookMemberInput, MemberResponse } from '../../core/models/account.model';
-import { PictureSelection } from '../../shared/forms/picture-selection';
-import { errorMessage } from '../../core/utils/api-error';
+import { CookbookService } from '../../../../core/services/cookbook.service';
+import { SessionState } from '../../../../core/services/session-state';
+import { CookbookMemberInput, MemberResponse } from '../../../../core/models/account.model';
+import { PictureSelection } from '../../../../shared/forms/picture-selection';
+import { errorMessage } from '../../../../core/utils/api-error';
 @Component({
   selector: 'app-cookbook-editor',
   standalone: false,
   templateUrl: './cookbook-editor.component.html',
-  styleUrl: './cookbooks.scss',
+  styleUrl: './cookbook-editor.component.scss',
   providers: [PictureSelection],
 })
 export class CookbookEditorComponent {

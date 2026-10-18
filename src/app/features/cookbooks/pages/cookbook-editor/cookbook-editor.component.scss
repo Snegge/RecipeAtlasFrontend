@@ -1,0 +1,224 @@
+@use '../../styles/cookbook-layout';
+
+.cookbook-editor-page {
+  padding-bottom: 120px;
+}
+.cookbook-editor-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+  gap: 26px;
+  align-items: start;
+}
+.editor-card {
+  border: 1px solid #e1e7de;
+  border-radius: 18px;
+  background: white;
+  padding: 26px;
+}
+.card-section-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.section-number {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #edf2e8;
+  color: #628451;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.card-section-heading h2 {
+  font-size: 1.1rem;
+}
+.card-section-heading p {
+  font-size: 0.8rem;
+  color: #7c8476;
+  line-height: 1.6;
+  margin-top: 5px;
+}
+.cover-picker {
+  border-radius: 12px;
+  overflow: hidden;
+  background: #edf1e8;
+  border: 1px dashed #cfdbc7;
+  position: relative;
+  aspect-ratio: 1.9;
+  margin-bottom: 26px;
+}
+.cover-picker > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cover-picker-placeholder {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 7px;
+  height: 100%;
+  padding-bottom: 42px;
+  color: #7b8b70;
+}
+.cover-picker-placeholder mat-icon {
+  width: 30px;
+  height: 30px;
+}
+.cover-picker-placeholder span {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.cover-picker-placeholder small {
+  font-size: 0.7rem;
+}
+.cover-picker-actions {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+.cover-picker-actions button {
+  background: #ffffffed !important;
+  border-color: #dce3d6 !important;
+}
+.details-form {
+  display: grid;
+  gap: 10px;
+}
+.details-form mat-form-field {
+  width: 100%;
+}
+.member-invite-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px;
+  gap: 16px 10px;
+}
+.member-username {
+  grid-column: 1/-1;
+}
+.member-invite-form button {
+  height: 56px;
+}
+.member-help {
+  font-size: 0.75rem;
+  color: #7c8476;
+  margin: 12px 0 18px;
+}
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border-top: 1px solid #e8ede3;
+  padding: 16px 0;
+}
+.member-row:last-child {
+  padding-bottom: 0;
+}
+.member-copy {
+  min-width: 0;
+  flex: 1;
+}
+.member-copy h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.member-copy p {
+  font-size: 0.75rem;
+  color: #7b8677;
+  overflow-wrap: anywhere;
+}
+.pending-badge {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 0.65rem;
+  color: #957b36;
+  background: #f9f3df;
+  border-radius: 5px;
+  padding: 2px 6px;
+}
+.owner-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #8e9689;
+  font-size: 0.7rem;
+}
+.owner-label mat-icon {
+  width: 13px;
+  height: 13px;
+}
+.editor-savebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-top: 1px solid #dfe6d9;
+  padding-top: 24px;
+  margin-top: 28px;
+}
+.editor-savebar > span {
+  font-size: 0.8rem;
+  color: #7c8476;
+}
+@media (max-width: 700px) {
+  .cookbook-editor-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .editor-card {
+    padding: 20px;
+  }
+}
+@media (max-width: 599px) {
+  .cookbook-editor-page {
+    padding-top: 26px;
+    padding-bottom: 110px;
+  }
+  .cookbook-editor-page h1 {
+    font-size: 1.85rem;
+  }
+  .editor-card {
+    padding: 18px 16px;
+  }
+  .editor-savebar {
+    border: 0;
+    padding: 0;
+    margin: 0;
+  }
+  .editor-savebar > span {
+    display: none;
+  }
+  .editor-savebar > .primary-create {
+    position: fixed !important;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: calc(60px + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    border-radius: 0 !important;
+    margin: 0 !important;
+    z-index: 25;
+    box-shadow: 0 -3px 16px #26432e16;
+    font-size: 0.95rem;
+  }
+  .member-row {
+    gap: 9px;
+  }
+  .member-row app-avatar {
+    --avatar-size: 34px;
+  }
+  .cover-picker {
+    aspect-ratio: 1.6;
+  }
+  .cover-picker-placeholder {
+    gap: 4px;
+  }
+}

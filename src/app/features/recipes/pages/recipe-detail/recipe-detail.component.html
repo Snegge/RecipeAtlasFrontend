@@ -1,5 +1,7 @@
 <section class="page detail-page">
-  <a mat-button [routerLink]="recipeRoot" class="back-link"><app-icon name="back" /> All recipes</a>
+  <a mat-button [routerLink]="recipeRoot" class="back-link"
+    ><mat-icon svgIcon="back" /> All recipes</a
+  >
   @if (loading()) {
     <div class="loading-state"><mat-spinner diameter="36" aria-label="Loading recipe" /></div>
   } @else if (error()) {
@@ -19,7 +21,7 @@
         }
         <div class="recipe-meta">
           <span class="intro-servings">
-            <app-icon name="people" />
+            <mat-icon svgIcon="people" />
             {{ recipe.servings }} servings
           </span>
 
@@ -31,7 +33,7 @@
               target="_blank"
               rel="noopener noreferrer"
             >
-              <app-icon name="link" />
+              <mat-icon svgIcon="link" />
               Original recipe
             </a>
           }
@@ -42,7 +44,7 @@
               mat-stroked-button
               [routerLink]="['/cookbooks', cookbookId, 'recipes', recipe.id, 'edit']"
             >
-              <app-icon name="edit" />
+              <mat-icon svgIcon="edit" />
               Edit recipe
             </a>
 
@@ -53,7 +55,7 @@
               (click)="remove()"
               [disabled]="deleting()"
             >
-              <app-icon name="trash" />
+              <mat-icon svgIcon="trash" />
               Delete
             </button>
           </div>

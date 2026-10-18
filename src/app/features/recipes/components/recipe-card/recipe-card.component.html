@@ -8,9 +8,9 @@
         (error)="hideBrokenImage($event)"
       />
     }
-    <app-icon name="book" class="photo-fallback" />
+    <mat-icon svgIcon="book" class="photo-fallback" />
     <span class="serving-pill"
-      ><app-icon name="people" /> {{ recipe.servings }}
+      ><mat-icon svgIcon="people" /> {{ recipe.servings }}
       {{ recipe.servings === 1 ? 'serving' : 'servings' }}</span
     >
   </div>

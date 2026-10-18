@@ -35,7 +35,7 @@
             <img [src]="picture.preview()!" alt="Cookbook cover preview" />
           } @else {
             <div class="cover-picker-placeholder">
-              <app-icon name="image" /><span>Add a cover picture</span
+              <mat-icon svgIcon="image" /><span>Add a cover picture</span
               ><small>JPEG, PNG or WebP</small>
             </div>
           }
@@ -53,7 +53,7 @@
               (click)="coverInput.click()"
               [disabled]="navigationBlocked()"
             >
-              <app-icon name="image" />{{
+              <mat-icon svgIcon="image" />{{
                 picture.preparing()
                   ? 'Preparing…'
                   : picture.preview()
@@ -69,7 +69,7 @@
                 [disabled]="navigationBlocked()"
                 aria-label="Remove cookbook picture"
               >
-                <app-icon name="trash" />
+                <mat-icon svgIcon="trash" />
               </button>
             }
           </div>
@@ -92,7 +92,6 @@
               maxlength="2000"
               placeholder="Weeknight favourites, family traditions, or something new…"
             ></textarea
-            ><mat-hint>What belongs in this cookbook?</mat-hint
             ><mat-error>Use at most 2000 characters.</mat-error></mat-form-field
           >
         </form>
@@ -146,7 +145,7 @@
               [disabled]="busy()"
               [attr.aria-label]="'Remove ' + person.username + ' from invitation list'"
             >
-              <app-icon name="close" />
+              <mat-icon svgIcon="close" />
             </button>
           </article>
         }
@@ -163,7 +162,7 @@
               }
             </div>
             @if (person.role === 'Owner') {
-              <span class="owner-label"><app-icon name="lock" />Owner</span>
+              <span class="owner-label"><mat-icon svgIcon="lock" />Owner</span>
             } @else if (person.isPending) {
               <button
                 mat-icon-button
@@ -171,7 +170,7 @@
                 [disabled]="busy()"
                 [attr.aria-label]="'Cancel invitation for ' + person.displayName"
               >
-                <app-icon name="close" />
+                <mat-icon svgIcon="close" />
               </button>
             } @else {
               <button
@@ -180,7 +179,7 @@
                 [disabled]="busy()"
                 [attr.aria-label]="'Manage ' + person.displayName"
               >
-                <app-icon name="more" /></button
+                <mat-icon svgIcon="more" /></button
               ><mat-menu #memberActions="matMenu"
                 ><button
                   mat-menu-item
@@ -207,7 +206,7 @@
         (click)="save()"
         [disabled]="navigationBlocked() || form.invalid"
       >
-        <app-icon [name]="isNew ? 'plus' : 'check'" />{{
+        <mat-icon [svgIcon]="isNew ? 'plus' : 'check'" />{{
           busy() ? 'Saving…' : isNew ? 'Create cookbook' : 'Save cookbook'
         }}
       </button>

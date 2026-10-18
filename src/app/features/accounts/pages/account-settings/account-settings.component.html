@@ -33,7 +33,7 @@
           (click)="avatarInput.click()"
           [disabled]="navigationBlocked()"
         >
-          <app-icon name="image" />{{ picture.preparing() ? 'Preparing…' : 'Change picture' }}
+          <mat-icon svgIcon="image" />{{ picture.preparing() ? 'Preparing…' : 'Change picture' }}
         </button>
         @if (picture.preview()) {
           <button
@@ -76,19 +76,19 @@
           are not enabled.
         </p>
         <button mat-flat-button [disabled]="navigationBlocked() || profile.invalid">
-          <app-icon name="check" />{{ profileBusy() ? 'Saving…' : 'Save profile' }}
+          <mat-icon svgIcon="check" />{{ profileBusy() ? 'Saving…' : 'Save profile' }}
         </button>
       </form>
       @if (profileError()) {
         <p class="error-box" role="alert">{{ profileError() }}</p>
       }
       @if (profileSuccess()) {
-        <p class="success-note" role="status"><app-icon name="check" />{{ profileSuccess() }}</p>
+        <p class="success-note" role="status"><mat-icon svgIcon="check" />{{ profileSuccess() }}</p>
       }
     </section>
     <section class="account-card security-card">
       <div class="account-section-heading">
-        <span class="section-icon"><app-icon name="lock" /></span>
+        <span class="section-icon"><mat-icon svgIcon="lock" /></span>
         <div>
           <h2>Password &amp; security</h2>
           <p>Keep your account protected.</p>

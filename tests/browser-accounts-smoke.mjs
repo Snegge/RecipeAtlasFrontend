@@ -199,6 +199,25 @@ try {
         await evaluate('document.documentElement.scrollWidth <= innerWidth'),
         label + ' horizontal layout',
       );
+      const iconLayout = await evaluate(`(() => {
+          const buttons = [...document.querySelectorAll('.mat-mdc-icon-button')].filter(button => {
+            const rect = button.getBoundingClientRect();
+            return button.getClientRects().length && getComputedStyle(button).visibility !== 'hidden' &&
+              rect.top >= 0 && rect.bottom <= innerHeight && rect.left >= 0 && rect.right <= innerWidth;
+          });
+          return {count: buttons.length, failures: buttons.flatMap(button => {
+            const icon = button.querySelector('mat-icon');
+            if (!icon?.querySelector('svg')) return [{classes: button.className, missingSvg: true}];
+            const a = button.getBoundingClientRect(), b = icon.getBoundingClientRect();
+            const dy = a.top + a.height / 2 - b.top - b.height / 2;
+            const dx = a.left + a.width / 2 - b.left - b.width / 2;
+            return Math.abs(dy) <= 1 && Math.abs(dx) <= 1 ? [] : [{classes: button.className, dx, dy}];
+          })};
+        })()`);
+      check(
+        iconLayout.count > 0 && !iconLayout.failures.length,
+        label + ' centered Material icon buttons: ' + JSON.stringify(iconLayout),
+      );
     };
     const clickAria = async (label) => activate('aria', label);
     const screenshot = async (name) => {
@@ -304,6 +323,10 @@ try {
   await recipient.click('Create account');
   await recipient.wait('document.body.textContent.includes("personal cookbook are ready")');
   await login(recipient, 'invited-reader');
+  check(
+    (await recipient.evaluate(`fetch('/api/cookbook-invitations').then(r => r.status)`)) === 200,
+    'Invitation endpoint is available through the frontend proxy',
+  );
   await recipient.fit('320px cookbook shelf');
   check(
     await recipient.evaluate(
@@ -341,6 +364,12 @@ try {
   await admin.fill('input[formcontrolname=username]', 'invited-reader');
   await admin.click('Send invitation');
   await admin.wait('document.body.textContent.includes("Invitation pending")');
+  check(
+    (await admin.api(`/api/cookbooks/${book.id}/members`)).some(
+      (member) => member.username === 'invited-reader' && member.isPending,
+    ),
+    'Member POST creates a pending invitation rather than an accepted membership',
+  );
   check(
     (await recipient.evaluate(`fetch('/api/cookbooks/${book.id}').then(r=>r.status)`)) === 404,
     'Pending invitation grants no cookbook access',
@@ -484,7 +513,9 @@ try {
   await admin.wait('document.querySelectorAll(".cookbook-card").length===2');
   await admin.clickAria('Actions for Browser created cookbook');
   await admin.click('Delete cookbook');
-  await admin.wait('!!document.querySelector("mat-dialog-container")');
+  await admin.wait(
+    'document.querySelector("mat-dialog-container")?.textContent.includes("permanently deletes")',
+  );
   check(
     await admin.evaluate(
       'document.querySelector("mat-dialog-container").textContent.includes("permanently deletes")',
@@ -533,6 +564,17 @@ try {
   );
   await admin.go(`/cookbooks/${book.id}/settings`);
   await admin.wait('!!document.querySelector(".members-card")');
+  check(
+    await admin.evaluate(`(() => {
+      const fields = document.querySelectorAll('.member-invite-form mat-form-field');
+      return fields[1].getBoundingClientRect().top - fields[0].getBoundingClientRect().bottom >= 15;
+    })()`),
+    'Member fields retain explicit vertical spacing',
+  );
+  check(
+    !(await admin.evaluate('document.body.textContent.includes("What belongs in this cookbook?")')),
+    'Cookbook description has no redundant hint',
+  );
   await admin.fit('1280px cookbook settings');
   await admin.screenshot('desktop-cookbook-settings');
   console.log(

@@ -1,0 +1,20 @@
+@use '../../styles/account-layout';
+
+.settings-placeholder {
+  margin-top: 28px;
+  text-align: center;
+  padding: 56px 24px;
+  color: #7c8a70;
+}
+.settings-placeholder > mat-icon {
+  width: 34px;
+  height: 34px;
+  margin-bottom: 18px;
+}
+.settings-placeholder h2 {
+  font-size: 1.05rem;
+  margin-bottom: 8px;
+}
+.settings-placeholder p {
+  font-size: 0.85rem;
+}

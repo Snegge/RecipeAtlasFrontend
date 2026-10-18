@@ -3,16 +3,16 @@ import { ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CookbookService } from '../../core/services/cookbook.service';
-import { SessionState } from '../../core/services/session-state';
-import { CookbookResponse } from '../../core/models/account.model';
-import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
-import { errorMessage } from '../../core/utils/api-error';
+import { CookbookService } from '../../../../core/services/cookbook.service';
+import { SessionState } from '../../../../core/services/session-state';
+import { CookbookResponse } from '../../../../core/models/account.model';
+import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { errorMessage } from '../../../../core/utils/api-error';
 @Component({
   selector: 'app-cookbook-overview',
   standalone: false,
   templateUrl: './cookbook-overview.component.html',
-  styleUrl: './cookbooks.scss',
+  styleUrl: './cookbook-overview.component.scss',
 })
 export class CookbookOverviewComponent {
   private readonly books = inject(CookbookService);

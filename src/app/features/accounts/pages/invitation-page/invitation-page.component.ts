@@ -2,13 +2,13 @@ import { Component, inject, signal } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { NonNullableFormBuilder, Validators } from '@angular/forms';
-import { AccountAdminService } from '../../core/services/account-admin.service';
-import { errorMessage } from '../../core/utils/api-error';
+import { AccountAdminService } from '../../../../core/services/account-admin.service';
+import { errorMessage } from '../../../../core/utils/api-error';
 @Component({
   selector: 'app-invitation-page',
   standalone: false,
   templateUrl: './invitation-page.component.html',
-  styleUrl: './accounts.scss',
+  styleUrl: './invitation-page.component.scss',
 })
 export class InvitationPageComponent {
   private readonly api = inject(AccountAdminService);
