@@ -1,10 +1,14 @@
 <section class="page editor-page">
-  <a mat-button [routerLink]="savedId() ? ['/recipes', savedId()] : ['/recipes']" class="back-link">
-    <app-icon name="back" />
+  <a
+    mat-button
+    [routerLink]="savedId() ? ['/cookbooks', cookbookId, 'recipes', savedId()] : recipeRoot"
+    class="back-link"
+  >
+    <mat-icon svgIcon="back" />
     {{ savedId() ? 'Back to recipe' : 'All recipes' }}
   </a>
 
-  <div class="page-heading">
+  <div class="page-heading desktop-page-intro">
     <div>
       <p class="eyebrow">MAKE IT YOURS</p>
       <h1>{{ savedId() ? 'Edit recipe' : 'Add a recipe' }}</h1>
@@ -12,6 +16,24 @@
     </div>
   </div>
 
+  @if (!savedId() && !loading() && !loadError()) {
+    <section class="new-recipe-import">
+      <span class="import-entry-icon"><mat-icon svgIcon="link" /></span>
+      <div>
+        <h2>Already found a recipe?</h2>
+        <p>Import a link or paste recipe text, then make it yours.</p>
+      </div>
+      <button
+        mat-stroked-button
+        type="button"
+        (click)="openImport()"
+        [disabled]="navigationBlocked()"
+        class="import-recipe"
+      >
+        <mat-icon svgIcon="link" />{{ editor.importing() ? 'Importing…' : 'Import recipe' }}
+      </button>
+    </section>
+  }
   @if (loading()) {
     <div class="loading-state">
       <mat-spinner diameter="36" aria-label="Loading editor" />
@@ -22,7 +44,7 @@
 
       <button mat-stroked-button type="button" (click)="load()">Try again</button>
 
-      <a mat-button routerLink="/recipes">All recipes</a>
+      <a mat-button [routerLink]="recipeRoot">All recipes</a>
       <a mat-button routerLink="/login">Sign in</a>
     </div>
   } @else {
@@ -184,7 +206,7 @@
             @if (busy()) {
               <mat-spinner diameter="20" />
             } @else {
-              <app-icon name="check" />
+              <mat-icon svgIcon="check" />
             }
             Save recipe
           </button>

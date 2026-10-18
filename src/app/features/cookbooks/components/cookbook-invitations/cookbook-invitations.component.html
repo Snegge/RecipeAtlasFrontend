@@ -1,0 +1,55 @@
+@if (invitations().length) {
+  <section class="invitation-panel" aria-labelledby="cookbook-invitations-title">
+    <div class="invitation-heading">
+      <span class="invitation-icon"><mat-icon svgIcon="mail" /></span>
+      <div>
+        <h2 id="cookbook-invitations-title">Cookbook invitations</h2>
+        <p>Accept an invitation to access its recipes.</p>
+      </div>
+    </div>
+    @for (invitation of invitations(); track invitation.id) {
+      <article class="cookbook-invitation">
+        <div class="invitation-cover">
+          @if (invitation.imageUrl) {
+            <img [src]="invitation.imageUrl" alt="" />
+          } @else {
+            <mat-icon svgIcon="book" />
+          }
+        </div>
+        <div class="invitation-copy">
+          <h3>{{ invitation.cookbookName }}</h3>
+          <p>
+            <app-avatar
+              [name]="invitation.ownerDisplayName"
+              [imageUrl]="invitation.ownerAvatarUrl"
+            />{{ invitation.ownerDisplayName }} · {{ invitation.role }}
+          </p>
+        </div>
+        <div class="invitation-actions">
+          <button
+            mat-icon-button
+            class="accept-invitation"
+            [attr.aria-label]="'Accept invitation to ' + invitation.cookbookName"
+            (click)="respond(invitation, true)"
+            [disabled]="busy() !== null"
+          >
+            <mat-icon svgIcon="check" /></button
+          ><button
+            mat-icon-button
+            class="decline-invitation"
+            [attr.aria-label]="'Decline invitation to ' + invitation.cookbookName"
+            (click)="respond(invitation, false)"
+            [disabled]="busy() !== null"
+          >
+            <mat-icon svgIcon="close" />
+          </button>
+        </div>
+      </article>
+    }
+  </section>
+}
+@if (error()) {
+  <div class="error-box" role="alert">
+    {{ error() }} <button mat-button (click)="load()">Retry invitations</button>
+  </div>
+}

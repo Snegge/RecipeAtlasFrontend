@@ -31,7 +31,7 @@
   align-items: center;
   gap: 8px;
 }
-.recipe-meta app-icon {
+.recipe-meta mat-icon {
   width: 19px;
   height: 19px;
   flex-basis: 19px;
@@ -126,7 +126,7 @@
   color: #a04338;
 }
 
-.recipe-actions .danger-text app-icon {
+.recipe-actions .danger-text mat-icon {
   color: inherit;
 }
 

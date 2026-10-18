@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter, Router } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthModule } from '../../auth.module';
@@ -20,7 +20,10 @@ describe('Login form submission', () => {
   it('submits the rendered form and calls the login service', async () => {
     const fixture = TestBed.createComponent(LoginComponent);
     fixture.detectChanges();
-    const input: HTMLInputElement = fixture.nativeElement.querySelector('input');
+    const input: HTMLInputElement = fixture.nativeElement.querySelector(
+      'input[formcontrolname="password"]',
+    );
+    fixture.componentInstance.username.setValue('test-user');
     input.value = 'a-test-password';
     input.dispatchEvent(new Event('input', { bubbles: true }));
     const form: HTMLFormElement = fixture.nativeElement.querySelector('form');
@@ -28,8 +31,8 @@ describe('Login form submission', () => {
     form.dispatchEvent(event);
     await fixture.whenStable();
     expect(event.defaultPrevented).toBe(true);
-    expect(login).toHaveBeenCalledExactlyOnceWith('a-test-password');
-    expect(TestBed.inject(Router).navigateByUrl).toHaveBeenCalledWith('/recipes');
+    expect(login).toHaveBeenCalledExactlyOnceWith('test-user', 'a-test-password');
+    expect(TestBed.inject(Router).navigateByUrl).toHaveBeenCalledWith('/cookbooks');
     expect(fixture.componentInstance.busy()).toBe(false);
   });
 
@@ -37,6 +40,7 @@ describe('Login form submission', () => {
     login.mockRejectedValueOnce(new HttpErrorResponse({ status: 401 }));
     const fixture = TestBed.createComponent(LoginComponent);
     fixture.detectChanges();
+    fixture.componentInstance.username.setValue('test-user');
     fixture.componentInstance.password.setValue('wrong-password');
     fixture.nativeElement
       .querySelector('form')
@@ -46,5 +50,31 @@ describe('Login form submission', () => {
       'not correct',
     );
     expect(fixture.componentInstance.busy()).toBe(false);
+  });
+  it.each([
+    'https://attacker.example',
+    '//attacker.example',
+    '/cookbooks\\attacker.example',
+    '/invite#token=private',
+  ])('rejects unsafe or unrelated return URL %s', async (returnUrl) => {
+    vi.spyOn(TestBed.inject(ActivatedRoute).snapshot, 'queryParamMap', 'get').mockReturnValue(
+      convertToParamMap({ returnUrl }),
+    );
+    const fixture = TestBed.createComponent(LoginComponent);
+    fixture.componentInstance.username.setValue('test-user');
+    fixture.componentInstance.password.setValue('test-password');
+    await fixture.componentInstance.login();
+    expect(TestBed.inject(Router).navigateByUrl).toHaveBeenCalledWith('/cookbooks');
+  });
+  it('returns to a guarded cookbook URL after login', async () => {
+    const returnUrl = '/cookbooks/shared/recipes';
+    vi.spyOn(TestBed.inject(ActivatedRoute).snapshot, 'queryParamMap', 'get').mockReturnValue(
+      convertToParamMap({ returnUrl }),
+    );
+    const fixture = TestBed.createComponent(LoginComponent);
+    fixture.componentInstance.username.setValue('test-user');
+    fixture.componentInstance.password.setValue('test-password');
+    await fixture.componentInstance.login();
+    expect(TestBed.inject(Router).navigateByUrl).toHaveBeenCalledWith(returnUrl);
   });
 });

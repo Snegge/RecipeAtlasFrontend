@@ -1,3 +1,4 @@
+import { SessionState } from '../../../../core/services/session-state';
 import { Injectable, inject, signal, DestroyRef } from '@angular/core';
 import { RecipeApiService } from '../../../../core/services/recipe-api.service';
 import {
@@ -11,6 +12,7 @@ import { prepareImportedPhoto } from '../../../../core/utils/import-photo';
 // Owns blobs/object URLs and retryable image changes; never saves recipe text.
 @Injectable()
 export class RecipeEditorPhoto {
+  private readonly session = inject(SessionState);
   private readonly api = inject(RecipeApiService);
   private readonly destroyRef = inject(DestroyRef);
   readonly preparingPhoto = signal(false);
@@ -29,31 +31,33 @@ export class RecipeEditorPhoto {
     this.preview.set(url);
   }
   async importPhoto(url: string): Promise<void> {
+    const epoch = this.session.epoch();
     this.preparingPhoto.set(true);
     this.photoError.set('');
 
     try {
       const blob = await prepareImportedPhoto(url);
 
-      if (this.destroyRef.destroyed) return;
+      if (this.destroyRef.destroyed || epoch !== this.session.epoch()) return;
 
       this.setPendingPhoto(blob);
       this.externalPhotoUrl.set(null);
     } catch {
-      if (!this.destroyRef.destroyed) {
+      if (!this.destroyRef.destroyed && epoch === this.session.epoch()) {
         this.photoError.set(
           'The recipe was imported, but its photo could not be copied. ' +
             'Open the website photo below, save it, and upload it here.',
         );
       }
     } finally {
-      if (!this.destroyRef.destroyed) {
+      if (!this.destroyRef.destroyed && epoch === this.session.epoch()) {
         this.preparingPhoto.set(false);
       }
     }
   }
 
   async choosePhoto(event: Event, busy = false): Promise<void> {
+    const epoch = this.session.epoch();
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
 
@@ -67,16 +71,16 @@ export class RecipeEditorPhoto {
     try {
       const blob = await preparePhoto(file);
 
-      if (this.destroyRef.destroyed) return;
+      if (this.destroyRef.destroyed || epoch !== this.session.epoch()) return;
 
       this.setPendingPhoto(blob);
       this.externalPhotoUrl.set(null);
     } catch (error) {
-      if (!this.destroyRef.destroyed) {
+      if (!this.destroyRef.destroyed && epoch === this.session.epoch()) {
         this.photoError.set(errorMessage(error));
       }
     } finally {
-      if (!this.destroyRef.destroyed) {
+      if (!this.destroyRef.destroyed && epoch === this.session.epoch()) {
         this.preparingPhoto.set(false);
       }
     }
@@ -111,9 +115,19 @@ export class RecipeEditorPhoto {
   hasUnsavedChanges(): boolean {
     return this.pendingPhoto !== null || this.photoRemoved;
   }
-  async persist(id: string): Promise<void> {
-    if (this.pendingPhoto) await this.api.upload(id, this.pendingPhoto);
-    else if (this.photoRemoved) await this.api.removeImage(id);
+  async persist(cookbookId: string, id: string): Promise<void> {
+    if (this.pendingPhoto) await this.api.upload(cookbookId, id, this.pendingPhoto);
+    else if (this.photoRemoved) await this.api.removeImage(cookbookId, id);
+  }
+  clear(): void {
+    this.releasePreview();
+    this.pendingPhoto = null;
+    this.photoRemoved = false;
+    this.originalPhoto = null;
+    this.preview.set(null);
+    this.externalPhotoUrl.set(null);
+    this.photoError.set('');
+    this.preparingPhoto.set(false);
   }
   committed(): void {
     this.pendingPhoto = null;

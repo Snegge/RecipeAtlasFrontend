@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { authGuard } from '../../core/guards/auth.guard';
+import { cookbookGuard } from '../../core/guards/cookbook.guard';
 import { unsavedGuard } from '../../core/guards/unsaved-changes.guard';
 import { RecipeListComponent } from './pages/recipe-list/recipe-list.component';
 import { RecipeDetailComponent } from './pages/recipe-detail/recipe-detail.component';
@@ -10,27 +10,29 @@ const routes: Routes = [
   {
     path: '',
     component: RecipeListComponent,
-    canActivate: [authGuard],
+    canActivate: [cookbookGuard],
     title: 'Your recipes · Recipoke',
   },
   {
     path: 'new',
+    data: { write: true },
     component: RecipeEditorComponent,
-    canActivate: [authGuard],
+    canActivate: [cookbookGuard],
     canDeactivate: [unsavedGuard],
     title: 'Add recipe · Recipoke',
   },
   {
     path: ':id/edit',
+    data: { write: true },
     component: RecipeEditorComponent,
-    canActivate: [authGuard],
+    canActivate: [cookbookGuard],
     canDeactivate: [unsavedGuard],
     title: 'Edit recipe · Recipoke',
   },
   {
     path: ':id',
     component: RecipeDetailComponent,
-    canActivate: [authGuard],
+    canActivate: [cookbookGuard],
     title: 'Recipe · Recipoke',
   },
 ];

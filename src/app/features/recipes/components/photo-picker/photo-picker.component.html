@@ -10,7 +10,7 @@
     <img [src]="photoUrl" alt="Recipe photo preview" class="photo-preview" />
   } @else {
     <div class="photo-empty">
-      <app-icon name="image" /><span>A photo makes it yours</span><small>Optional</small>
+      <mat-icon svgIcon="image" /><span>A photo makes it yours</span><small>Optional</small>
     </div>
   }
   <div class="photo-buttons">
@@ -30,7 +30,7 @@
         (click)="photoRemoved.emit()"
         [disabled]="busy || preparing"
       >
-        <app-icon name="trash" />
+        <mat-icon svgIcon="trash" />
       </button>
     }
   </div>

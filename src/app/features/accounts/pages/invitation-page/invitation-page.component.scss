@@ -1,0 +1,15 @@
+@use '../../styles/account-layout';
+
+.account-card {
+  max-width: 560px;
+  margin: auto;
+}
+h1 {
+  margin-bottom: 14px;
+}
+p {
+  margin-bottom: 16px;
+}
+form {
+  margin-top: 24px;
+}

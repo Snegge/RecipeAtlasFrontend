@@ -1,10 +1,22 @@
 <section class="login-layout">
   <div class="login-card">
-    <div class="large-mark"><app-icon name="book" /></div>
-    <p class="eyebrow">YOUR PERSONAL RECIPE BOOK</p>
-    <h1>Welcome to your kitchen.</h1>
-    <p class="muted">Sign in to find a favorite or save something new.</p>
+    <div class="large-mark"><mat-icon svgIcon="book" /></div>
+    <div class="desktop-page-intro">
+      <p class="eyebrow">YOUR PERSONAL RECIPE BOOK</p>
+      <h1>Welcome to your kitchen.</h1>
+      <p class="muted">Sign in to find a favorite or save something new.</p>
+    </div>
     <form [formGroup]="form" (ngSubmit)="login()">
+      <mat-form-field class="full-width"
+        ><mat-label>Username</mat-label
+        ><input
+          matInput
+          formControlName="username"
+          autocomplete="username"
+          maxlength="32"
+          required
+        /><mat-error>Enter your username.</mat-error></mat-form-field
+      >
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Password</mat-label>
         <input
@@ -23,7 +35,7 @@
           [attr.aria-label]="visible() ? 'Hide password' : 'Show password'"
           [attr.aria-pressed]="visible()"
         >
-          <app-icon name="eye" />
+          <mat-icon svgIcon="eye" />
         </button>
         <mat-error>Enter your password.</mat-error>
       </mat-form-field>
@@ -34,10 +46,12 @@
         @if (busy()) {
           <mat-spinner diameter="20" />
         } @else {
-          <span>Open my recipe book</span>
+          <span>Sign in</span>
         }
       </button>
     </form>
-    <p class="login-footer"><app-icon name="lock" /> Just your recipes. Just for you.</p>
+    <p class="login-footer">
+      <mat-icon svgIcon="lock" /> Invitation-only accounts. Cookbooks you choose to share.
+    </p>
   </div>
 </section>

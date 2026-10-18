@@ -2,22 +2,14 @@
   <div class="section-heading">
     <h2 id="method-heading">Method</h2>
 
-    <span class="muted small">
-      {{ steps.length }} / 100
-    </span>
+    <span class="muted small"> {{ steps.length }} / 100 </span>
   </div>
 
   <div class="step-list">
-    @for (
-      step of steps.controls;
-      track step;
-      let index = $index
-    ) {
+    @for (step of steps.controls; track step; let index = $index) {
       <div class="step-card">
         <div class="step-card-header">
-          <span class="step-title">
-            Step {{ index + 1 }}
-          </span>
+          <span class="step-title"> Step {{ index + 1 }} </span>
 
           <button
             mat-icon-button
@@ -27,15 +19,11 @@
             [disabled]="busy || steps.length <= 1"
             (click)="removeStep(index)"
           >
-            <app-icon name="close" />
+            <mat-icon svgIcon="close" />
           </button>
         </div>
 
-        <mat-form-field
-          appearance="outline"
-          subscriptSizing="dynamic"
-          class="step-field"
-        >
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="step-field">
           <mat-label>Instructions</mat-label>
 
           <textarea
@@ -52,9 +40,7 @@
             placeholder="What happens next?"
           ></textarea>
 
-          <mat-error>
-            Enter an instruction, up to 4,000 characters.
-          </mat-error>
+          <mat-error> Enter an instruction, up to 4,000 characters. </mat-error>
         </mat-form-field>
       </div>
     }
@@ -67,7 +53,7 @@
     [disabled]="busy || steps.length >= 100"
     (click)="addStep()"
   >
-    <app-icon name="plus" />
+    <mat-icon svgIcon="plus" />
     Add step
   </button>
 </section>

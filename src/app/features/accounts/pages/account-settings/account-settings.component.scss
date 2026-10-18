@@ -1,0 +1,99 @@
+@use '../../styles/account-layout';
+
+.profile-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.profile-identity {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding-bottom: 20px;
+}
+.profile-identity app-avatar {
+  --avatar-size: 76px;
+}
+.profile-identity h2 {
+  font-size: 1.2rem;
+}
+.username {
+  color: #7b8575;
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+.account-kind {
+  font-size: 0.65rem;
+  display: inline-block;
+  margin-top: 6px;
+  background: #eef3e9;
+  color: #637b54;
+  border-radius: 5px;
+  padding: 2px 7px;
+}
+.avatar-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  border-bottom: 1px solid #e7ecdf;
+  padding-bottom: 24px;
+  margin-bottom: 28px;
+}
+.profile-form {
+  gap: 14px !important;
+}
+.field-note {
+  font-size: 0.76rem;
+  line-height: 1.7;
+  color: #87907f;
+  margin-bottom: 5px;
+}
+.profile-form > button {
+  justify-self: start;
+  min-width: 150px;
+}
+.account-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 26px;
+}
+.account-section-heading h2 {
+  font-size: 1.1rem;
+}
+.account-section-heading p {
+  font-size: 0.75rem;
+  color: #858e7d;
+  margin-top: 4px;
+}
+
+.security-card form {
+  gap: 15px;
+}
+
+@media (max-width: 700px) {
+  .profile-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 599px) {
+  .profile-identity app-avatar {
+    --avatar-size: 64px;
+  }
+  .profile-identity {
+    gap: 14px;
+  }
+  .profile-identity h2 {
+    font-size: 1.1rem;
+  }
+  .profile-form > button {
+    width: 100%;
+  }
+  .profile-layout {
+    gap: 18px;
+  }
+  .security-card form > button {
+    width: 100%;
+  }
+}

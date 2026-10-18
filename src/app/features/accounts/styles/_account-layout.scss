@@ -1,0 +1,87 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+[hidden] {
+  display: none !important;
+}
+.account-page {
+  max-width: 1050px;
+  margin: auto;
+  padding: 42px 24px 100px;
+}
+.account-page-heading {
+  margin-bottom: 30px;
+}
+.account-page-heading > .muted {
+  margin-top: 10px;
+}
+.account-page form {
+  display: grid;
+  gap: 12px;
+}
+.account-page mat-form-field {
+  width: 100%;
+}
+.account-card {
+  padding: 28px;
+  background: white;
+  border: 1px solid #e1e7de;
+  border-radius: 18px;
+  overflow-wrap: anywhere;
+}
+.account-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.account-actions button,
+.account-actions a,
+.account-page button {
+  min-height: 44px;
+}
+@media (max-width: 599px) {
+  .account-page {
+    padding: 28px 16px 80px;
+  }
+  .account-page h1 {
+    font-size: 1.85rem;
+  }
+  .account-page-heading {
+    margin-bottom: 24px;
+  }
+  .account-page-heading > .muted {
+    font-size: 0.83rem;
+  }
+  .account-card {
+    padding: 22px 18px;
+  }
+}
+
+.section-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 42px;
+  border-radius: 11px;
+  background: #edf2e8;
+  color: #6a815b;
+}
+.success-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 15px;
+  background: #edf5e9;
+  color: #447039;
+  border-radius: 10px;
+  margin: 16px 0;
+  font-size: 0.85rem;
+}
+.success-note mat-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}

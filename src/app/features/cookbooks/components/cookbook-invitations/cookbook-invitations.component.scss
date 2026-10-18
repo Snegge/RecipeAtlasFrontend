@@ -1,0 +1,116 @@
+@use '../../styles/cookbook-layout';
+
+.invitation-panel {
+  background: #fffefa;
+  border: 1px solid #dfdfce;
+  border-radius: 16px;
+  padding: 20px 22px;
+  margin: 18px 0 28px;
+}
+.invitation-heading {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 16px;
+}
+.invitation-heading h2 {
+  font-size: 1rem;
+}
+.invitation-heading p {
+  font-size: 0.8rem;
+  color: #7c8071;
+  margin-top: 3px;
+}
+.invitation-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #f1eedf;
+  color: #887744;
+  flex-shrink: 0;
+}
+.cookbook-invitation {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 0;
+  border-top: 1px solid #ecebdd;
+}
+.invitation-cover {
+  width: 48px;
+  height: 54px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #e9eee2;
+  color: #60794f;
+  overflow: hidden;
+}
+.invitation-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.invitation-copy {
+  flex: 1;
+  min-width: 0;
+}
+.invitation-copy h3 {
+  font-size: 0.9rem;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.invitation-copy p {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #7e8377;
+  font-size: 0.7rem;
+  line-height: 1.5;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+.invitation-copy app-avatar {
+  --avatar-size: 20px;
+}
+.invitation-actions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.accept-invitation {
+  color: #175c46 !important;
+  background: #e6eee1 !important;
+}
+.decline-invitation {
+  color: #837e74 !important;
+}
+@media (max-width: 599px) {
+  .invitation-panel {
+    padding: 16px 12px;
+  }
+  .invitation-heading {
+    gap: 10px;
+  }
+  .invitation-heading p {
+    font-size: 0.72rem;
+  }
+  .cookbook-invitation {
+    gap: 8px;
+  }
+  .invitation-cover {
+    display: none;
+  }
+  .invitation-actions {
+    gap: 0;
+  }
+  .invitation-copy h3 {
+    font-size: 0.83rem;
+  }
+  .invitation-actions button {
+    min-width: 44px;
+  }
+}

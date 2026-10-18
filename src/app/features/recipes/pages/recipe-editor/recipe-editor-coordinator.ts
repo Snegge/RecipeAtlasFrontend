@@ -1,3 +1,11 @@
+import { MatDialog } from '@angular/material/dialog';
+import { firstValueFrom } from 'rxjs';
+import { RecipeImportDialogComponent } from '../../components/recipe-import-dialog/recipe-import-dialog.component';
+import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { HttpErrorResponse } from '@angular/common/http';
+import { CookbookContext } from '../../../../core/services/cookbook-context';
+import { SessionState } from '../../../../core/services/session-state';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Injectable, inject, signal, DestroyRef } from '@angular/core';
 import { RecipeApiService } from '../../../../core/services/recipe-api.service';
 import {
@@ -14,6 +22,13 @@ import { RecipeEditorPhoto } from './recipe-editor-photo';
 // Component-scoped orchestration. Form and photo state have separate, single owners.
 @Injectable()
 export class RecipeEditorCoordinator {
+  readonly cookbooks = inject(CookbookContext);
+  private readonly session = inject(SessionState);
+  readonly cookbookId = inject(ActivatedRoute).snapshot.paramMap.get('cookbookId')!;
+  readonly recipeRoot = ['/cookbooks', this.cookbookId, 'recipes'];
+  private readonly dialog = inject(MatDialog);
+  readonly importing = signal(false);
+  readonly permissionLost = signal(false);
   readonly forms = inject(RecipeEditorForm);
   readonly photos = inject(RecipeEditorPhoto);
   private readonly api = inject(RecipeApiService);
@@ -29,9 +44,22 @@ export class RecipeEditorCoordinator {
   readonly error = signal('');
   readonly busy = signal(false);
   constructor() {
+    this.session.changes.pipe(takeUntilDestroyed()).subscribe((reason) => {
+      if (reason === 'expired') {
+        this.photos.preparingPhoto.set(false);
+        this.error.set('Your session ended. Your unsaved edits are still here.');
+        return;
+      }
+      this.forms.clear();
+      this.photos.clear();
+      this.permissionLost.set(false);
+      this.savedId.set(null);
+      this.loadError.set('Session changed. Choose a cookbook again.');
+    });
     void this.load();
   }
   async load(): Promise<void> {
+    const epoch = this.session.epoch();
     this.loading.set(true);
     this.loadError.set('');
 
@@ -40,10 +68,10 @@ export class RecipeEditorCoordinator {
 
       const [units, recipe] = await Promise.all([
         this.api.units(),
-        id ? this.api.get(id) : Promise.resolve(null),
+        id ? this.api.get(this.cookbookId, id) : Promise.resolve(null),
       ]);
 
-      if (this.destroyRef.destroyed) return;
+      if (this.destroyRef.destroyed || epoch !== this.session.epoch()) return;
 
       this.forms.units.set(units);
 
@@ -94,22 +122,104 @@ export class RecipeEditorCoordinator {
     }
   }
 
+  async openImport(): Promise<boolean> {
+    if (
+      this.savedId() ||
+      this.importing() ||
+      this.navigationBlocked() ||
+      this.loading() ||
+      this.loadError() ||
+      !this.cookbooks.canWrite()
+    )
+      return false;
+    const epoch = this.session.epoch();
+    if (this.hasUnsavedChanges()) {
+      const confirm = this.dialog.open(ConfirmDialogComponent, {
+        data: {
+          title: 'Replace your draft?',
+          message: 'Importing a recipe will replace your unsaved recipe fields and picture.',
+          action: 'Import recipe',
+        },
+        maxWidth: '420px',
+        width: 'calc(100% - 32px)',
+      });
+      const close = this.session.changes.subscribe(() => confirm.close());
+      const stop = this.destroyRef.onDestroy(() => confirm.close());
+      let accepted;
+      try {
+        accepted = await firstValueFrom(confirm.afterClosed());
+      } finally {
+        close.unsubscribe();
+        stop();
+      }
+      if (!accepted || epoch !== this.session.epoch() || this.destroyRef.destroyed) return false;
+    }
+    this.importing.set(true);
+    this.error.set('');
+    const ref = this.dialog.open<RecipeImportDialogComponent, undefined, RecipeImportResult>(
+      RecipeImportDialogComponent,
+      {
+        panelClass: 'recipe-import-dialog',
+        maxWidth: '100vw',
+        autoFocus: 'dialog',
+        restoreFocus: true,
+        closeOnNavigation: true,
+      },
+    );
+    const close = this.session.changes.subscribe(() => ref.close());
+    const stop = this.destroyRef.onDestroy(() => ref.close());
+    try {
+      const result = await firstValueFrom(ref.afterClosed());
+      if (!result || epoch !== this.session.epoch() || this.destroyRef.destroyed) return false;
+      this.photos.clear();
+      this.forms.applyImportedDraft(result);
+      this.forms.ingredientDraftPending = false;
+      this.forms.ingredients.controls.forEach((_row, index) => this.forms.setUnit(index, false));
+      this.photos.externalPhotoUrl.set(result.draft.externalImageUrl);
+      if (result.draft.externalImageUrl)
+        await this.photos.importPhoto(result.draft.externalImageUrl);
+      return epoch === this.session.epoch() && !this.destroyRef.destroyed;
+    } catch (e) {
+      if (epoch === this.session.epoch() && !this.destroyRef.destroyed)
+        this.error.set(errorMessage(e));
+      return false;
+    } finally {
+      close.unsubscribe();
+      stop();
+      this.importing.set(false);
+    }
+  }
   hasUnsavedChanges(): boolean {
-    return this.forms.hasUnsavedChanges() || this.photos.hasUnsavedChanges();
+    return (
+      this.permissionLost() || this.forms.hasUnsavedChanges() || this.photos.hasUnsavedChanges()
+    );
   }
   navigationBlocked(): boolean {
-    return this.busy() || this.photos.preparingPhoto();
+    return this.busy() || this.photos.preparingPhoto() || this.importing();
   }
   saveBlockReason(): string {
     return this.forms.saveBlockReason();
   }
   canSave(): boolean {
     return (
-      !this.loading() && !this.loadError() && !this.navigationBlocked() && !this.saveBlockReason()
+      this.cookbooks.canWrite() &&
+      !this.permissionLost() &&
+      !this.loading() &&
+      !this.loadError() &&
+      !this.navigationBlocked() &&
+      !this.saveBlockReason()
     );
   }
   async save(): Promise<void> {
-    if (this.loading() || this.loadError() || this.navigationBlocked()) return;
+    const epoch = this.session.epoch();
+    if (
+      this.loading() ||
+      this.loadError() ||
+      this.navigationBlocked() ||
+      !this.cookbooks.canWrite() ||
+      this.permissionLost()
+    )
+      return;
 
     this.error.set('');
 
@@ -138,23 +248,33 @@ export class RecipeEditorCoordinator {
     try {
       const id = this.savedId();
 
-      const saved = id ? await this.api.update(id, input) : await this.api.create(input);
+      const saved = id
+        ? await this.api.update(this.cookbookId, id, input)
+        : await this.api.create(this.cookbookId, input);
 
-      if (this.destroyRef.destroyed) return;
+      if (this.destroyRef.destroyed || epoch !== this.session.epoch()) return;
       this.savedId.set(saved.id);
       textSaved = true;
       this.forms.importDraftPending = false;
       this.forms.form.markAsPristine();
 
-      await this.photos.persist(saved.id);
-      if (this.destroyRef.destroyed) return;
+      await this.photos.persist(this.cookbookId, saved.id);
+      if (this.destroyRef.destroyed || epoch !== this.session.epoch()) return;
       this.photos.committed();
       this.busy.set(false);
 
       this.snack.open('Recipe saved', 'Close', { duration: 3000 });
 
-      await this.router.navigate(['/recipes', saved.id]);
+      await this.router.navigate([...this.recipeRoot, saved.id]);
     } catch (error) {
+      if (epoch !== this.session.epoch()) return;
+      if (error instanceof HttpErrorResponse && [403, 404].includes(error.status)) {
+        this.permissionLost.set(true);
+        this.error.set(
+          'Your cookbook access changed. Your unsaved edits are still here; copy them before leaving.',
+        );
+        return;
+      }
       this.error.set(
         textSaved
           ? 'Your recipe was saved, but the photo change failed. ' +

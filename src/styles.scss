@@ -117,6 +117,20 @@ img {
 .page-heading .muted {
   margin-top: 12px;
 }
+// The app header supplies the page title below the desktop navigation breakpoint.
+@media (max-width: 899px) {
+  .desktop-page-intro {
+    display: none;
+  }
+  .page .page-heading:has(.desktop-page-intro) {
+    gap: 0;
+  }
+}
+@media (max-width: 599px) {
+  .page .page-heading:has(.desktop-page-intro) {
+    margin-bottom: 0;
+  }
+}
 .large-mark {
   width: 68px;
   height: 68px;
@@ -127,26 +141,43 @@ img {
   place-items: center;
   margin-bottom: 24px;
 }
-.large-mark app-icon {
+.large-mark mat-icon {
   width: 32px;
   height: 32px;
 }
 .mat-mdc-button-base {
   min-height: 44px;
 }
+.mat-mdc-button-base .mat-icon[svgIcon] {
+  display: inline-flex;
+}
 .mat-mdc-unelevated-button,
 .mat-mdc-outlined-button {
   border-radius: 10px !important;
 }
-.mat-mdc-button-base app-icon {
-  margin-right: 8px;
-  width: 20px;
-  height: 20px;
+// Use the Material icon slots. Center icon-only controls independently of body line-height.
+.mat-icon {
+  vertical-align: middle;
+  flex-shrink: 0;
+  display: inline-flex;
 }
-.mat-mdc-icon-button app-icon {
-  margin-right: 0;
-  width: 24px;
-  height: 24px;
+.mat-mdc-button > mat-icon.mat-icon,
+.mat-mdc-unelevated-button > mat-icon.mat-icon,
+.mat-mdc-raised-button > mat-icon.mat-icon,
+.mat-mdc-outlined-button > mat-icon.mat-icon,
+.mat-tonal-button > mat-icon.mat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+.mat-mdc-icon-button.mat-mdc-button-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.mat-mdc-icon-button .mat-icon {
+  margin: 0;
 }
 .mat-mdc-button-base mat-spinner {
   display: inline-block;
@@ -176,7 +207,7 @@ img {
 .empty-state .large-mark {
   margin: 0 auto 24px;
 }
-.empty-state > app-icon {
+.empty-state > mat-icon {
   margin-bottom: 16px;
 }
 .empty-state h2 {
@@ -264,4 +295,8 @@ img {
       border-radius: 0;
     }
   }
+}
+
+.app-layout .mat-drawer-backdrop {
+  position: fixed;
 }

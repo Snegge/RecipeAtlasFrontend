@@ -1,37 +1,103 @@
 <a class="skip-link" href="#main">Skip to content</a>
-<header class="app-header">
-  <div class="header-inner">
-    <a class="brand" routerLink="/recipes" aria-label="Recipoke home">
-      <span class="brand-mark"><app-icon name="book" /></span><span>Recipoke</span>
-    </a>
-    @if (auth.signedIn() && !isEditor()) {
-      <button mat-button (click)="logout()" [disabled]="leaving()" class="signout" [class.hide-signout-mobile]="showRecipesBack()">
-        <app-icon name="logout" /><span>Sign out</span>
+<mat-sidenav-container class="app-layout">
+  <mat-sidenav
+    id="mobile-navigation"
+    class="navigation-drawer"
+    mode="over"
+    [fixedInViewport]="true"
+    [opened]="menuOpen()"
+    (openedChange)="menuOpen.set($event)"
+    aria-label="Main navigation"
+  >
+    <div class="drawer-heading">
+      <a class="brand" routerLink="/cookbooks" aria-label="Recipoke home"
+        ><span class="brand-mark"><mat-icon svgIcon="book" /></span><span>Recipoke</span></a
+      ><button mat-icon-button (click)="menuOpen.set(false)" aria-label="Close menu">
+        <mat-icon svgIcon="close" />
       </button>
-    }
-    @if (showRecipesBack()) {
-      <a
-        mat-icon-button
-        routerLink="/recipes"
-        class="mobile-recipes-back"
-        aria-label="Back to all recipes"
+    </div>
+    @if (auth.user(); as user) {
+      <a class="drawer-user" routerLink="/account"
+        ><app-avatar [name]="user.displayName" [imageUrl]="user.avatarUrl" /><span
+          ><strong>{{ user.displayName }}</strong
+          ><small>{{ user.username }}</small></span
+        ></a
       >
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <path d="M19 12H5M12 19l-7-7 7-7" />
-        </svg>
-      </a>
     }
-  </div>
-</header>
-<main id="main" tabindex="-1"><router-outlet /></main>
+    <nav class="drawer-links" aria-label="Mobile account navigation">
+      @if (auth.signedIn()) {
+        @for (link of links(); track link.path) {
+          <a
+            [routerLink]="link.path"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: link.path === '/cookbooks' }"
+            ><mat-icon [svgIcon]="link.icon" /><span>{{ link.label }}</span></a
+          >
+        }
+      } @else {
+        <a routerLink="/login"><mat-icon svgIcon="person" />Sign in</a>
+      }
+    </nav>
+    @if (auth.signedIn()) {
+      <div class="drawer-footer">
+        <button class="drawer-signout" (click)="logout()" [disabled]="leaving()">
+          <mat-icon svgIcon="logout" /><span>Sign out</span>
+        </button>
+      </div>
+    }
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <header class="app-header">
+      <div class="header-inner">
+        <button
+          class="mobile-menu"
+          mat-icon-button
+          (click)="menuOpen.set(true)"
+          aria-label="Open menu"
+          aria-controls="mobile-navigation"
+          [attr.aria-expanded]="menuOpen()"
+        >
+          <mat-icon svgIcon="menu" />
+        </button>
+        <a class="brand desktop-brand" routerLink="/cookbooks" aria-label="Recipoke home"
+          ><span class="brand-mark"><mat-icon svgIcon="book" /></span><span>Recipoke</span></a
+        >
+        <span class="mobile-page-title">{{ title() }}</span>
+        @if (auth.signedIn()) {
+          <nav class="desktop-navigation" aria-label="Account navigation">
+            @for (link of links(); track link.path) {
+              <a
+                [routerLink]="link.path"
+                routerLinkActive="active"
+                [routerLinkActiveOptions]="{ exact: link.path === '/cookbooks' }"
+                ><mat-icon [svgIcon]="link.icon" />{{ link.label }}</a
+              >
+            }
+          </nav>
+          <div class="desktop-user">
+            <a routerLink="/account" [attr.aria-label]="'Account for ' + auth.user()!.displayName"
+              ><app-avatar
+                [name]="auth.user()!.displayName"
+                [imageUrl]="auth.user()!.avatarUrl" /></a
+            ><button
+              mat-icon-button
+              (click)="logout()"
+              [disabled]="leaving()"
+              aria-label="Sign out"
+            >
+              <mat-icon svgIcon="logout" />
+            </button>
+          </div>
+        }
+        @if (backTarget(); as target) {
+          <a class="mobile-back" mat-icon-button [routerLink]="target" aria-label="Go back"
+            ><mat-icon svgIcon="back"
+          /></a>
+        } @else {
+          <span class="mobile-back-space" aria-hidden="true"></span>
+        }
+      </div>
+    </header>
+    <main id="main" tabindex="-1"><router-outlet /></main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

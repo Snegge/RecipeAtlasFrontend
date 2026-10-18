@@ -1,0 +1,132 @@
+<section class="account-page profile-page">
+  <div class="account-page-heading desktop-page-intro">
+    <p class="eyebrow">MAKE YOURSELF AT HOME</p>
+    <h1>Your account</h1>
+    <p class="muted">Your profile, contact details and security.</p>
+  </div>
+  <div class="profile-layout">
+    <section class="account-card profile-card">
+      <div class="profile-identity">
+        <app-avatar
+          [name]="profile.controls.displayName.value || auth.user()?.displayName || ''"
+          [imageUrl]="picture.preview()"
+        />
+        <div>
+          <h2>{{ auth.user()?.displayName }}</h2>
+          <p class="username">{{ auth.user()?.username }}</p>
+          <span class="account-kind">{{
+            auth.user()?.isAdministrator ? 'Administrator' : 'Recipoke member'
+          }}</span>
+        </div>
+      </div>
+      <div class="avatar-actions">
+        <input
+          #avatarInput
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          hidden
+          (change)="picture.choose($event)"
+          [disabled]="navigationBlocked()"
+        /><button
+          mat-stroked-button
+          type="button"
+          (click)="avatarInput.click()"
+          [disabled]="navigationBlocked()"
+        >
+          <mat-icon svgIcon="image" />{{ picture.preparing() ? 'Preparing…' : 'Change picture' }}
+        </button>
+        @if (picture.preview()) {
+          <button
+            mat-button
+            type="button"
+            (click)="picture.remove()"
+            [disabled]="navigationBlocked()"
+          >
+            Remove
+          </button>
+        }
+      </div>
+      @if (picture.error()) {
+        <p class="error-box" role="alert">{{ picture.error() }}</p>
+      }
+      <form [formGroup]="profile" (ngSubmit)="saveProfile()" class="profile-form">
+        <mat-form-field subscriptSizing="dynamic" appearance="outline"
+          ><mat-label>Display name</mat-label
+          ><input
+            matInput
+            formControlName="displayName"
+            maxlength="100"
+            autocomplete="nickname"
+            required
+          /><mat-hint>The name other cookbook members see.</mat-hint
+          ><mat-error>Enter a display name, up to 100 characters.</mat-error></mat-form-field
+        ><mat-form-field subscriptSizing="dynamic" appearance="outline"
+          ><mat-label>Email address</mat-label
+          ><input
+            matInput
+            formControlName="email"
+            type="email"
+            maxlength="254"
+            autocomplete="email"
+            required
+          /><mat-error>Enter a valid email address.</mat-error></mat-form-field
+        >
+        <p class="field-note">
+          Your email is private to you and the administrator. Email verification and notifications
+          are not enabled.
+        </p>
+        <button mat-flat-button [disabled]="navigationBlocked() || profile.invalid">
+          <mat-icon svgIcon="check" />{{ profileBusy() ? 'Saving…' : 'Save profile' }}
+        </button>
+      </form>
+      @if (profileError()) {
+        <p class="error-box" role="alert">{{ profileError() }}</p>
+      }
+      @if (profileSuccess()) {
+        <p class="success-note" role="status"><mat-icon svgIcon="check" />{{ profileSuccess() }}</p>
+      }
+    </section>
+    <section class="account-card security-card">
+      <div class="account-section-heading">
+        <span class="section-icon"><mat-icon svgIcon="lock" /></span>
+        <div>
+          <h2>Password &amp; security</h2>
+          <p>Keep your account protected.</p>
+        </div>
+      </div>
+      <form #securityForm="ngForm" [formGroup]="form" (ngSubmit)="save()">
+        <mat-form-field subscriptSizing="dynamic" appearance="outline"
+          ><mat-label>Current password</mat-label
+          ><input
+            matInput
+            type="password"
+            formControlName="currentPassword"
+            autocomplete="current-password"
+            required /></mat-form-field
+        ><mat-form-field subscriptSizing="dynamic" appearance="outline"
+          ><mat-label>New password</mat-label
+          ><input
+            matInput
+            type="password"
+            formControlName="newPassword"
+            autocomplete="new-password"
+            minlength="12"
+            maxlength="256"
+            required
+          /><mat-hint>Use 12–256 characters.</mat-hint
+          ><mat-error>Use 12–256 characters.</mat-error></mat-form-field
+        >
+        <p class="field-note">Changing your password signs out your other sessions.</p>
+        <button mat-stroked-button [disabled]="navigationBlocked() || form.invalid">
+          {{ busy() ? 'Changing…' : 'Change password' }}
+        </button>
+      </form>
+      @if (error()) {
+        <p class="error-box" role="alert">{{ error() }}</p>
+      }
+      @if (success()) {
+        <p class="success-note" role="status">{{ success() }}</p>
+      }
+    </section>
+  </div>
+</section>

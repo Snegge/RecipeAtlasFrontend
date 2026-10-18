@@ -1,3 +1,5 @@
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { NgModule } from '@angular/core';
 import { SharedModule } from '../../shared/shared.module';
 import { RecipesRoutingModule } from './recipes-routing.module';
@@ -22,6 +24,12 @@ import { RecipeImportDialogComponent } from './components/recipe-import-dialog/r
     PhotoPickerComponent,
     RecipeImportDialogComponent,
   ],
-  imports: [SharedModule, RecipesRoutingModule, TextFieldModule],
+  imports: [
+    MatPaginatorModule,
+    MatCheckboxModule,
+    SharedModule,
+    RecipesRoutingModule,
+    TextFieldModule,
+  ],
 })
 export class RecipesModule {}

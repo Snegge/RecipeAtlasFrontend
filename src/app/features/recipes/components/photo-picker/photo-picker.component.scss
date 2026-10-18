@@ -22,7 +22,7 @@
   color: #5c735d;
   gap: 8px;
 }
-.photo-empty app-icon {
+.photo-empty mat-icon {
   width: 32px;
   height: 32px;
   margin-bottom: 8px;
@@ -44,7 +44,7 @@
   justify-content: center;
   padding: 0;
 
-  app-icon {
+  mat-icon {
     display: flex;
     align-items: center;
     justify-content: center;
