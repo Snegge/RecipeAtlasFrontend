@@ -2,7 +2,7 @@
 
 Invitation-only accounts and shared cookbooks for the Recipoke API. Angular 22 with lazy NgModules, typed Reactive Forms, Signals and RxJS; no global state library or browser token storage.
 
-Use **`feature/accounts-and-cookbooks` in both repositories**. The backend must be migrated; bootstrap is needed once for a new installation or the original single-owner upgrade, not for this UI update. See the backend [upgrade/runbook](https://github.com/Snegge/RecipeAtlas/blob/feature/accounts-and-cookbooks/docs/accounts-and-cookbooks.md) and the German [frontend architecture guide](docs/architecture.md).
+Use **`feature/shared-editing` in both repositories**. The backend must be migrated; bootstrap is needed once for a new installation or the original single-owner upgrade, not for this concurrency update. Backend and frontend must be deployed together; reload old tabs. See the [concurrency runbook](https://github.com/Snegge/RecipeAtlas/blob/feature/shared-editing/docs/shared-editing.md). See the backend [upgrade/runbook](https://github.com/Snegge/RecipeAtlas/blob/feature/shared-editing/docs/accounts-and-cookbooks.md) and the German [frontend architecture guide](docs/architecture.md).
 
 ## Local development
 
@@ -45,7 +45,7 @@ Open `http://localhost:4200`; the development proxy forwards `/api` to port 5080
 
 When access changes during editing, a denied save keeps unsaved fields/photos and explains how to preserve them before leaving. Explicit logout/account switch clears user data, imported drafts, photos and cookbook selection; old in-flight responses cannot restore prior-user data. An expired session alone keeps unsaved editor work. Navigation guards aid usability; backend authorization remains authoritative.
 
-For a two-browser sharing demonstration, use [the backend walkthrough](https://github.com/Snegge/RecipeAtlas/blob/feature/accounts-and-cookbooks/docs/accounts-and-cookbooks.md#two-user-demonstration).
+For a two-browser sharing demonstration, use [the backend walkthrough](https://github.com/Snegge/RecipeAtlas/blob/feature/shared-editing/docs/accounts-and-cookbooks.md#two-user-demonstration).
 
 ## Structure and state ownership
 
@@ -76,7 +76,7 @@ src/app/
   shared/                          # UI/avatar, scoped picture selection and existing components
 ```
 
-The editor retains its component-scoped coordinator and focused form/photo helpers. Save text first, remember its ID, then save the photo; retry never creates a duplicate. Ingredient/step order, quantity strings/fractions/ranges/conversions, review, cancellation and unsaved navigation protection remain in place. New account/cookbook pages use labelled forms and responsive cards with 44px touch controls rather than wide desktop tables.
+The editor retains its component-scoped coordinator and focused form/photo helpers. Save text first, remember its ID, then save the photo; retry never creates a duplicate or repeats already committed text when only a picture remains pending. Conflicts preserve local work and require explicit review before another save. Ingredient/step order, quantity strings/fractions/ranges/conversions, review, cancellation and unsaved navigation protection remain in place. New account/cookbook pages use labelled forms and responsive cards with 44px touch controls rather than wide desktop tables.
 
 ## API and compatibility
 
@@ -101,7 +101,7 @@ python3 scripts/sync_frontend_contracts.py /absolute/path/to/RecipeAtlasFrontend
 
 Use the actual root with `package.json`. Frontend CI checks copied artifacts locally and does not require private backend credentials; the cross-repository command detects unsynchronised copies. `npm ci` uses the lockfile. npm funding/update/install-script notices are not vulnerability findings; check the actual audit output.
 
-Known limits: in-memory drafts lost on refresh, recipe edits remain last-write-wins, no account deletion/promotion UI, ownership transfer, reset email, shopping lists, cooking sessions, offline sync or PWA. Invitation links cannot be recovered after creation. Permissions always come from the server, even when UI controls were visible earlier.
+Known limits: in-memory drafts lost on refresh, no account deletion/promotion UI, ownership transfer, reset email, shopping lists, cooking sessions, offline sync or PWA. Invitation links cannot be recovered after creation. Permissions always come from the server, even when UI controls were visible earlier.
 
 Optional real-browser smoke with both local checkouts and installed Chromium (backend already built, dotnet on PATH):
 

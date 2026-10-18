@@ -246,6 +246,7 @@ try {
       await call('DOM.setFileInputFiles', { nodeId, files: [path] });
     };
     const escape = async () => {
+      await delay(250); // Wait for the overlay's autofocus animation, not a database race.
       await call('Input.dispatchKeyEvent', {
         type: 'keyDown',
         key: 'Escape',
@@ -271,6 +272,16 @@ try {
       screenshot,
       file,
       escape,
+      key: async (key, code, value) => {
+        for (const type of ['keyDown', 'keyUp'])
+          await call('Input.dispatchKeyEvent', {
+            type,
+            key,
+            code,
+            windowsVirtualKeyCode: value,
+            nativeVirtualKeyCode: value,
+          });
+      },
       api,
       fit,
       resize: async (width) =>
@@ -359,7 +370,7 @@ try {
     'Ordinary user has no Accounts Manager',
   );
   await recipient.screenshot('mobile-drawer');
-  await recipient.escape();
+  await recipient.clickAria('Close menu');
   await recipient.wait(
     '!document.querySelector("mat-sidenav")?.classList.contains("mat-drawer-opened")',
   );
@@ -374,7 +385,7 @@ try {
   await admin.click('Invite');
   await admin.wait('document.body.textContent.includes("Invitation pending")');
   check(
-    (await admin.api(`/api/cookbooks/${book.id}/members`)).some(
+    (await admin.api(`/api/cookbooks/${book.id}/members`)).members.some(
       (member) => member.username === 'invited-reader' && member.isPending,
     ),
     'Member POST creates a pending invitation rather than an accepted membership',
@@ -437,6 +448,121 @@ try {
   await recipient.wait('!!document.querySelector("input[formcontrolname=title]")');
   await recipient.fill('input[formcontrolname=title]', 'Keep this unsaved edit');
   await recipient.fit('320px recipe editor');
+  // Independent authenticated sessions: one winning write, explicit mobile review, then a new save.
+  await admin.api(`/api/cookbooks/${book.id}/recipes/${recipe.id}`, 'PUT', {
+    ...payload,
+    title: 'Owner revision',
+    steps: ['Owner first', 'Owner second'],
+    expectedVersion: recipe.version,
+  });
+  await recipient.evaluate('document.querySelector("button[type=submit]").click()');
+  await recipient.wait(
+    'document.body.textContent.includes("This recipe changed") && [...document.querySelectorAll("button")].some(b=>b.textContent.trim()==="Review changes"&&!b.disabled)',
+  );
+  check(
+    await recipient.evaluate(
+      'document.querySelector("input[formcontrolname=title]").value === "Keep this unsaved edit"',
+    ),
+    'Conflict keeps local text',
+  );
+  check(
+    await recipient.evaluate('document.querySelector("button[type=submit]").disabled'),
+    'Conflict blocks stale save',
+  );
+  await recipient.click('Review changes');
+  await recipient.wait('document.querySelectorAll(".conflict-field").length === 7');
+  await recipient.wait('!!document.activeElement.closest("mat-dialog-container")');
+  check(
+    await recipient.evaluate('!!document.activeElement.closest("mat-dialog-container")'),
+    'Conflict dialog receives focus',
+  );
+  check(
+    await recipient.evaluate(
+      '[...document.querySelectorAll("mat-dialog-actions button")].find(b=>b.textContent.includes("Apply selected")).disabled',
+    ),
+    'Review requires explicit source choices',
+  );
+  check(
+    await recipient.evaluate(
+      'getComputedStyle(document.querySelector(".comparison")).gridTemplateColumns.split(" ").length === 1 && document.documentElement.scrollWidth <= innerWidth',
+    ),
+    '320px review stacks local and server values without horizontal overflow',
+  );
+  check(
+    await recipient.evaluate(
+      'document.querySelector("mat-dialog-content").scrollHeight > document.querySelector("mat-dialog-content").clientHeight',
+    ),
+    'Long review remains scrollable',
+  );
+  await recipient.screenshot('mobile-conflict-review');
+  await recipient.click('Cancel review');
+  await recipient.wait('!document.querySelector("mat-dialog-container")');
+  check(
+    await recipient.evaluate(
+      'document.querySelector("input[formcontrolname=title]").value === "Keep this unsaved edit"',
+    ),
+    'Cancelling review keeps local work',
+  );
+  await recipient.click('Review changes');
+  await recipient.wait('document.querySelectorAll(".conflict-field").length === 7');
+  await recipient.evaluate(`document.querySelector('.conflict-field input[value=local]').focus()`);
+  await recipient.key(' ', 'Space', 32);
+  await recipient.key('ArrowRight', 'ArrowRight', 39);
+  check(
+    await recipient.evaluate(
+      `document.querySelector('.conflict-field input[value=server]').checked`,
+    ),
+    'Radio source choice supports keyboard arrow navigation',
+  );
+  await recipient.key('ArrowLeft', 'ArrowLeft', 37);
+  check(
+    await recipient.evaluate(
+      `document.querySelector('.conflict-field input[value=local]').checked`,
+    ),
+    'Keyboard can select the local source again',
+  );
+  await recipient.evaluate(
+    `document.querySelectorAll('.conflict-field').forEach((field,i)=>{if(i)field.querySelector('input[value=server]').click();})`,
+  );
+  await recipient.click('Apply selected values');
+  await recipient.wait(
+    '!document.querySelector("mat-dialog-container") && !document.body.textContent.includes("This recipe changed")',
+  );
+  check(
+    await recipient.evaluate(
+      'document.activeElement === document.querySelector("input[formcontrolname=title]")',
+    ),
+    'Resolved review restores focus to the editable title',
+  );
+  check(
+    await recipient.evaluate(
+      'document.querySelector("input[formcontrolname=title]").value === "Keep this unsaved edit"',
+    ),
+    'Review retains selected local scalar',
+  );
+  const reviewedSteps = await recipient.evaluate(
+    '[...document.querySelectorAll("app-step-editor textarea")].map(x=>x.value)',
+  );
+  check(
+    reviewedSteps.join('|') === 'Owner first|Owner second',
+    'Review selects the complete ordered server section: ' + JSON.stringify(reviewedSteps),
+  );
+  check(
+    (await recipient.api(`/api/cookbooks/${book.id}/recipes/${recipe.id}`)).title ===
+      'Owner revision',
+    'Applying review does not save automatically',
+  );
+  await recipient.evaluate('document.querySelector("button[type=submit]").click()');
+  await recipient.wait('!!document.querySelector("app-recipe-detail .recipe-intro h1")');
+  check(
+    (await recipient.api(`/api/cookbooks/${book.id}/recipes/${recipe.id}`)).title ===
+      'Keep this unsaved edit',
+    'Explicit reviewed save succeeds',
+  );
+  await recipient.go(`/cookbooks/${book.id}/recipes/${recipe.id}/edit`);
+  await recipient.wait('!!document.querySelector("input[formcontrolname=title]")');
+  await recipient.fill('input[formcontrolname=title]', 'Keep this unsaved edit');
+
   await admin.clickAria('Manage Invited Reader');
   await admin.click('Make Viewer');
   await admin.wait('!document.querySelector(".member-copy p")?.textContent.includes("Editor")');
@@ -603,10 +729,10 @@ try {
 } finally {
   for (const socket of sockets) socket.close();
   for (const child of children.reverse()) {
-    if (child.exitCode === null) {
+    if (child.exitCode === null && child.signalCode === null) {
       child.kill('SIGTERM');
       await Promise.race([new Promise((resolve) => child.once('exit', resolve)), delay(5000)]);
-      if (child.exitCode === null) {
+      if (child.exitCode === null && child.signalCode === null) {
         child.kill('SIGKILL');
         await new Promise((resolve) => child.once('exit', resolve));
       }

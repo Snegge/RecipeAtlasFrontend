@@ -13,5 +13,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:contracts
-      - run: npm test
+      - name: Test quantities, editor conflict review, photos, membership and sessions
+        run: npm test
       - run: npm run build
