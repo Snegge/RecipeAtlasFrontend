@@ -108,11 +108,14 @@ for (const [frontend, backend] of Object.entries({
   CookbookResponse: 'CookbookResponse',
   MemberResponse: 'MemberResponse',
   CookbookInvitationResponse: 'CookbookInvitationResponse',
+  CookbookMembersResponse: 'CookbookMembersResponse',
+  VersionResponse: 'VersionResponse',
+  RecipeImageResponse: 'ImageResponse',
 })) {
   assert(interfaces.has(frontend), `Missing frontend interface ${frontend}`);
   compare(interfaces.get(frontend), schemas[backend], frontend);
 }
-compare(interfaces.get('RecipeInput'), schemas.RecipeInput, 'RecipeInput', true);
+compare(interfaces.get('RecipeWriteRequest'), schemas.RecipeInput, 'RecipeWriteRequest', true);
 assert.deepEqual(schemas.IngredientInput.properties.quantity.type, ['null', 'string']);
 assert.equal(schemas.IngredientResponse.properties.quantity.type, 'string');
 assert.throws(
@@ -156,6 +159,28 @@ for (const [path, methods] of Object.entries(api.paths))
         `${method} ${path}: write header`,
       );
   }
+// Every versioned operation advertises its rejection contract and strong header where applicable.
+for (const [path, methods] of Object.entries(api.paths)) {
+  const aggregate =
+    /^\/api\/cookbooks\/\{id\}/.test(path) ||
+    path.startsWith('/api/cookbooks/{cookbookId}/recipes/{id}') ||
+    path === '/api/cookbook-invitations/{id}';
+  for (const [method, operation] of Object.entries(methods)) {
+    if (!aggregate || !['put', 'delete', 'post'].includes(method)) continue;
+    if (path.endsWith('/recipes') || path.includes('import')) continue;
+    assert(
+      operation.responses['428'] && operation.responses['400'],
+      `${method} ${path}: version preconditions`,
+    );
+    const header = method === 'delete' || (method === 'put' && path.endsWith('/image'));
+    assert(operation.responses[header ? '412' : '409'], `${method} ${path}: stale version status`);
+    if (header)
+      assert(
+        operation.parameters?.some((p) => p.in === 'header' && p.name === 'If-Match' && p.required),
+        `${method} ${path}: strong If-Match`,
+      );
+  }
+}
 console.log(
   `Contract checks passed: ${assertions} transport type/nullability checks, routes, write header and authoritative quantity fingerprints.`,
 );

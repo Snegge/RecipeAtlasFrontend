@@ -1,4 +1,8 @@
 import { TestBed } from '@angular/core/testing';
+import { HttpErrorResponse } from '@angular/common/http';
+import { MatDialog } from '@angular/material/dialog';
+import { CookbookContext } from '../../../../core/services/cookbook-context';
+import { of } from 'rxjs';
 import { provideRouter } from '@angular/router';
 import { describe, expect, it, vi } from 'vitest';
 import { RecipesModule } from '../../recipes.module';
@@ -9,6 +13,7 @@ import { Recipe } from '../../../../core/models/recipe.model';
 describe('Recipe detail serving display', () => {
   it('scales ranges/fractions from stored originals without changing the recipe', async () => {
     const recipe: Recipe = {
+      version: 'recipe-v1',
       id: 'r',
       title: 'Eggs',
       description: null,
@@ -56,5 +61,66 @@ describe('Recipe detail serving display', () => {
     fixture.detectChanges();
     expect(fixture.componentInstance.scaledQuantity(recipe.ingredients[0]).text).toBe('3-4');
     expect(recipe).toEqual(original);
+  });
+  it('shows the refreshed recipe after stale deletion and requires a new confirmation', async () => {
+    const original: Recipe = {
+      id: 'r',
+      version: 'displayed-v1',
+      title: 'Original',
+      description: null,
+      sourceUrl: null,
+      servings: 2,
+      ingredients: [{ name: 'Egg', quantity: '1', unit: 'piece', note: null }],
+      steps: ['Cook'],
+      imageUrl: null,
+      createdAtUtc: '',
+      updatedAtUtc: '',
+    };
+    const api = {
+      get: vi.fn().mockResolvedValue(original),
+      delete: vi
+        .fn()
+        .mockRejectedValueOnce(
+          new HttpErrorResponse({ status: 412, error: { code: 'concurrency_conflict' } }),
+        )
+        .mockResolvedValue(undefined),
+    };
+    await TestBed.configureTestingModule({
+      imports: [RecipesModule],
+      providers: [provideRouter([]), { provide: RecipeApiService, useValue: api }],
+    }).compileComponents();
+    TestBed.inject(CookbookContext).current.set({
+      id: 'book',
+      name: 'Book',
+      role: 'Owner',
+      version: 'book-v1',
+      imageUrl: null,
+      description: null,
+      recipeCount: 1,
+    });
+    const fixture = TestBed.createComponent(RecipeDetailComponent);
+    await fixture.whenStable();
+    api.get.mockResolvedValue({
+      ...original,
+      title: 'Changed by another person',
+      version: 'current-v2',
+    });
+    const confirm = vi
+      .spyOn(MatDialog.prototype, 'open')
+      .mockReturnValue({ afterClosed: () => of(true), close: vi.fn() } as never);
+    await fixture.componentInstance.remove();
+    fixture.detectChanges();
+    expect(api.delete).toHaveBeenCalledTimes(1);
+    expect(confirm).toHaveBeenCalledTimes(1);
+    expect(api.delete.mock.calls[0][2]).toBe('displayed-v1');
+    expect(fixture.nativeElement.querySelector('.recipe-intro h1').textContent).toBe(
+      'Changed by another person',
+    );
+    expect(fixture.nativeElement.textContent).toContain('confirm again');
+    expect(fixture.componentInstance.error()).toBe('');
+    confirm.mockReturnValue({ afterClosed: () => of(false), close: vi.fn() } as never);
+    await fixture.componentInstance.remove();
+    expect(api.delete).toHaveBeenCalledTimes(1);
+    confirm.mockRestore();
   });
 });

@@ -12,7 +12,16 @@ export interface RecipeInput {
   ingredients: Ingredient[];
   steps: string[];
 }
+export interface RecipeWriteRequest extends RecipeInput {
+  expectedVersion: string | null;
+}
+export interface RecipeImageResponse {
+  imageUrl: string | null;
+  version: string;
+  updatedAtUtc: string;
+}
 export interface Recipe extends RecipeInput {
+  version: string;
   id: string;
   imageUrl: string | null;
   createdAtUtc: string;

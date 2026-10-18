@@ -1,7 +1,8 @@
+import { ifMatch } from '../utils/concurrency';
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { Recipe, RecipeInput, RecipePage, Unit } from '../models/recipe.model';
+import { Recipe, RecipeInput, RecipePage, Unit, RecipeImageResponse } from '../models/recipe.model';
 import { RecipeImportResult } from '../models/recipe-import.model';
 
 @Injectable({ providedIn: 'root' })
@@ -21,24 +22,37 @@ export class RecipeApiService {
   create(cookbookId: string, input: RecipeInput) {
     return firstValueFrom(this.http.post<Recipe>(`/api/cookbooks/${cookbookId}/recipes`, input));
   }
-  update(cookbookId: string, id: string, input: RecipeInput) {
+  update(cookbookId: string, id: string, input: RecipeInput, expectedVersion: string) {
     return firstValueFrom(
-      this.http.put<Recipe>(`/api/cookbooks/${cookbookId}/recipes/${id}`, input),
-    );
-  }
-  delete(cookbookId: string, id: string) {
-    return firstValueFrom(this.http.delete<void>(`/api/cookbooks/${cookbookId}/recipes/${id}`));
-  }
-  upload(cookbookId: string, id: string, image: Blob) {
-    return firstValueFrom(
-      this.http.put(`/api/cookbooks/${cookbookId}/recipes/${id}/image`, image, {
-        headers: { 'Content-Type': image.type },
+      this.http.put<Recipe>(`/api/cookbooks/${cookbookId}/recipes/${id}`, {
+        ...input,
+        expectedVersion,
       }),
     );
   }
-  removeImage(cookbookId: string, id: string) {
+  delete(cookbookId: string, id: string, expectedVersion: string) {
     return firstValueFrom(
-      this.http.delete<void>(`/api/cookbooks/${cookbookId}/recipes/${id}/image`),
+      this.http.delete<void>(`/api/cookbooks/${cookbookId}/recipes/${id}`, {
+        headers: ifMatch(expectedVersion),
+      }),
+    );
+  }
+  upload(cookbookId: string, id: string, image: Blob, expectedVersion: string) {
+    return firstValueFrom(
+      this.http.put<RecipeImageResponse>(
+        `/api/cookbooks/${cookbookId}/recipes/${id}/image`,
+        image,
+        {
+          headers: { 'Content-Type': image.type, ...ifMatch(expectedVersion) },
+        },
+      ),
+    );
+  }
+  removeImage(cookbookId: string, id: string, expectedVersion: string) {
+    return firstValueFrom(
+      this.http.delete<RecipeImageResponse>(`/api/cookbooks/${cookbookId}/recipes/${id}/image`, {
+        headers: ifMatch(expectedVersion),
+      }),
     );
   }
 

@@ -1,7 +1,9 @@
 import { CookbookContext } from '../../../../core/services/cookbook-context';
 import { SessionState } from '../../../../core/services/session-state';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { isConcurrencyConflict } from '../../../../core/utils/concurrency';
 import { errorMessage } from '../../../../core/utils/api-error';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 
 import { ActivatedRoute, Router } from '@angular/router';
@@ -40,6 +42,8 @@ export class RecipeDetailComponent {
   readonly loading = signal(true);
   readonly error = signal('');
   readonly deleting = signal(false);
+  readonly notice = signal('');
+  readonly mutationUnavailable = signal(false);
   readonly imageFailed = signal(false);
   readonly checkedIngredients = signal(new Set<number>());
   private readonly destroy = inject(DestroyRef);
@@ -54,6 +58,7 @@ export class RecipeDetailComponent {
     const epoch = this.session.epoch();
     this.loading.set(true);
     this.error.set('');
+    this.notice.set('');
     try {
       const recipe = await this.api.get(this.cookbookId, this.route.snapshot.paramMap.get('id')!);
       if (epoch !== this.session.epoch() || this.destroy.destroyed) return;
@@ -86,7 +91,14 @@ export class RecipeDetailComponent {
   }
   async remove() {
     const recipe = this.recipe();
-    if (!recipe || this.deleting() || !this.cookbooks.canWrite()) return;
+    if (
+      !recipe ||
+      this.deleting() ||
+      this.loading() ||
+      this.mutationUnavailable() ||
+      !this.cookbooks.canWrite()
+    )
+      return;
     const epoch = this.session.epoch();
     const ref = this.dialog.open(ConfirmDialogComponent, {
       data: {
@@ -109,11 +121,24 @@ export class RecipeDetailComponent {
     if (!confirmed || epoch !== this.session.epoch() || this.destroy.destroyed) return;
     this.deleting.set(true);
     try {
-      await this.api.delete(this.cookbookId, recipe.id);
+      await this.api.delete(this.cookbookId, recipe.id, recipe.version);
       if (epoch !== this.session.epoch() || this.destroy.destroyed) return;
       this.snack.open('Recipe deleted', 'Close', { duration: 3000 });
       await this.router.navigate(this.recipeRoot);
     } catch (error) {
+      if (epoch !== this.session.epoch() || this.destroy.destroyed) return;
+      if (isConcurrencyConflict(error)) {
+        this.recipe.set(null);
+        await this.load();
+        if (epoch !== this.session.epoch() || this.destroy.destroyed) return;
+        if (this.recipe())
+          this.notice.set(
+            'This recipe changed. Review the refreshed recipe, then choose Delete and confirm again.',
+          );
+        return;
+      }
+      if (error instanceof HttpErrorResponse && [401, 403, 404].includes(error.status))
+        this.mutationUnavailable.set(true);
       this.snack.open(errorMessage(error), 'Close', { duration: 6000 });
     } finally {
       this.deleting.set(false);

@@ -1,0 +1,73 @@
+.review-explanation {
+  margin-bottom: 20px;
+}
+.conflict-field {
+  border: 1px solid #d8dfda;
+  border-radius: 12px;
+  margin: 0 0 20px;
+  padding: 14px;
+  min-width: 0;
+}
+legend {
+  font-weight: 650;
+  padding: 0 6px;
+}
+legend span {
+  font-size: 0.75rem;
+  color: #657068;
+  font-weight: 400;
+  margin-left: 8px;
+}
+.comparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.source {
+  display: block;
+  min-width: 0;
+  padding: 12px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: #f3f6f4;
+  cursor: pointer;
+}
+.source.selected {
+  border-color: #175c46;
+  background: #eaf4ed;
+}
+.source-heading {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 600;
+}
+input {
+  accent-color: #175c46;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+pre {
+  font: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 18rem;
+  overflow: auto;
+  margin: 8px 0 0;
+}
+img {
+  height: 150px;
+  width: 100%;
+  object-fit: contain;
+  margin-top: 12px;
+}
+@media (max-width: 600px) {
+  .comparison {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .conflict-field {
+    padding: 10px;
+  }
+}

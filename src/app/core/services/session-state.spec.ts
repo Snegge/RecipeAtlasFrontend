@@ -25,6 +25,7 @@ const book = {
   role: 'Owner',
   description: null,
   imageUrl: null,
+  version: 'displayed-v1',
   recipeCount: 0,
 };
 describe('Session boundaries', () => {

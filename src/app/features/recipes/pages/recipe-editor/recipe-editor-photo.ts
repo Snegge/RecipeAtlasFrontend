@@ -26,9 +26,13 @@ export class RecipeEditorPhoto {
   constructor() {
     this.destroyRef.onDestroy(() => this.releasePreview());
   }
-  load(url: string | null): void {
+  load(url: string | null, version?: string): void {
     this.originalPhoto = url;
-    this.preview.set(url);
+    this.preview.set(
+      url && version
+        ? url + (url.includes('?') ? '&' : '?') + 'v=' + encodeURIComponent(version)
+        : url,
+    );
   }
   async importPhoto(url: string): Promise<void> {
     const epoch = this.session.epoch();
@@ -115,9 +119,22 @@ export class RecipeEditorPhoto {
   hasUnsavedChanges(): boolean {
     return this.pendingPhoto !== null || this.photoRemoved;
   }
-  async persist(cookbookId: string, id: string): Promise<void> {
-    if (this.pendingPhoto) await this.api.upload(cookbookId, id, this.pendingPhoto);
-    else if (this.photoRemoved) await this.api.removeImage(cookbookId, id);
+  pendingDescription(): string {
+    return this.pendingPhoto
+      ? 'Pending picture replacement'
+      : this.photoRemoved
+        ? 'Pending picture removal'
+        : 'No pending picture change';
+  }
+  rebase(url: string | null, version: string): void {
+    this.originalPhoto = url;
+    if (!this.hasUnsavedChanges()) this.load(url, version);
+  }
+  async persist(cookbookId: string, id: string, expectedVersion: string) {
+    if (this.pendingPhoto)
+      return await this.api.upload(cookbookId, id, this.pendingPhoto, expectedVersion);
+    if (this.photoRemoved) return await this.api.removeImage(cookbookId, id, expectedVersion);
+    return null;
   }
   clear(): void {
     this.releasePreview();

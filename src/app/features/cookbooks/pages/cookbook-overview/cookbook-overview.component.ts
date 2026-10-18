@@ -8,6 +8,7 @@ import { CookbookService } from '../../../../core/services/cookbook.service';
 import { SessionState } from '../../../../core/services/session-state';
 import { CookbookResponse } from '../../../../core/models/account.model';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { isConcurrencyConflict } from '../../../../core/utils/concurrency';
 import { errorMessage } from '../../../../core/utils/api-error';
 @Component({
   selector: 'app-cookbook-overview',
@@ -88,8 +89,8 @@ export class CookbookOverviewComponent {
     this.busy.set(true);
     this.error.set('');
     try {
-      if (remove) await this.books.delete(book.id);
-      else await this.books.leave(book.id);
+      if (remove) await this.books.delete(book.id, book.version);
+      else await this.books.leave(book.id, book.version);
       if (epoch !== this.session.epoch() || this.destroy.destroyed) return;
       if (this.books.context.current()?.id === book.id) this.books.context.current.set(null);
       this.snack.open(remove ? 'Cookbook deleted.' : 'You left the cookbook.', 'Close', {
@@ -97,8 +98,14 @@ export class CookbookOverviewComponent {
       });
       await this.load();
     } catch (e) {
-      if (epoch === this.session.epoch() && !this.destroy.destroyed)
-        this.error.set(errorMessage(e));
+      if (epoch !== this.session.epoch() || this.destroy.destroyed) return;
+      if (isConcurrencyConflict(e)) {
+        await this.load();
+        if (epoch === this.session.epoch() && !this.destroy.destroyed)
+          this.error.set(
+            'This cookbook changed. Review the refreshed cookbook, then choose the action and confirm again.',
+          );
+      } else this.error.set(errorMessage(e));
     } finally {
       this.busy.set(false);
     }

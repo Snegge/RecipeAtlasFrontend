@@ -1,0 +1,55 @@
+<h2 mat-dialog-title>{{ data.title }}</h2>
+<mat-dialog-content>
+  <p class="review-explanation">{{ data.explanation }} Applying choices does not save them.</p>
+  @for (field of data.fields; track field.id) {
+    <fieldset class="conflict-field">
+      <legend>
+        {{ field.label }}
+        <span>{{ field.local === field.server ? 'Same values' : 'Different values' }}</span>
+      </legend>
+      <div class="comparison">
+        <label class="source" [class.selected]="choices.controls[field.id].value === 'local'">
+          <span class="source-heading"
+            ><input
+              type="radio"
+              [formControl]="choices.controls[field.id]"
+              [name]="field.id"
+              value="local"
+              [attr.disabled]="field.canKeepLocal === false ? true : null"
+            />
+            Your values</span
+          >
+          <pre tabindex="0" [attr.aria-label]="'Your ' + field.label">{{
+            field.local || '(empty)'
+          }}</pre>
+          @if (field.localImage) {
+            <img [src]="field.localImage" alt="Your pending picture" />
+          }
+        </label>
+        <label class="source" [class.selected]="choices.controls[field.id].value === 'server'">
+          <span class="source-heading"
+            ><input
+              type="radio"
+              [formControl]="choices.controls[field.id]"
+              [name]="field.id"
+              value="server"
+            />
+            Current server values</span
+          >
+          <pre tabindex="0" [attr.aria-label]="'Current server ' + field.label">{{
+            field.server || '(empty)'
+          }}</pre>
+          @if (field.serverImage) {
+            <img [src]="field.serverImage" alt="Current server picture" />
+          }
+        </label>
+      </div>
+    </fieldset>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel review</button>
+  <button mat-flat-button [disabled]="choices.invalid" (click)="apply()">
+    Apply selected values
+  </button>
+</mat-dialog-actions>

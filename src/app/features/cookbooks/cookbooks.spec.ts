@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
@@ -19,10 +20,12 @@ const books = ['Owner', 'Editor', 'Viewer'].map((role, index) => ({
   role,
   description: null,
   imageUrl: null,
+  version: 'displayed-v1',
   recipeCount: 2,
 }));
 const inbox = Array.from({ length: 6 }, (_, i) => ({
   id: 'invite-' + i,
+  cookbookVersion: 'invite-v1',
   cookbookId: 'shared-' + i,
   cookbookName: 'Shared ' + i,
   role: 'Viewer',
@@ -37,7 +40,11 @@ describe('Cookbook shelf, consent and editor', () => {
     remove = vi.fn(),
     respond = vi.fn(),
     invitations = vi.fn(),
-    upload = vi.fn();
+    upload = vi.fn(),
+    members = vi.fn(),
+    add = vi.fn(),
+    role = vi.fn(),
+    cancelInvitation = vi.fn();
   const route = {
     snapshot: {
       queryParamMap: convertToParamMap({}),
@@ -48,12 +55,38 @@ describe('Cookbook shelf, consent and editor', () => {
   beforeEach(async () => {
     route.snapshot.data.create = false;
     create.mockReset().mockResolvedValue({ ...books[0], id: 'created' });
-    rename.mockReset().mockResolvedValue(undefined);
+    rename.mockReset().mockResolvedValue({ ...books[0], version: 'renamed-v2' });
     select.mockReset().mockResolvedValue(books[0]);
     remove.mockReset().mockResolvedValue(undefined);
     respond.mockReset().mockResolvedValue(undefined);
     invitations.mockReset().mockResolvedValue([]);
     upload.mockReset().mockResolvedValue(books[0]);
+    members.mockReset().mockResolvedValue({
+      cookbook: books[0],
+      members: [
+        {
+          userId: 'alice',
+          username: 'alice',
+          displayName: 'Alice',
+          role: 'Owner',
+          isActive: true,
+          avatarUrl: null,
+          isPending: false,
+        },
+        {
+          userId: 'bob',
+          username: 'bob',
+          displayName: 'Bob',
+          role: 'Viewer',
+          isActive: true,
+          avatarUrl: null,
+          isPending: true,
+        },
+      ],
+    });
+    add.mockReset().mockResolvedValue({ version: 'after-member-v2' });
+    role.mockReset().mockResolvedValue({ version: 'after-role-v2' });
+    cancelInvitation.mockReset().mockResolvedValue({ version: 'after-cancel-v2' });
     await TestBed.configureTestingModule({
       imports: [CookbooksModule],
       providers: [
@@ -72,26 +105,10 @@ describe('Cookbook shelf, consent and editor', () => {
             respond,
             invitations,
             upload,
-            members: vi.fn().mockResolvedValue([
-              {
-                userId: 'alice',
-                username: 'alice',
-                displayName: 'Alice',
-                role: 'Owner',
-                isActive: true,
-                avatarUrl: null,
-                isPending: false,
-              },
-              {
-                userId: 'bob',
-                username: 'bob',
-                displayName: 'Bob',
-                role: 'Viewer',
-                isActive: true,
-                avatarUrl: null,
-                isPending: true,
-              },
-            ]),
+            members,
+            add,
+            role,
+            cancelInvitation,
           }),
         },
       ],
@@ -136,7 +153,7 @@ describe('Cookbook shelf, consent and editor', () => {
     );
     confirm.mockReturnValue({ afterClosed: () => of(true), close: vi.fn() } as never);
     await fixture.componentInstance.delete(books[0]);
-    expect(remove).toHaveBeenCalledExactlyOnceWith('book-0');
+    expect(remove).toHaveBeenCalledExactlyOnceWith('book-0', 'displayed-v1');
   });
   it('creates a cookbook with staged invitations on its own page', async () => {
     route.snapshot.data.create = true;
@@ -163,11 +180,11 @@ describe('Cookbook shelf, consent and editor', () => {
     page.picture.changed.set(true);
     await page.save();
     expect(page.savedId()).toBe('created');
-    expect(page.error()).toContain('same cookbook');
+    expect(page.error()).toContain('picture remains pending');
     expect(page.hasUnsavedChanges()).toBe(true);
     await page.save();
     expect(create).toHaveBeenCalledTimes(1);
-    expect(rename).toHaveBeenCalledWith('created', 'Picture book', null);
+    expect(rename).not.toHaveBeenCalled();
     expect(upload).toHaveBeenCalledTimes(2);
   });
   it('does not offer owner removal and labels pending membership separately', async () => {
@@ -213,7 +230,7 @@ describe('Cookbook shelf, consent and editor', () => {
     expect(fixture.nativeElement.querySelectorAll('.cookbook-invitation').length).toBe(5);
     await fixture.componentInstance.respond(inbox[0], true);
     fixture.detectChanges();
-    expect(respond).toHaveBeenCalledExactlyOnceWith('invite-0', true);
+    expect(respond).toHaveBeenCalledExactlyOnceWith('invite-0', true, 'invite-v1');
     expect(fixture.componentInstance.invitations().map((x) => x.id)).toEqual(
       inbox.slice(1).map((x) => x.id),
     );
@@ -226,5 +243,98 @@ describe('Cookbook shelf, consent and editor', () => {
     finish(inbox);
     await fixture.whenStable();
     expect(fixture.componentInstance.invitations()).toEqual([]);
+  });
+  it('blocks membership actions while metadata or a cover is dirty', async () => {
+    const fixture = TestBed.createComponent(CookbookEditorComponent);
+    await fixture.whenStable();
+    const page = fixture.componentInstance;
+    page.form.controls.name.setValue('Unsaved');
+    page.form.markAsDirty();
+    page.member.setValue({ username: 'bob', role: 'Editor' });
+    await page.add();
+    await page.role(page.members()[1], 'Editor');
+    await page.remove(page.members()[1]);
+    expect(add).not.toHaveBeenCalled();
+    expect(role).not.toHaveBeenCalled();
+    expect(cancelInvitation).not.toHaveBeenCalled();
+    expect(page.baseline()?.version).toBe('displayed-v1');
+    page.form.markAsPristine();
+    page.picture.changed.set(true);
+    expect(page.membershipBlocked()).toBe(true);
+  });
+  it('submits the displayed membership version then refreshes a conflict without replay', async () => {
+    const fixture = TestBed.createComponent(CookbookEditorComponent);
+    await fixture.whenStable();
+    const page = fixture.componentInstance;
+    role.mockRejectedValueOnce(
+      new HttpErrorResponse({ status: 409, error: { code: 'concurrency_conflict' } }),
+    );
+    members.mockResolvedValueOnce({
+      cookbook: { ...books[0], name: 'New name', version: 'current-v2' },
+      members: page.members(),
+    });
+    await page.role(page.members()[1], 'Editor');
+    expect(role).toHaveBeenCalledExactlyOnceWith('book-0', 'bob', 'Editor', 'displayed-v1');
+    expect(page.baseline()?.version).toBe('current-v2');
+    expect(page.form.controls.name.value).toBe('New name');
+    expect(page.error()).toContain('choose the action again');
+  });
+  it('keeps dirty metadata and baseline separate from a fetched conflict until explicit review', async () => {
+    const fixture = TestBed.createComponent(CookbookEditorComponent);
+    await fixture.whenStable();
+    const page = fixture.componentInstance;
+    page.form.controls.name.setValue('Local cookbook');
+    page.form.markAsDirty();
+    rename.mockRejectedValueOnce(
+      new HttpErrorResponse({ status: 409, error: { code: 'concurrency_conflict' } }),
+    );
+    members.mockResolvedValueOnce({
+      cookbook: {
+        ...books[0],
+        name: 'Server cookbook',
+        description: 'Server description',
+        version: 'reviewed-v2',
+      },
+      members: page.members(),
+    });
+    await page.save();
+    expect(rename).toHaveBeenCalledExactlyOnceWith(
+      'book-0',
+      'Local cookbook',
+      null,
+      'displayed-v1',
+    );
+    expect(page.form.controls.name.value).toBe('Local cookbook');
+    expect(page.baseline()?.version).toBe('displayed-v1');
+    expect(page.conflict()).toBe(true);
+    const review = vi
+      .spyOn(MatDialog.prototype, 'open')
+      .mockReturnValue({
+        afterClosed: () => of({ name: 'local', description: 'server', photo: 'server' }),
+        close: vi.fn(),
+      } as never);
+    await page.review();
+    review.mockRestore();
+    expect(page.form.controls.name.value).toBe('Local cookbook');
+    expect(page.form.controls.description.value).toBe('Server description');
+    expect(page.baseline()?.version).toBe('reviewed-v2');
+    expect(page.form.dirty).toBe(true);
+    expect(rename).toHaveBeenCalledTimes(1);
+    expect(page.membershipBlocked()).toBe(true);
+  });
+  it('requires refreshed review and a second explicit confirmation after stale cookbook deletion', async () => {
+    const fixture = TestBed.createComponent(CookbookOverviewComponent);
+    await fixture.whenStable();
+    remove.mockRejectedValueOnce(
+      new HttpErrorResponse({ status: 412, error: { code: 'concurrency_conflict' } }),
+    );
+    const confirm = vi
+      .spyOn(MatDialog.prototype, 'open')
+      .mockReturnValue({ afterClosed: () => of(true), close: vi.fn() } as never);
+    await fixture.componentInstance.delete(books[0]);
+    expect(remove).toHaveBeenCalledTimes(1);
+    expect(fixture.componentInstance.error()).toContain('confirm again');
+    expect(confirm).toHaveBeenCalledTimes(1);
+    confirm.mockRestore();
   });
 });
