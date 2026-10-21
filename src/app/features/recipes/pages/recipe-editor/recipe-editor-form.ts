@@ -37,6 +37,8 @@ const sourceUrl: ValidatorFn = (control) => {
   }
 };
 
+export type RecipeEditValues = Omit<RecipeInput, 'servings'> & { servings: number | null };
+
 // One instance per editor. Owns form values, validation and import-review metadata.
 @Injectable()
 export class RecipeEditorForm {
@@ -247,15 +249,30 @@ export class RecipeEditorForm {
     this.ingredientDraftPending = false;
     this.importDraftPending = false;
   }
-  applyRecipe(recipe: Recipe): void {
+  snapshot(): RecipeEditValues {
+    const raw = this.form.getRawValue();
+    return {
+      ...raw,
+      sourceUrl: raw.sourceUrl,
+      ingredients: raw.ingredients.map((row) => ({ ...row })),
+    };
+  }
+  applyRecipe(recipe: RecipeEditValues, keepLocalIngredients = false): void {
     this.form.patchValue({
       title: recipe.title,
       description: recipe.description ?? '',
       sourceUrl: recipe.sourceUrl ?? '',
       servings: recipe.servings,
     });
-    this.ingredients.clear();
-    recipe.ingredients.forEach((item) => this.ingredients.push(this.makeIngredient(item)));
+    if (!keepLocalIngredients) {
+      this.importedIngredients.clear();
+      this.importWarnings.set([]);
+      this.importedYield.set(null);
+      this.ingredientDraftPending = false;
+      this.importDraftPending = false;
+      this.ingredients.clear();
+      recipe.ingredients.forEach((item) => this.ingredients.push(this.makeIngredient(item)));
+    }
     this.steps.clear();
     recipe.steps.forEach((step) => this.steps.push(this.makeStep(step)));
   }

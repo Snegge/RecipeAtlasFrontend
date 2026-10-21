@@ -1,6 +1,7 @@
 import {
   afterNextRender,
   Component,
+  ChangeDetectionStrategy,
   ElementRef,
   EventEmitter,
   inject,
@@ -15,6 +16,8 @@ import { StepForms } from '../../models/recipe-form.model';
 
 @Component({
   selector: 'app-step-editor',
+  // FormArray contents change in place during reviewed server/draft application.
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
   templateUrl: './step-editor.component.html',
   styleUrl: './step-editor.component.scss',
@@ -35,9 +38,7 @@ export class StepEditorComponent {
   readonly stepRemoved = new EventEmitter<number>();
 
   @ViewChildren('stepInput')
-  private stepInputs!: QueryList<
-    ElementRef<HTMLTextAreaElement>
-  >;
+  private stepInputs!: QueryList<ElementRef<HTMLTextAreaElement>>;
 
   addStep(): void {
     if (this.busy || this.steps.length >= 100) {
@@ -61,12 +62,7 @@ export class StepEditorComponent {
   }
 
   removeStep(index: number): void {
-    if (
-      this.busy ||
-      this.steps.length <= 1 ||
-      index < 0 ||
-      index >= this.steps.length
-    ) {
+    if (this.busy || this.steps.length <= 1 || index < 0 || index >= this.steps.length) {
       return;
     }
 
@@ -81,14 +77,9 @@ export class StepEditorComponent {
     // Keep keyboard focus in the list after removal.
     afterNextRender(
       () => {
-        const nextIndex = Math.min(
-          index,
-          this.stepInputs.length - 1,
-        );
+        const nextIndex = Math.min(index, this.stepInputs.length - 1);
 
-        this.stepInputs
-          .get(nextIndex)
-          ?.nativeElement.focus();
+        this.stepInputs.get(nextIndex)?.nativeElement.focus();
       },
       { injector: this.injector },
     );

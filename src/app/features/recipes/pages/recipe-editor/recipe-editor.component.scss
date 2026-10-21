@@ -189,3 +189,21 @@
     width: 100%;
   }
 }
+
+.conflict-notice {
+  padding: 1rem;
+  margin-block: 1rem;
+  border: 2px solid var(--color-primary, #7b5536);
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+}
+.conflict-notice button {
+  margin: 0.25rem;
+  min-height: 44px;
+}
+.conflict-notice textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+}

@@ -15,6 +15,45 @@
   @if (error()) {
     <p class="error-box" role="alert">{{ error() }}</p>
   }
+  @if (conflict()) {
+    <aside class="conflict-notice" role="alert">
+      <h2>This cookbook changed</h2>
+      <p>
+        {{
+          partialSaved()
+            ? 'Details were saved. The picture remains pending.'
+            : 'Your local metadata and cover picture are still here.'
+        }}
+      </p>
+      @if (latest()) {
+        <button
+          mat-flat-button
+          type="button"
+          (click)="review()"
+          [disabled]="navigationBlocked() || unavailable()"
+        >
+          Review changes
+        </button>
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="loadServer()"
+          [disabled]="navigationBlocked() || unavailable()"
+        >
+          Load server version…
+        </button>
+      } @else {
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="refreshConflict()"
+          [disabled]="navigationBlocked() || unavailable()"
+        >
+          Load current revision
+        </button>
+      }
+    </aside>
+  }
   @if (loading()) {
     <div class="loading-state"><mat-spinner diameter="32" aria-label="Loading cookbook" /></div>
   } @else {
@@ -94,6 +133,19 @@
         </form>
       </section>
       <section class="editor-card members-card" id="members">
+        @if (savedId() && metadataDirty()) {
+          <p role="status">
+            Save or discard your detail and picture changes before changing members.
+          </p>
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="discardMetadata()"
+            [disabled]="navigationBlocked() || conflict()"
+          >
+            Discard detail changes…
+          </button>
+        }
         <div class="card-section-heading">
           <span class="section-number">02</span>
           <div>
@@ -121,7 +173,7 @@
               ><mat-option value="Viewer">Viewer</mat-option
               ><mat-option value="Editor">Editor</mat-option></mat-select
             ></mat-form-field
-          ><button mat-flat-button type="submit" [disabled]="member.invalid || busy()">
+          ><button mat-flat-button type="submit" [disabled]="member.invalid || membershipBlocked()">
             {{ savedId() ? 'Invite' : 'Add to list' }}
           </button>
         </form>
@@ -139,7 +191,7 @@
             <button
               mat-icon-button
               (click)="removePending(i)"
-              [disabled]="busy()"
+              [disabled]="membershipBlocked()"
               [attr.aria-label]="'Remove ' + person.username + ' from invitation list'"
             >
               <mat-icon svgIcon="close" />
@@ -164,7 +216,7 @@
               <button
                 mat-icon-button
                 (click)="remove(person)"
-                [disabled]="busy()"
+                [disabled]="membershipBlocked()"
                 [attr.aria-label]="'Cancel invitation for ' + person.displayName"
               >
                 <mat-icon svgIcon="close" />
@@ -173,7 +225,7 @@
               <button
                 mat-icon-button
                 [matMenuTriggerFor]="memberActions"
-                [disabled]="busy()"
+                [disabled]="membershipBlocked()"
                 [attr.aria-label]="'Manage ' + person.displayName"
               >
                 <mat-icon svgIcon="more" /></button
@@ -201,7 +253,7 @@
         class="primary-create"
         type="button"
         (click)="save()"
-        [disabled]="navigationBlocked() || form.invalid"
+        [disabled]="navigationBlocked() || form.invalid || conflict() || unavailable()"
       >
         <mat-icon [svgIcon]="isNew ? 'plus' : 'check'" />{{
           busy() ? 'Saving…' : isNew ? 'Create cookbook' : 'Save cookbook'

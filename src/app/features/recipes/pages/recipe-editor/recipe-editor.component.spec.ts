@@ -10,9 +10,12 @@ import { RecipeImportResult } from '../../../../core/models/recipe-import.model'
 import { RecipesModule } from '../../recipes.module';
 import { RecipeApiService } from '../../../../core/services/recipe-api.service';
 import { Recipe } from '../../../../core/models/recipe.model';
+import { MatDialog } from '@angular/material/dialog';
+import { of } from 'rxjs';
 import { RecipeEditorComponent } from './recipe-editor.component';
 
 const saved: Recipe = {
+  version: 'recipe-v1',
   id: 'recipe-1',
   title: 'Pasta',
   description: null,
@@ -45,7 +48,7 @@ describe('Recipe editor component composition', () => {
     ]);
     api.create.mockResolvedValue(saved);
     api.update.mockResolvedValue(saved);
-    api.upload.mockResolvedValue({});
+    api.upload.mockResolvedValue({ imageUrl: '/picture', version: 'photo-v2', updatedAtUtc: '' });
     await TestBed.configureTestingModule({
       imports: [RecipesModule],
       providers: [provideRouter([]), { provide: RecipeApiService, useValue: api }],
@@ -54,6 +57,7 @@ describe('Recipe editor component composition', () => {
     TestBed.inject(CookbookContext).current.set({
       description: null,
       imageUrl: null,
+      version: 'displayed-v1',
       recipeCount: 0,
       id: 'cookbook-1',
       name: 'Test cookbook',
@@ -185,7 +189,7 @@ describe('Recipe editor component composition', () => {
     expect(button.disabled).toBe(false);
     await editor.save();
     expect(api.create).toHaveBeenCalledTimes(1);
-    expect(api.update).toHaveBeenCalledTimes(1);
+    expect(api.update).not.toHaveBeenCalled();
     expect(api.upload).toHaveBeenCalledTimes(2);
     expect(editor.hasUnsavedChanges()).toBe(false);
   });
@@ -425,5 +429,238 @@ describe('Recipe editor component composition', () => {
     session.clear('login');
     expect(editor.form.controls.title.value).toBe('');
     expect(editor.preview()).toBeNull();
+  });
+  async function existingEditor() {
+    TestBed.inject(ActivatedRoute).snapshot.params = { id: saved.id, cookbookId: 'cookbook-1' };
+    api.get.mockResolvedValue(saved);
+    const fixture = TestBed.createComponent(RecipeEditorComponent);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    return fixture;
+  }
+  const conflictError = (status = 409) =>
+    new HttpErrorResponse({ status, error: { code: 'concurrency_conflict' } });
+  it('keeps exact local controls, ordering and pending blob after a conflict without retry or navigation', async () => {
+    const fixture = await existingEditor(),
+      page = fixture.componentInstance;
+    const row = page.ingredients.at(0),
+      step = page.steps.at(0);
+    page.form.controls.title.setValue('Local title');
+    row.controls.quantity.setValue('1/2-1 1/2');
+    page.form.markAsDirty();
+    const blob = new Blob(['local']);
+    Object.assign(page.photos, { pendingPhoto: blob });
+    api.update.mockRejectedValueOnce(conflictError());
+    api.get.mockResolvedValue({ ...saved, title: 'Someone else', version: 'server-v2' });
+    await page.save();
+    expect(page.ingredients.at(0)).toBe(row);
+    expect(page.steps.at(0)).toBe(step);
+    expect(row.controls.quantity.value).toBe('1/2-1 1/2');
+    expect(page.form.controls.title.value).toBe('Local title');
+    expect(page.editor.baseline()?.version).toBe('recipe-v1');
+    expect(page.editor.latest()?.version).toBe('server-v2');
+    expect(page.photos.hasUnsavedChanges()).toBe(true);
+    expect(page.canSave()).toBe(false);
+    await page.save();
+    expect(api.update).toHaveBeenCalledExactlyOnceWith(
+      'cookbook-1',
+      saved.id,
+      expect.anything(),
+      'recipe-v1',
+    );
+    expect(api.upload).not.toHaveBeenCalled();
+    expect(TestBed.inject(Router).navigate).not.toHaveBeenCalled();
+  });
+  it('applies explicit scalar and whole-list choices as a dirty draft, then detects another conflict', async () => {
+    const fixture = await existingEditor(),
+      page = fixture.componentInstance;
+    page.form.controls.title.setValue('Local');
+    page.form.markAsDirty();
+    api.update.mockRejectedValueOnce(conflictError());
+    const server = {
+      ...saved,
+      title: 'Server',
+      version: 'reviewed-v2',
+      steps: ['Server ordered steps'],
+    };
+    api.get.mockResolvedValue(server);
+    await page.save();
+    const review = vi.spyOn(MatDialog.prototype, 'open').mockReturnValue({
+      afterClosed: () =>
+        of({
+          title: 'local',
+          description: 'server',
+          servings: 'server',
+          sourceUrl: 'server',
+          ingredients: 'server',
+          steps: 'server',
+          photo: 'server',
+        }),
+      close: vi.fn(),
+    } as never);
+    await page.editor.review();
+    review.mockRestore();
+    expect(page.editor.baseline()).toBe(server);
+    expect(page.form.controls.title.value).toBe('Local');
+    expect(page.steps.getRawValue()).toEqual(server.steps);
+    fixture.detectChanges();
+    expect(
+      [...fixture.nativeElement.querySelectorAll('app-step-editor textarea')].map(
+        (item: any) => item.value,
+      ),
+    ).toEqual(server.steps);
+    expect(page.form.dirty).toBe(true);
+    expect(page.editor.conflict()).toBe(false);
+    expect(api.update).toHaveBeenCalledTimes(1); // Applying review is not a save.
+    api.update.mockRejectedValueOnce(conflictError());
+    api.get.mockResolvedValue({ ...server, version: 'server-v3' });
+    await page.save();
+    expect(api.update.mock.calls[1][3]).toBe('reviewed-v2');
+    expect(page.editor.conflict()).toBe(true);
+    expect(page.editor.baseline()?.version).toBe('reviewed-v2');
+  });
+  it('confirms before loading server and preserves local work when discard is cancelled', async () => {
+    const fixture = await existingEditor(),
+      page = fixture.componentInstance;
+    page.form.controls.title.setValue('Keep local');
+    page.form.markAsDirty();
+    api.update.mockRejectedValueOnce(conflictError());
+    api.get.mockResolvedValue({ ...saved, title: 'Server', version: 'server-v2' });
+    await page.save();
+    const confirm = vi
+      .spyOn(MatDialog.prototype, 'open')
+      .mockReturnValue({ afterClosed: () => of(false), close: vi.fn() } as never);
+    await page.editor.loadServer();
+    expect(page.form.controls.title.value).toBe('Keep local');
+    expect(page.editor.conflict()).toBe(true);
+    confirm.mockReturnValue({ afterClosed: () => of(true), close: vi.fn() } as never);
+    await page.editor.loadServer();
+    confirm.mockRestore();
+    expect(page.form.controls.title.value).toBe('Server');
+    expect(page.form.pristine).toBe(true);
+    expect(page.editor.baseline()?.version).toBe('server-v2');
+    expect(api.update).toHaveBeenCalledTimes(1);
+  });
+  it('treats a failed current-revision fetch as unresolved and allows a fetch retry only', async () => {
+    const fixture = await existingEditor(),
+      page = fixture.componentInstance;
+    page.form.controls.title.setValue('Local');
+    page.form.markAsDirty();
+    api.update.mockRejectedValueOnce(conflictError());
+    api.get.mockRejectedValueOnce(new Error('Offline'));
+    await page.save();
+    expect(page.editor.conflict()).toBe(true);
+    expect(page.editor.latest()).toBeNull();
+    expect(page.form.controls.title.value).toBe('Local');
+    expect(page.canSave()).toBe(false);
+    api.get.mockResolvedValue({ ...saved, version: 'server-v2' });
+    await page.editor.refreshConflict();
+    expect(page.editor.latest()?.version).toBe('server-v2');
+    expect(page.editor.baseline()?.version).toBe('recipe-v1');
+    expect(api.update).toHaveBeenCalledTimes(1);
+  });
+  it('preserves copyable local contents when a conflict refresh discovers deletion or revoked access', async () => {
+    const fixture = await existingEditor(),
+      page = fixture.componentInstance;
+    page.form.controls.title.setValue('Copy this');
+    page.form.markAsDirty();
+    api.update.mockRejectedValueOnce(conflictError());
+    api.get.mockRejectedValueOnce(new HttpErrorResponse({ status: 404 }));
+    await page.save();
+    expect(page.editor.permissionLost()).toBe(true);
+    expect(page.editor.copyableDraft()).toContain('Copy this');
+    expect(page.canSave()).toBe(false);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('textarea[readonly]').value).toContain('Copy this');
+  });
+  it('passes the committed text version to photo writes and retries just the pending photo', async () => {
+    const fixture = await existingEditor(),
+      page = fixture.componentInstance;
+    page.form.controls.title.setValue('Saved text');
+    page.form.markAsDirty();
+    const blob = new Blob(['picture']);
+    Object.assign(page.photos, { pendingPhoto: blob });
+    api.update.mockResolvedValue({ ...saved, title: 'Saved text', version: 'text-v2' });
+    api.upload.mockRejectedValueOnce(new Error('Network interruption'));
+    await page.save();
+    expect(api.upload).toHaveBeenLastCalledWith('cookbook-1', saved.id, blob, 'text-v2');
+    expect(page.editor.partialSaved()).toBe(true);
+    expect(page.photos.hasUnsavedChanges()).toBe(true);
+    await page.save();
+    expect(api.update).toHaveBeenCalledTimes(1);
+    expect(api.upload).toHaveBeenCalledTimes(2);
+    expect(page.editor.baseline()?.version).toBe('photo-v2');
+  });
+  it('keeps partial success visible and pending picture intact on a photo precondition failure', async () => {
+    const fixture = await existingEditor(),
+      page = fixture.componentInstance;
+    Object.assign(page.photos, { pendingPhoto: new Blob(['pending']) });
+    api.update.mockResolvedValue({ ...saved, version: 'text-v2' });
+    api.upload.mockRejectedValueOnce(conflictError(412));
+    api.get.mockResolvedValue({ ...saved, title: 'Concurrent server text', version: 'server-v3' });
+    await page.save();
+    expect(page.error()).toContain('Recipe fields were saved');
+    expect(page.editor.partialSaved()).toBe(true);
+    expect(page.photos.hasUnsavedChanges()).toBe(true);
+    expect(page.editor.conflict()).toBe(true);
+    expect(page.editor.baseline()?.version).toBe('text-v2');
+    expect(TestBed.inject(Router).navigate).not.toHaveBeenCalled();
+  });
+  it('ignores a conflict read completing after a session change', async () => {
+    const fixture = await existingEditor(),
+      page = fixture.componentInstance;
+    let finish!: (value: Recipe) => void;
+    api.update.mockRejectedValueOnce(conflictError());
+    api.get.mockReturnValueOnce(new Promise<Recipe>((resolve) => (finish = resolve)));
+    const saving = page.save();
+    await Promise.resolve();
+    await Promise.resolve();
+    TestBed.inject(SessionState).clear('login');
+    finish({ ...saved, version: 'private-other-session' });
+    await saving;
+    expect(page.editor.latest()).toBeNull();
+    expect(page.editor.baseline()).toBeNull();
+    expect(page.form.controls.title.value).toBe('');
+  });
+  it('reports already saved fields when photo saving loses access', async () => {
+    const fixture = await existingEditor(),
+      page = fixture.componentInstance;
+    Object.assign(page.photos, { pendingPhoto: new Blob(['pending']) });
+    api.update.mockResolvedValue({ ...saved, version: 'text-v2' });
+    api.upload.mockRejectedValueOnce(new HttpErrorResponse({ status: 403 }));
+    await page.save();
+    expect(page.error()).toContain('Recipe fields were saved');
+    expect(page.error()).toContain('picture change remains pending');
+    expect(page.photos.hasUnsavedChanges()).toBe(true);
+    expect(page.canSave()).toBe(false);
+    expect(page.editor.baseline()?.version).toBe('text-v2');
+  });
+  it('keeps partial success visible and releases busy state after session expiry during photo saving', async () => {
+    const fixture = await existingEditor(),
+      page = fixture.componentInstance;
+    Object.assign(page.photos, { pendingPhoto: new Blob(['pending']) });
+    api.update.mockResolvedValue({ ...saved, version: 'text-v2' });
+    let fail!: (error: unknown) => void;
+    api.upload.mockReturnValueOnce(new Promise((_, reject) => (fail = reject)));
+    const saving = page.save();
+    await Promise.resolve();
+    await Promise.resolve();
+    const session = TestBed.inject(SessionState);
+    session.user.set({
+      id: 'u',
+      username: 'owner',
+      displayName: 'Owner',
+      isAdministrator: false,
+      email: null,
+      avatarUrl: null,
+    });
+    session.clear('expired');
+    fail(new HttpErrorResponse({ status: 401 }));
+    await saving;
+    expect(page.error()).toContain('Recipe fields were saved');
+    expect(page.photos.hasUnsavedChanges()).toBe(true);
+    expect(page.busy()).toBe(false);
+    expect(page.canSave()).toBe(false);
+    expect(page.editor.baseline()).toBeNull();
   });
 });

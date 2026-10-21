@@ -24,6 +24,7 @@ export interface InvitationValidity {
   expiresAtUtc: string | null;
 }
 export interface CookbookResponse {
+  version: string;
   description: string | null;
   imageUrl: string | null;
   recipeCount: number;
@@ -42,6 +43,7 @@ export interface MemberResponse {
 }
 
 export interface CookbookInvitationResponse {
+  cookbookVersion: string;
   id: string;
   cookbookId: string;
   cookbookName: string;
@@ -53,4 +55,12 @@ export interface CookbookInvitationResponse {
 export interface CookbookMemberInput {
   username: string;
   role: string;
+}
+
+export interface CookbookMembersResponse {
+  cookbook: CookbookResponse;
+  members: MemberResponse[];
+}
+export interface VersionResponse {
+  version: string;
 }

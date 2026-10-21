@@ -22,16 +22,15 @@ describe('NgModule application routes', () => {
         {
           provide: CookbookService,
           useValue: {
-            select: vi
-              .fn()
-              .mockResolvedValue({
-                id: 'cookbook-1',
-                name: 'Test',
-                role: 'Owner',
-                description: null,
-                imageUrl: null,
-                recipeCount: 0,
-              }),
+            select: vi.fn().mockResolvedValue({
+              id: 'cookbook-1',
+              name: 'Test',
+              role: 'Owner',
+              description: null,
+              imageUrl: null,
+              version: 'displayed-v1',
+              recipeCount: 0,
+            }),
             invitations: async () => [],
             list: () => of([{ id: 'cookbook-1', name: 'Test', role: 'Owner' }]),
           },
@@ -67,6 +66,7 @@ describe('NgModule application routes', () => {
     TestBed.inject(CookbookContext).current.set({
       description: null,
       imageUrl: null,
+      version: 'displayed-v1',
       recipeCount: 0,
       id: 'cookbook-1',
       name: 'Test',

@@ -1,5 +1,5 @@
 import { IngredientEditorComponent } from '../../components/ingredient-editor/ingredient-editor.component';
-import { Component, HostListener, ViewChild, inject } from '@angular/core';
+import { Component, HostListener, ViewChild, ElementRef, inject } from '@angular/core';
 import { IngredientForm } from '../../models/recipe-form.model';
 import { ImportedIngredient } from '../../../../core/models/recipe-import.model';
 import { RecipeEditorCoordinator } from './recipe-editor-coordinator';
@@ -14,6 +14,7 @@ import { RecipeEditorPhoto } from './recipe-editor-photo';
   providers: [RecipeEditorCoordinator, RecipeEditorForm, RecipeEditorPhoto],
 })
 export class RecipeEditorComponent {
+  private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
   readonly editor = inject(RecipeEditorCoordinator);
   readonly cookbookId = this.editor.cookbookId;
   readonly recipeRoot = this.editor.recipeRoot;
@@ -43,6 +44,19 @@ export class RecipeEditorComponent {
   @ViewChild(IngredientEditorComponent) ingredientsEditor?: IngredientEditorComponent;
   async openImport() {
     if (await this.editor.openImport()) this.ingredientsEditor?.clearQuickEntry();
+  }
+  async review() {
+    if (await this.editor.review()) this.ingredientsEditor?.clearQuickEntry();
+    if (!this.editor.conflict()) this.focusTitle();
+  }
+  async loadServer() {
+    if (await this.editor.loadServer()) this.ingredientsEditor?.clearQuickEntry();
+    if (!this.editor.conflict()) this.focusTitle();
+  }
+  private focusTitle() {
+    this.element.nativeElement
+      .querySelector<HTMLInputElement>('input[formcontrolname="title"]')
+      ?.focus();
   }
   load() {
     return this.editor.load();

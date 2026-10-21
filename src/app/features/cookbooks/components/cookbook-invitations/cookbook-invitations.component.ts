@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CookbookService } from '../../../../core/services/cookbook.service';
 import { SessionState } from '../../../../core/services/session-state';
 import { CookbookInvitationResponse } from '../../../../core/models/account.model';
+import { isConcurrencyConflict } from '../../../../core/utils/concurrency';
 import { errorMessage } from '../../../../core/utils/api-error';
 @Component({
   selector: 'app-cookbook-invitations',
@@ -42,14 +43,18 @@ export class CookbookInvitationsComponent {
     this.busy.set(invitation.id);
     this.error.set('');
     try {
-      await this.books.respond(invitation.id, accept);
+      await this.books.respond(invitation.id, accept, invitation.cookbookVersion);
       if (epoch !== this.session.epoch() || this.destroy.destroyed) return;
       this.invitations.update((items) => items.filter((x) => x.id !== invitation.id));
       this.changed.emit();
       await this.load();
     } catch (e) {
       if (epoch === this.session.epoch() && !this.destroy.destroyed) {
-        this.error.set(errorMessage(e));
+        this.error.set(
+          isConcurrencyConflict(e)
+            ? 'This cookbook changed. Review the refreshed invitations and choose again.'
+            : errorMessage(e),
+        );
         await this.load();
       }
     } finally {

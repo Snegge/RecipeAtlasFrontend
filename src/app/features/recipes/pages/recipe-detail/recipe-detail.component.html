@@ -2,6 +2,9 @@
   <a mat-button [routerLink]="recipeRoot" class="back-link"
     ><mat-icon svgIcon="back" /> All recipes</a
   >
+  @if (notice()) {
+    <p class="error-box" role="alert">{{ notice() }}</p>
+  }
   @if (loading()) {
     <div class="loading-state"><mat-spinner diameter="36" aria-label="Loading recipe" /></div>
   } @else if (error()) {
@@ -38,7 +41,7 @@
             </a>
           }
         </div>
-        @if (cookbooks.canWrite()) {
+        @if (cookbooks.canWrite() && !mutationUnavailable()) {
           <div class="recipe-actions">
             <a
               mat-stroked-button

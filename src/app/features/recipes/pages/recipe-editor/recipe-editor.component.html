@@ -68,6 +68,59 @@
       </aside>
     }
 
+    @if (editor.conflict()) {
+      <aside class="conflict-notice" role="alert" aria-labelledby="conflict-heading">
+        <h2 id="conflict-heading">This recipe changed</h2>
+        <p>
+          {{
+            editor.partialSaved()
+              ? 'Recipe fields were saved. The picture change remains pending.'
+              : 'Your local fields and pending picture have been kept.'
+          }}
+        </p>
+        @if (editor.latest()) {
+          <button
+            mat-flat-button
+            type="button"
+            (click)="review()"
+            [disabled]="navigationBlocked() || editor.permissionLost()"
+          >
+            Review changes
+          </button>
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="loadServer()"
+            [disabled]="navigationBlocked() || editor.permissionLost()"
+          >
+            Load server version…
+          </button>
+        } @else {
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="editor.refreshConflict()"
+            [disabled]="navigationBlocked() || editor.permissionLost()"
+          >
+            {{ editor.refreshing() ? 'Loading current revision…' : 'Load current revision' }}
+          </button>
+        }
+      </aside>
+    }
+    @if (editor.permissionLost()) {
+      <section class="conflict-notice" role="alert">
+        <h2>Original recipe unavailable</h2>
+        <p>Your local work is still here. Copy it before leaving; saving is disabled.</p>
+        <label for="local-recipe-copy">Local recipe fields</label>
+        <textarea
+          id="local-recipe-copy"
+          readonly
+          rows="8"
+          [value]="editor.copyableDraft()"
+        ></textarea>
+      </section>
+    }
+
     <form [formGroup]="form" (ngSubmit)="save()" class="recipe-form" [attr.aria-busy]="busy()">
       <section class="form-section">
         <h2>The basics</h2>

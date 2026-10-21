@@ -222,3 +222,15 @@
     gap: 4px;
   }
 }
+
+.conflict-notice {
+  padding: 1rem;
+  margin-block: 1rem;
+  border: 2px solid #7b5536;
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+}
+.conflict-notice button {
+  margin: 0.25rem;
+  min-height: 44px;
+}

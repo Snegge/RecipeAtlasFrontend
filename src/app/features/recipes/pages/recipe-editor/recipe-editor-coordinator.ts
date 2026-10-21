@@ -6,7 +6,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { CookbookContext } from '../../../../core/services/cookbook-context';
 import { SessionState } from '../../../../core/services/session-state';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Injectable, inject, signal, DestroyRef } from '@angular/core';
+import { Injectable, inject, signal, DestroyRef, Type } from '@angular/core';
 import { RecipeApiService } from '../../../../core/services/recipe-api.service';
 import {
   ImportedIngredient,
@@ -16,6 +16,13 @@ import { errorMessage } from '../../../../core/utils/api-error';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { RecipeDraftService } from '../../../../core/services/recipe-draft.service';
+import { Recipe } from '../../../../core/models/recipe.model';
+import { isConcurrencyConflict } from '../../../../core/utils/concurrency';
+import {
+  ConflictReviewComponent,
+  ConflictSource,
+} from '../../../../shared/components/conflict-review/conflict-review.component';
+import { recipeConflictFields, mergeRecipeChoices } from './recipe-conflict-review';
 import { RecipeEditorForm } from './recipe-editor-form';
 import { RecipeEditorPhoto } from './recipe-editor-photo';
 
@@ -43,11 +50,40 @@ export class RecipeEditorCoordinator {
   readonly loadError = signal('');
   readonly error = signal('');
   readonly busy = signal(false);
+  // Baseline belongs to the displayed form. A fetched conflict revision stays separate until review.
+  readonly baseline = signal<Recipe | null>(null);
+  readonly latest = signal<Recipe | null>(null);
+  readonly conflict = signal(false);
+  readonly refreshing = signal(false);
+  readonly partialSaved = signal(false);
+  private readGeneration = 0;
+  private current(epoch: number): boolean {
+    return !this.destroyRef.destroyed && epoch === this.session.epoch();
+  }
+  copyableDraft(): string {
+    return JSON.stringify(this.forms.snapshot(), null, 2);
+  }
+
   constructor() {
     this.session.changes.pipe(takeUntilDestroyed()).subscribe((reason) => {
+      const partiallySaved = this.partialSaved();
+      ++this.readGeneration;
+      this.loading.set(false);
+      this.busy.set(false);
+      this.refreshing.set(false);
+      this.importing.set(false);
+      this.forms.form.enable();
+      this.baseline.set(null);
+      this.latest.set(null);
+      this.conflict.set(false);
+      this.partialSaved.set(false);
       if (reason === 'expired') {
+        this.permissionLost.set(true);
         this.photos.preparingPhoto.set(false);
-        this.error.set('Your session ended. Your unsaved edits are still here.');
+        this.error.set(
+          (partiallySaved ? 'Recipe fields were saved. The picture change remains pending. ' : '') +
+            'Your session ended. Your unsaved edits are still here.',
+        );
         return;
       }
       this.forms.clear();
@@ -76,8 +112,9 @@ export class RecipeEditorCoordinator {
       this.forms.units.set(units);
 
       if (recipe) {
+        this.baseline.set(recipe);
         this.forms.applyRecipe(recipe);
-        this.photos.load(recipe.imageUrl);
+        this.photos.load(recipe.imageUrl, recipe.version);
       }
 
       this.forms.form.markAsPristine();
@@ -112,11 +149,11 @@ export class RecipeEditorCoordinator {
         await this.photos.importPhoto(photoUrl);
       }
     } catch (error) {
-      if (!this.destroyRef.destroyed) {
+      if (this.current(epoch)) {
         this.loadError.set(errorMessage(error));
       }
     } finally {
-      if (!this.destroyRef.destroyed) {
+      if (this.current(epoch)) {
         this.loading.set(false);
       }
     }
@@ -191,11 +228,14 @@ export class RecipeEditorCoordinator {
   }
   hasUnsavedChanges(): boolean {
     return (
-      this.permissionLost() || this.forms.hasUnsavedChanges() || this.photos.hasUnsavedChanges()
+      this.conflict() ||
+      this.permissionLost() ||
+      this.forms.hasUnsavedChanges() ||
+      this.photos.hasUnsavedChanges()
     );
   }
   navigationBlocked(): boolean {
-    return this.busy() || this.photos.preparingPhoto() || this.importing();
+    return this.busy() || this.refreshing() || this.photos.preparingPhoto() || this.importing();
   }
   saveBlockReason(): string {
     return this.forms.saveBlockReason();
@@ -204,6 +244,7 @@ export class RecipeEditorCoordinator {
     return (
       this.cookbooks.canWrite() &&
       !this.permissionLost() &&
+      !this.conflict() &&
       !this.loading() &&
       !this.loadError() &&
       !this.navigationBlocked() &&
@@ -217,7 +258,8 @@ export class RecipeEditorCoordinator {
       this.loadError() ||
       this.navigationBlocked() ||
       !this.cookbooks.canWrite() ||
-      this.permissionLost()
+      this.permissionLost() ||
+      this.conflict()
     )
       return;
 
@@ -243,35 +285,55 @@ export class RecipeEditorCoordinator {
     this.busy.set(true);
     this.forms.form.disable();
 
-    let textSaved = false;
+    let textSaved = this.partialSaved();
 
     try {
       const id = this.savedId();
 
-      const saved = id
-        ? await this.api.update(this.cookbookId, id, input)
-        : await this.api.create(this.cookbookId, input);
-
-      if (this.destroyRef.destroyed || epoch !== this.session.epoch()) return;
-      this.savedId.set(saved.id);
-      textSaved = true;
-      this.forms.importDraftPending = false;
-      this.forms.form.markAsPristine();
-
-      await this.photos.persist(this.cookbookId, saved.id);
-      if (this.destroyRef.destroyed || epoch !== this.session.epoch()) return;
+      // A retry after photo failure does not repeat text that already committed.
+      let saved = this.baseline();
+      if (!id || !saved || !this.partialSaved() || this.forms.form.dirty) {
+        saved = id
+          ? await this.api.update(this.cookbookId, id, input, saved!.version)
+          : await this.api.create(this.cookbookId, input);
+        if (!this.current(epoch)) return;
+        this.baseline.set(saved);
+        this.savedId.set(saved.id);
+        textSaved = true;
+        this.forms.importDraftPending = false;
+        this.forms.form.markAsPristine();
+      }
+      if (!saved) return;
+      this.partialSaved.set(this.photos.hasUnsavedChanges());
+      const image = await this.photos.persist(this.cookbookId, saved.id, saved.version);
+      if (!this.current(epoch)) return;
+      if (image) this.baseline.set({ ...saved, ...image });
       this.photos.committed();
+      this.partialSaved.set(false);
       this.busy.set(false);
 
       this.snack.open('Recipe saved', 'Close', { duration: 3000 });
 
       await this.router.navigate([...this.recipeRoot, saved.id]);
     } catch (error) {
-      if (epoch !== this.session.epoch()) return;
+      if (!this.current(epoch)) return;
+      if (isConcurrencyConflict(error)) {
+        this.conflict.set(true);
+        this.error.set(
+          textSaved && this.partialSaved()
+            ? 'Recipe fields were saved. The picture is still pending because another change was made. Review the current revision.'
+            : 'Another person changed this recipe. Your edits are still here. Review the current revision before saving.',
+        );
+        await this.refreshConflict();
+        return;
+      }
       if (error instanceof HttpErrorResponse && [403, 404].includes(error.status)) {
         this.permissionLost.set(true);
         this.error.set(
-          'Your cookbook access changed. Your unsaved edits are still here; copy them before leaving.',
+          (textSaved && this.partialSaved()
+            ? 'Recipe fields were saved. The picture change remains pending. '
+            : '') +
+            'Your cookbook access changed. Your unsaved edits are still here; copy them before leaving.',
         );
         return;
       }
@@ -283,8 +345,9 @@ export class RecipeEditorCoordinator {
           : errorMessage(error),
       );
     } finally {
-      if (!this.destroyRef.destroyed) {
+      if (this.current(epoch)) {
         this.busy.set(false);
+        const dirty = this.forms.form.dirty;
         this.forms.form.enable();
 
         this.forms.ingredients.controls.forEach((_row, index) => {
@@ -292,5 +355,97 @@ export class RecipeEditorCoordinator {
         });
       }
     }
+  }
+  async refreshConflict(): Promise<void> {
+    const id = this.savedId();
+    if (!id || !this.conflict() || this.refreshing() || this.permissionLost()) return;
+    const epoch = this.session.epoch(),
+      generation = ++this.readGeneration;
+    this.refreshing.set(true);
+    this.latest.set(null);
+    try {
+      const recipe = await this.api.get(this.cookbookId, id);
+      if (this.current(epoch) && generation === this.readGeneration) this.latest.set(recipe);
+    } catch (error) {
+      if (!this.current(epoch) || generation !== this.readGeneration) return;
+      if (error instanceof HttpErrorResponse && [401, 403, 404].includes(error.status)) {
+        this.permissionLost.set(true);
+        this.error.set(
+          'The original recipe is unavailable or your access changed. Copy your local work before leaving.',
+        );
+      } else
+        this.error.set(
+          'Could not load the current recipe. Your edits are safe here. Try loading the current revision again.',
+        );
+    } finally {
+      if (this.current(epoch) && generation === this.readGeneration) this.refreshing.set(false);
+    }
+  }
+  private async decision<T>(component: Type<unknown>, data: unknown): Promise<T | undefined> {
+    const ref = this.dialog.open(component, {
+      data,
+      width: 'calc(100% - 24px)',
+      maxWidth: '900px',
+      maxHeight: '95dvh',
+      autoFocus: 'dialog',
+      restoreFocus: true,
+    });
+    const close = this.session.changes.subscribe(() => ref.close());
+    const stop = this.destroyRef.onDestroy(() => ref.close());
+    try {
+      return await firstValueFrom(ref.afterClosed());
+    } finally {
+      close.unsubscribe();
+      stop();
+    }
+  }
+  async loadServer(): Promise<boolean> {
+    const server = this.latest(),
+      epoch = this.session.epoch();
+    if (!server || this.navigationBlocked() || this.permissionLost()) return false;
+    const accepted = await this.decision<boolean>(ConfirmDialogComponent, {
+      title: 'Discard local changes?',
+      message: 'Load the current recipe and discard your local fields and pending picture?',
+      action: 'Load server version',
+    });
+    if (!accepted || !this.current(epoch) || this.latest() !== server) return false;
+    this.forms.applyRecipe(server);
+    this.photos.clear();
+    this.photos.load(server.imageUrl, server.version);
+    this.acceptBaseline(server);
+    this.forms.form.markAsPristine();
+    return true;
+  }
+  async review(): Promise<boolean> {
+    const server = this.latest(),
+      epoch = this.session.epoch();
+    if (!server || this.navigationBlocked() || this.permissionLost()) return false;
+    const local = this.forms.snapshot();
+    const choices = await this.decision<Record<string, ConflictSource>>(ConflictReviewComponent, {
+      title: 'Review recipe changes',
+      explanation:
+        'Choose local or server values. Ingredients and steps are selected as whole ordered sections. Applying creates an unsaved draft; it does not save.',
+      fields: recipeConflictFields(local, server, this.photos),
+    });
+    if (!choices || !this.current(epoch) || this.latest() !== server) return false;
+    this.forms.applyRecipe(
+      mergeRecipeChoices(local, server, choices),
+      choices['ingredients'] === 'local',
+    );
+    if (choices['photo'] === 'server') {
+      this.photos.clear();
+      this.photos.load(server.imageUrl, server.version);
+    } else this.photos.rebase(server.imageUrl, server.version);
+    this.acceptBaseline(server);
+    this.forms.ingredients.controls.forEach((_, index) => this.forms.setUnit(index, false));
+    this.forms.form.markAsDirty();
+    return choices['ingredients'] === 'server';
+  }
+  private acceptBaseline(server: Recipe): void {
+    this.baseline.set(server);
+    this.latest.set(null);
+    this.conflict.set(false);
+    this.partialSaved.set(false);
+    this.error.set('');
   }
 }

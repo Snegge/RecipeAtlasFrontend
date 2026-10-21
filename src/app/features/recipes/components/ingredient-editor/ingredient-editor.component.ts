@@ -1,4 +1,12 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  Output,
+  ViewChild,
+} from '@angular/core';
 
 import { Unit } from '../../../../core/models/recipe.model';
 import { IngredientForm, IngredientForms } from '../../models/recipe-form.model';
@@ -7,6 +15,8 @@ import { ImportedIngredient } from '../../../../core/models/recipe-import.model'
 
 @Component({
   selector: 'app-ingredient-editor',
+  // FormArray and review-map contents change in place without replacing their inputs.
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
   templateUrl: './ingredient-editor.component.html',
   styleUrl: './ingredient-editor.component.scss',

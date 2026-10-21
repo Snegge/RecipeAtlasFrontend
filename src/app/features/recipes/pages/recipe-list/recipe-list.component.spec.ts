@@ -27,6 +27,7 @@ describe('Recipe list loading', () => {
     TestBed.inject(CookbookContext).current.set({
       description: null,
       imageUrl: null,
+      version: 'displayed-v1',
       recipeCount: 0,
       id: 'cookbook-1',
       name: 'Test',
@@ -85,6 +86,7 @@ describe('Recipe list loading', () => {
     TestBed.inject(CookbookContext).current.set({
       description: null,
       imageUrl: null,
+      version: 'displayed-v1',
       recipeCount: 0,
       id: 'cookbook-1',
       name: 'Test',
@@ -117,6 +119,7 @@ describe('Recipe list loading', () => {
     TestBed.inject(CookbookContext).current.set({
       description: null,
       imageUrl: null,
+      version: 'displayed-v1',
       recipeCount: 0,
       id: 'read-only',
       name: 'Shared',

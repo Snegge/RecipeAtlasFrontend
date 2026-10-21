@@ -14,8 +14,16 @@ export class PictureSelection {
   readonly error = signal('');
   readonly changed = signal(false);
   blob: Blob | null = null;
+  private preserveExpiredDraft = false;
+  keepDraftAfterExpiry() {
+    this.preserveExpiredDraft = true;
+  }
   constructor() {
-    this.session.changes.pipe(takeUntilDestroyed()).subscribe(() => this.clear());
+    this.session.changes.pipe(takeUntilDestroyed()).subscribe((reason) => {
+      // Recipe/cookbook work may remain in the current expired editor; explicit account switches clear it.
+      if (reason === 'expired' && this.preserveExpiredDraft) this.preparing.set(false);
+      else this.clear();
+    });
     this.destroy.onDestroy(() => this.clear());
   }
   load(url: string | null) {
