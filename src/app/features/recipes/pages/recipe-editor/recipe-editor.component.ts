@@ -46,11 +46,11 @@ export class RecipeEditorComponent {
     if (await this.editor.openImport()) this.ingredientsEditor?.clearQuickEntry();
   }
   async review() {
-    await this.editor.review();
+    if (await this.editor.review()) this.ingredientsEditor?.clearQuickEntry();
     if (!this.editor.conflict()) this.focusTitle();
   }
   async loadServer() {
-    await this.editor.loadServer();
+    if (await this.editor.loadServer()) this.ingredientsEditor?.clearQuickEntry();
     if (!this.editor.conflict()) this.focusTitle();
   }
   private focusTitle() {

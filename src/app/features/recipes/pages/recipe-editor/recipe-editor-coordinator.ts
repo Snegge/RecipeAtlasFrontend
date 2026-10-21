@@ -68,6 +68,7 @@ export class RecipeEditorCoordinator {
     this.session.changes.pipe(takeUntilDestroyed()).subscribe((reason) => {
       const partiallySaved = this.partialSaved();
       ++this.readGeneration;
+      this.loading.set(false);
       this.busy.set(false);
       this.refreshing.set(false);
       this.importing.set(false);
@@ -398,26 +399,27 @@ export class RecipeEditorCoordinator {
       stop();
     }
   }
-  async loadServer(): Promise<void> {
+  async loadServer(): Promise<boolean> {
     const server = this.latest(),
       epoch = this.session.epoch();
-    if (!server || this.navigationBlocked() || this.permissionLost()) return;
+    if (!server || this.navigationBlocked() || this.permissionLost()) return false;
     const accepted = await this.decision<boolean>(ConfirmDialogComponent, {
       title: 'Discard local changes?',
       message: 'Load the current recipe and discard your local fields and pending picture?',
       action: 'Load server version',
     });
-    if (!accepted || !this.current(epoch) || this.latest() !== server) return;
+    if (!accepted || !this.current(epoch) || this.latest() !== server) return false;
     this.forms.applyRecipe(server);
     this.photos.clear();
     this.photos.load(server.imageUrl, server.version);
     this.acceptBaseline(server);
     this.forms.form.markAsPristine();
+    return true;
   }
-  async review(): Promise<void> {
+  async review(): Promise<boolean> {
     const server = this.latest(),
       epoch = this.session.epoch();
-    if (!server || this.navigationBlocked() || this.permissionLost()) return;
+    if (!server || this.navigationBlocked() || this.permissionLost()) return false;
     const local = this.forms.snapshot();
     const choices = await this.decision<Record<string, ConflictSource>>(ConflictReviewComponent, {
       title: 'Review recipe changes',
@@ -425,8 +427,11 @@ export class RecipeEditorCoordinator {
         'Choose local or server values. Ingredients and steps are selected as whole ordered sections. Applying creates an unsaved draft; it does not save.',
       fields: recipeConflictFields(local, server, this.photos),
     });
-    if (!choices || !this.current(epoch) || this.latest() !== server) return;
-    this.forms.applyRecipe(mergeRecipeChoices(local, server, choices));
+    if (!choices || !this.current(epoch) || this.latest() !== server) return false;
+    this.forms.applyRecipe(
+      mergeRecipeChoices(local, server, choices),
+      choices['ingredients'] === 'local',
+    );
     if (choices['photo'] === 'server') {
       this.photos.clear();
       this.photos.load(server.imageUrl, server.version);
@@ -434,6 +439,7 @@ export class RecipeEditorCoordinator {
     this.acceptBaseline(server);
     this.forms.ingredients.controls.forEach((_, index) => this.forms.setUnit(index, false));
     this.forms.form.markAsDirty();
+    return choices['ingredients'] === 'server';
   }
   private acceptBaseline(server: Recipe): void {
     this.baseline.set(server);

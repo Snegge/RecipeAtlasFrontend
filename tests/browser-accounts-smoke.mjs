@@ -39,6 +39,10 @@ async function start(command, args, options = {}) {
     ...options,
   });
   children.push(child);
+  await new Promise((resolve, reject) => {
+    child.once('error', reject);
+    child.once('spawn', resolve);
+  });
   return child;
 }
 async function waitFor(url, child) {
@@ -108,7 +112,8 @@ try {
   await waitFor(apiUrl + '/health', api);
   const proxy = join(directory, 'proxy.json');
   await writeFile(proxy, JSON.stringify({ '/api/**': { target: apiUrl, secure: false } }));
-  const angular = await start(join(frontend, 'node_modules/.bin/ng'), [
+  const angular = await start(process.execPath, [
+    join(frontend, 'node_modules/@angular/cli/bin/ng.js'),
     'serve',
     '--host',
     '127.0.0.1',
@@ -729,7 +734,7 @@ try {
 } finally {
   for (const socket of sockets) socket.close();
   for (const child of children.reverse()) {
-    if (child.exitCode === null && child.signalCode === null) {
+    if (child.pid && child.exitCode === null && child.signalCode === null) {
       child.kill('SIGTERM');
       await Promise.race([new Promise((resolve) => child.once('exit', resolve)), delay(5000)]);
       if (child.exitCode === null && child.signalCode === null) {

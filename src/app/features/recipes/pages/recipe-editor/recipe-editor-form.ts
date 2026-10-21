@@ -257,20 +257,22 @@ export class RecipeEditorForm {
       ingredients: raw.ingredients.map((row) => ({ ...row })),
     };
   }
-  applyRecipe(recipe: RecipeEditValues): void {
-    this.importedIngredients.clear();
-    this.importWarnings.set([]);
-    this.importedYield.set(null);
-    this.ingredientDraftPending = false;
-    this.importDraftPending = false;
+  applyRecipe(recipe: RecipeEditValues, keepLocalIngredients = false): void {
     this.form.patchValue({
       title: recipe.title,
       description: recipe.description ?? '',
       sourceUrl: recipe.sourceUrl ?? '',
       servings: recipe.servings,
     });
-    this.ingredients.clear();
-    recipe.ingredients.forEach((item) => this.ingredients.push(this.makeIngredient(item)));
+    if (!keepLocalIngredients) {
+      this.importedIngredients.clear();
+      this.importWarnings.set([]);
+      this.importedYield.set(null);
+      this.ingredientDraftPending = false;
+      this.importDraftPending = false;
+      this.ingredients.clear();
+      recipe.ingredients.forEach((item) => this.ingredients.push(this.makeIngredient(item)));
+    }
     this.steps.clear();
     recipe.steps.forEach((step) => this.steps.push(this.makeStep(step)));
   }
