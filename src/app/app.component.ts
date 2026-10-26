@@ -44,6 +44,7 @@ export class AppComponent {
   );
   readonly links = computed(() => [
     { path: '/cookbooks', label: 'Cookbooks', icon: 'book' },
+    { path: '/shopping-lists', label: 'Shopping lists', icon: 'check' },
     { path: '/account', label: 'Account', icon: 'person' },
     ...(this.auth.user()?.isAdministrator
       ? [{ path: '/admin', label: 'Accounts Manager', icon: 'people' }]
@@ -53,6 +54,8 @@ export class AppComponent {
   readonly title = computed(() => {
     const path = this.path();
     if (path === '/cookbooks') return 'Cookbooks';
+    if (path === '/shopping-lists') return 'Shopping lists';
+    if (path.startsWith('/shopping-lists/')) return 'Shopping list';
     if (path === '/cookbooks/new') return 'New cookbook';
     if (path.endsWith('/settings') && path.startsWith('/cookbooks/')) return 'Cookbook settings';
     if (path.endsWith('/recipes/new')) return 'New recipe';
@@ -73,7 +76,8 @@ export class AppComponent {
   });
   readonly backTarget = computed(() => {
     const path = this.path();
-    if (path === '/cookbooks') return null;
+    if (path === '/cookbooks' || path === '/shopping-lists') return null;
+    if (path.startsWith('/shopping-lists/')) return '/shopping-lists';
     if (path.endsWith('/edit')) return path.slice(0, -5);
     if (/\/recipes\/[^/]+$/.test(path)) return path.substring(0, path.lastIndexOf('/'));
     if (/^\/cookbooks\/[^/]+\/settings$/.test(path)) return path.replace(/\/settings$/, '/recipes');

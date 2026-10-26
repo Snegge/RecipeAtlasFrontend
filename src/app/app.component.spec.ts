@@ -13,12 +13,55 @@ import { AppModule } from './app.module';
 import { AppComponent } from './app.component';
 import { AuthService } from './core/services/auth.service';
 import { RecipeApiService } from './core/services/recipe-api.service';
+import { ShoppingService } from './core/services/shopping.service';
+import { ShoppingSettingsComponent } from './features/shopping/pages/shopping-settings/shopping-settings.component';
+
+vi.mock('@microsoft/signalr', () => ({
+  HttpTransportType: { LongPolling: 4 },
+  LogLevel: { None: 6 },
+  HubConnectionState: { Connected: 'Connected', Disconnected: 'Disconnected' },
+  HubConnectionBuilder: class {
+    withUrl() {
+      return this;
+    }
+    withAutomaticReconnect() {
+      return this;
+    }
+    configureLogging() {
+      return this;
+    }
+    build() {
+      return {
+        state: 'Connected',
+        on: () => {},
+        onreconnected: () => {},
+        start: async () => {},
+        stop: async () => {},
+        invoke: async () => {},
+      };
+    }
+  },
+}));
 
 describe('NgModule application routes', () => {
   it('renders the lazy recipe list, editor, and login features in the application shell', async () => {
     await TestBed.configureTestingModule({
       imports: [AppModule],
       providers: [
+        {
+          provide: ShoppingService,
+          useValue: {
+            get: async () => ({
+              id: 'shopping-1',
+              name: 'Weekly shop',
+              role: 'Owner',
+              version: 'v1',
+              items: [],
+              members: [],
+              invitations: [],
+            }),
+          },
+        },
         {
           provide: CookbookService,
           useValue: {
@@ -129,5 +172,25 @@ describe('NgModule application routes', () => {
     await router.navigateByUrl('/invite');
     await fixture.whenStable();
     expect(fixture.nativeElement.querySelector('h1').textContent).toBe('Join Recipoke');
+    await router.navigateByUrl('/shopping-lists/shopping-1');
+    await fixture.whenStable();
+    const tabs = fixture.nativeElement.querySelectorAll('[role=tab]') as NodeListOf<HTMLElement>;
+    expect(tabs[0].getAttribute('aria-selected')).toBe('true');
+    tabs[1].click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(router.url).toBe('/shopping-lists/shopping-1');
+    expect(fixture.componentInstance.title()).toBe('Shopping list');
+    expect(fixture.componentInstance.backTarget()).toBe('/shopping-lists');
+    expect(document.title).toBe('Shopping list \u00b7 Recipoke');
+    const settings = fixture.debugElement.query(By.directive(ShoppingSettingsComponent))
+      .componentInstance as ShoppingSettingsComponent;
+    settings.name.setValue('Unsaved list name');
+    settings.name.markAsDirty();
+    expect(await router.navigateByUrl('/invite')).toBe(false);
+    settings.name.markAsPristine();
+    expect(await router.navigateByUrl('/invite')).toBe(true);
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('app-shopping-detail')).toBeNull();
   });
 });

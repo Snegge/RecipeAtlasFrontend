@@ -1,8 +1,8 @@
 # Recipoke Angular frontend
 
-Invitation-only accounts and shared cookbooks for the Recipoke API. Angular 22 with lazy NgModules, typed Reactive Forms, Signals and RxJS; no global state library or browser token storage.
+Invitation-only accounts, shared cookbooks and shared shopping lists for the Recipoke API. Angular 22 with lazy NgModules, typed Reactive Forms, Signals and RxJS; no global state library or browser token storage.
 
-Use **`feature/shared-editing` in both repositories**. The backend must be migrated; bootstrap is needed once for a new installation or the original single-owner upgrade, not for this concurrency update. Backend and frontend must be deployed together; reload old tabs. See the [concurrency runbook](https://github.com/Snegge/RecipeAtlas/blob/feature/shared-editing/docs/shared-editing.md). See the backend [upgrade/runbook](https://github.com/Snegge/RecipeAtlas/blob/feature/shared-editing/docs/accounts-and-cookbooks.md) and the German [frontend architecture guide](docs/architecture.md).
+Use **`feature/shared-shoppinglist` in both repositories**. The backend must be migrated; bootstrap is needed once for a new installation or the original single-owner upgrade, not for this concurrency update. Backend and frontend must be deployed together; reload old tabs. See the [concurrency runbook](https://github.com/Snegge/RecipeAtlas/blob/feature/shared-editing/docs/shared-editing.md). See the backend [upgrade/runbook](https://github.com/Snegge/RecipeAtlas/blob/feature/shared-editing/docs/accounts-and-cookbooks.md) and the German [frontend architecture guide](docs/architecture.md).
 
 ## Local development
 
@@ -37,6 +37,7 @@ Open `http://localhost:4200`; the development proxy forwards `/api` to port 5080
 - **Create cookbook** opens a dedicated page for name, description, cover and initial Viewer/Editor invitations. Owners edit details, accepted members and pending invitations on the settings page. Existing usernames are matched explicitly; ownership cannot be transferred.
 - Cookbook invitations appear on the recipient's overview, at most five at once. Accept grants the stated role; decline grants no access. The inbox disappears when empty and refills after a response. Duplicate pending invitations are rejected. Existing memberships remain accepted.
 - Owners can delete a cookbook and **all its recipes and images**, after an extra confirmation dialog. Nonowners can leave instead. Editors have recipe CRUD/import/photo actions; Viewers can read and scale quantities.
+- **Shopping lists** offers independent shared lists with preview cards, quick text entry, checkboxes, inline autosave and five-second Undo. Owners invite existing accounts, rename/delete lists, remove members and transfer ownership; members can leave. Invitations require acceptance. Text editing uses a fixed 15-second reservation without renewal; expired drafts remain copyable and need explicit review before reacquiring. See the [shopping runbook](https://github.com/Snegge/RecipeAtlas/blob/feature/shared-shoppinglist/docs/shared-shopping-lists.md).
 - **Account** changes display name, contact email and profile picture; password change remains a separate form requiring the current password and invalidates other sessions. Email is private to the account and administrator, not a login identifier; delivery and verification are not implemented.
 - Global administrators see **Accounts Manager**: responsive account cards, activation controls and account-invitation management. This grants no automatic private cookbook access.
 - Account-invitation links are copyable once and must be shared privately. The recipient opens `/invite#token=...`, validates without consuming, supplies profile, email and password, and submits. Invalid/expired/revoked/used links show clear states. The fragment is removed and no third-party resources or analytics are loaded.
@@ -51,7 +52,7 @@ For a two-browser sharing demonstration, use [the backend walkthrough](https://g
 
 ```text
 src/app/
-  app-routing.module.ts             # lazy accounts/cookbooks/auth/recipes
+  app-routing.module.ts             # lazy accounts/cookbooks/auth/recipes/shopping
   core/
     models/                        # transport interfaces; separate from forms
     services/
@@ -59,6 +60,7 @@ src/app/
       auth.service.ts              # cookie/session HTTP operations
       cookbook-context.ts          # selected book, derived UI permissions
       cookbook.service.ts          # explicit cookbook/member API requests
+      shopping.service.ts          # shopping HTTP transport; immutable commands
       account-admin.service.ts     # account/invitation API requests
       recipe-api.service.ts        # explicit cookbook ID on content requests
       recipe-draft.service.ts      # in-memory import handoff
@@ -68,6 +70,7 @@ src/app/
     auth/pages/login/
     accounts/                      # invitation, profile/password, admin, settings placeholder
     cookbooks/                     # card overview, invitation inbox, create/edit and members
+    shopping/                      # page-local list/draft/pending state and SignalR invalidations
     recipes/
       pages/recipe-editor/         # component-scoped coordinator/form/photo owners
       pages/recipe-list/
@@ -81,6 +84,8 @@ The editor retains its component-scoped coordinator and focused form/photo helpe
 ## API and compatibility
 
 Same-origin HttpOnly `Recipoke.Session`, Strict SameSite, Secure in Production. `X-RecipeAtlas: 1` remains the write header. No CORS, JWT/localStorage session or global role cache. Old `RecipeAtlas.Session` is deliberately rejected. Server-side stamp/activity checks enforce password changes/deactivation; reactivation requires fresh login.
+
+Shopping routes are `/shopping-lists` and `/shopping-lists/{listId}`, using `/api/shopping-lists`, `/api/shopping-list-invitations` and the `/api/shopping-events` SignalR hub. Membership is independent of cookbooks. SignalR long polling carries the existing write header and same-origin cookie; reconnect/focus and a visible-page 30-second refresh recover missed notifications.
 
 New frontend content routes: `/cookbooks`, `/cookbooks/new`, `/cookbooks/{cookbookId}/recipes[/new|/{id}|/{id}/edit]`, `/cookbooks/{cookbookId}/settings`. Account routes: `/login`, `/invite`, `/account`, `/admin`, `/settings`. Corresponding recipe API routes are `/api/cookbooks/{cookbookId}/recipes`; import stays `/api/recipes/import`. Recipe JSON fields and string quantities remain stable; `imageUrl` changes to a cookbook route. Deploy both repositories together; old unscoped recipe URLs are retired.
 
@@ -101,7 +106,7 @@ python3 scripts/sync_frontend_contracts.py /absolute/path/to/RecipeAtlasFrontend
 
 Use the actual root with `package.json`. Frontend CI checks copied artifacts locally and does not require private backend credentials; the cross-repository command detects unsynchronised copies. `npm ci` uses the lockfile. npm funding/update/install-script notices are not vulnerability findings; check the actual audit output.
 
-Known limits: in-memory drafts lost on refresh, no account deletion/promotion UI, ownership transfer, reset email, shopping lists, cooking sessions, offline sync or PWA. Invitation links cannot be recovered after creation. Permissions always come from the server, even when UI controls were visible earlier.
+Known limits: in-memory drafts lost on refresh, no account deletion/promotion UI, cookbook ownership transfer, reset email, cooking sessions, offline sync or PWA. Shopping-list ownership transfer is supported. Shopping drafts and uncertain operations stay in memory only; reload loses them. Invitation links cannot be recovered after creation. Permissions always come from the server, even when UI controls were visible earlier.
 
 Optional real-browser smoke with both local checkouts and installed Chromium (backend already built, dotnet on PATH):
 

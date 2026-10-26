@@ -1,0 +1,54 @@
+@use '../../styles/shopping-layout';
+.list-settings {
+  border: 1px solid #dce3dd;
+  border-radius: 14px;
+  padding: 4px 20px 16px;
+  background: #fff;
+}
+.settings-form {
+  margin: 20px 0 28px;
+}
+.settings-form mat-form-field {
+  display: block;
+}
+.member {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 16px 0;
+  border-bottom: 1px solid #edf0eb;
+  overflow-wrap: anywhere;
+}
+.member > div:first-child {
+  min-width: 0;
+}
+.list-settings h2 {
+  font-size: 1rem;
+}
+.list-settings h3 {
+  margin-top: 24px;
+  font-size: 0.9rem;
+}
+.danger-zone {
+  margin-top: 28px;
+}
+.retained-draft {
+  margin: 24px 0;
+}
+.retained-draft textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  margin-top: 12px;
+  border: 1px solid #bbc9bd;
+  border-radius: 10px;
+  background: #fff;
+}
+
+@media (max-width: 599px) {
+  .list-settings {
+    padding-inline: 16px;
+  }
+}
