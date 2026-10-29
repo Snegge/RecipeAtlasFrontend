@@ -1,11 +1,31 @@
 <section class="account-page">
-  <div class="desktop-page-intro">
+  <div class="account-page-heading desktop-page-intro">
     <p class="eyebrow">YOUR PREFERENCES</p>
     <h1>Settings</h1>
+    <p class="muted">Make Recipoke feel at home on your device.</p>
   </div>
-  <div class="account-card settings-placeholder">
-    <mat-icon svgIcon="settings" />
-    <h2>App settings</h2>
-    <p>There are no app settings yet.</p>
-  </div>
+  <section class="account-card install-card" aria-labelledby="install-heading">
+    <div class="install-heading">
+      <img src="icons/icon-192.png" width="56" height="56" alt="" />
+      <div>
+        <p class="eyebrow">RECIPOKE ON YOUR DEVICE</p>
+        <h2 id="install-heading">Your recipes, one tap away</h2>
+      </div>
+    </div>
+    @if (pwa.installed()) {
+      <p class="success-note" role="status">
+        <mat-icon svgIcon="check" />You're using the installed app.
+      </p>
+    } @else {
+      <p class="install-description">Add Recipoke to your home screen and open it like an app.</p>
+      <button mat-flat-button type="button" (click)="pwa.install()">Install Recipoke</button>
+      @if (pwa.instructions()) {
+        <div class="install-instructions" role="status">
+          <p>Use your browser's install or Add to Home Screen option when available.</p>
+          <p>On iPhone or iPad, open in Safari, tap Share, then Add to Home Screen.</p>
+        </div>
+      }
+    }
+    <p class="install-note">Recipes and shopping lists still need a connection.</p>
+  </section>
 </section>

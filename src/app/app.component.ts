@@ -13,6 +13,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map, startWith, firstValueFrom } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { PwaService } from './core/services/pwa.service';
 import { AuthService } from './core/services/auth.service';
 import { SessionState } from './core/services/session-state';
 import { DirtyPage } from './core/guards/unsaved-changes.guard';
@@ -25,6 +26,24 @@ import { errorMessage } from './core/utils/api-error';
   styleUrl: './app.component.scss',
 })
 export class AppComponent {
+  readonly pwa = inject(PwaService);
+  reloadForUpdate() {
+    const page = this.outlet?.isActivated ? (this.outlet.component as Partial<DirtyPage>) : null;
+    if (
+      this.pwa.writes() ||
+      this.leaving() ||
+      this.dialog.openDialogs.length ||
+      page?.navigationBlocked?.() ||
+      page?.hasUnsavedChanges?.()
+    ) {
+      this.snack.open(
+        'Finish or save your work before reloading. Resolve pending shopping actions first.',
+        'Close',
+      );
+      return;
+    }
+    window.location.reload();
+  }
   private readonly session = inject(SessionState);
   private readonly destroy = inject(DestroyRef);
   readonly auth = inject(AuthService);

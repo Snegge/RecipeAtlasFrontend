@@ -1,25 +1,42 @@
 @use '../../styles/account-layout';
 
-.settings-placeholder {
-  margin-top: 28px;
-  text-align: center;
-  padding: 56px 24px;
-  color: #7c8a70;
+.install-card {
+  max-width: 640px;
 }
-.settings-placeholder > mat-icon {
-  width: 34px;
-  height: 34px;
-  margin-bottom: 18px;
+.install-heading {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
-.settings-placeholder h2 {
-  font-size: 1.05rem;
-  margin-bottom: 8px;
+.install-heading img {
+  flex-shrink: 0;
+  border-radius: 14px;
 }
-.settings-placeholder p {
+.install-heading .eyebrow {
+  margin: 0 0 6px;
+}
+.install-heading h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.35;
+}
+.install-description {
+  margin: 24px 0 18px;
+  color: #526258;
+}
+.install-note {
+  margin: 20px 0 0;
+  color: #526258;
   font-size: 0.85rem;
 }
-@media (max-width: 899px) {
-  .settings-placeholder {
-    margin-top: 0;
+.install-instructions {
+  margin-top: 20px;
+  padding: 4px 16px;
+  border-radius: 12px;
+  background: #f3f6f4;
+}
+@media (max-width: 599px) {
+  .install-card > button {
+    width: 100%;
   }
 }

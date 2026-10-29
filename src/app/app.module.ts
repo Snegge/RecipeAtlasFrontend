@@ -1,3 +1,5 @@
+import { provideServiceWorker } from '@angular/service-worker';
+import { isDevMode } from '@angular/core';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { RouteReuseStrategy } from '@angular/router';
 import { CookbookRouteReuseStrategy } from './core/guards/cookbook-route-reuse.strategy';
@@ -14,6 +16,10 @@ import { apiInterceptor } from './core/interceptors/api.interceptor';
   imports: [BrowserModule, SharedModule, MatSidenavModule, AppRoutingModule],
   providers: [
     provideZonelessChangeDetection(),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
     { provide: RouteReuseStrategy, useClass: CookbookRouteReuseStrategy },
     provideHttpClient(withInterceptors([apiInterceptor])),
   ],

@@ -17,8 +17,13 @@ export class AuthService {
       if (this.user()?.id && this.user()!.id !== user.id) this.session.clear('login');
       this.user.set(user);
       return true;
-    } catch {
-      if (epoch === this.session.epoch()) this.session.clear('expired');
+    } catch (error) {
+      if (
+        error instanceof HttpErrorResponse &&
+        error.status === 401 &&
+        epoch === this.session.epoch()
+      )
+        this.session.clear('expired');
       return false;
     }
   }
