@@ -1,0 +1,40 @@
+﻿:host {
+  display: block;
+  min-width: 0;
+}
+.shopping-page {
+  max-width: 1000px;
+}
+.notice {
+  padding: 12px 16px;
+  margin: 12px 0;
+  border: 1px solid #cbded4;
+  border-radius: 12px;
+  background: #edf5ef;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  overflow-wrap: anywhere;
+}
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.danger {
+  color: #9e392f !important;
+}
+form {
+  min-width: 0;
+}
+mat-form-field {
+  width: 100%;
+}
+button {
+  flex-shrink: 0;
+}
+.small {
+  overflow-wrap: anywhere;
+}

@@ -1,0 +1,131 @@
+<section class="page shopping-page">
+  <header class="page-heading">
+    <div class="desktop-page-intro">
+      <p class="eyebrow">A LITTLE LESS TO REMEMBER</p>
+      <h1>Shopping lists</h1>
+      <p class="muted">Make a list. Share the shop.</p>
+    </div>
+  </header>
+  <form class="create-list" (submit)="$event.preventDefault(); create()">
+    <mat-form-field appearance="outline"
+      ><mat-label>Name your list</mat-label>
+      <input
+        matInput
+        data-testid="list-name"
+        [formControl]="name"
+        maxlength="100"
+        placeholder="Weekly groceries"
+        [readonly]="state.blocked() || state.isPending('$admin')"
+      />
+    </mat-form-field>
+    <button
+      mat-flat-button
+      data-testid="create-list"
+      type="submit"
+      [disabled]="
+        !name.value.trim() || name.invalid || state.blocked() || state.isPending('$admin')
+      "
+    >
+      <mat-icon svgIcon="plus" />Create list
+    </button>
+  </form>
+  @if (state.error()) {
+    <div class="error-box" role="alert">
+      {{ state.error() }}
+      @if (!state.blocked()) {
+        <button mat-button (click)="state.refresh()">Refresh</button>
+      }
+    </div>
+  }
+  @for (action of state.pending(); track action.command.operationId) {
+    @if (action.status === 'uncertain' || (action.status === 'confirmed' && state.error())) {
+      <div class="notice" role="status">
+        <span
+          >{{ action.label }} ·
+          {{ action.status === 'uncertain' ? 'Result unknown' : 'Saved; refresh needed' }}</span
+        >
+        <button mat-button (click)="retry(action.key)" [disabled]="state.blocked()">Retry</button>
+      </div>
+    }
+  }
+  @if (state.invitations().length) {
+    <section class="invitations" aria-labelledby="invitations-heading">
+      <h2 id="invitations-heading">You're invited</h2>
+      @for (invitation of state.invitations(); track invitation.id) {
+        <article class="invitation">
+          <div>
+            <strong>{{ invitation.listName }}</strong>
+            <p class="muted small">Shared by {{ invitation.ownerDisplayName }}</p>
+          </div>
+          <div class="actions">
+            <button
+              mat-flat-button
+              data-testid="accept-invitation"
+              (click)="respond(invitation, true)"
+              [disabled]="state.isPending('$admin')"
+            >
+              Accept
+            </button>
+            <button
+              mat-button
+              (click)="respond(invitation, false)"
+              [disabled]="state.isPending('$admin')"
+            >
+              Decline
+            </button>
+          </div>
+        </article>
+      }
+    </section>
+  }
+  <div class="section-heading">
+    <h2>Your lists</h2>
+    <span class="muted small">{{ state.lists().length }} lists</span>
+  </div>
+  @if (state.loading()) {
+    <p role="status">Loading your lists…</p>
+  }
+  <div class="shopping-grid">
+    @for (list of state.lists(); track list.id; let index = $index) {
+      <a
+        class="shopping-card"
+        [class]="'shopping-card tone-' + (index % 4)"
+        data-testid="shopping-card"
+        [attr.data-list-id]="list.id"
+        [routerLink]="['/shopping-lists', list.id]"
+        [attr.aria-label]="'Open ' + list.name"
+      >
+        <div class="card-title">
+          <h3>{{ list.name }}</h3>
+          <span class="role">{{ list.role === 'Owner' ? 'Yours' : 'Shared' }}</span>
+        </div>
+        <ul class="preview">
+          @for (text of list.preview; track $index) {
+            <li>
+              <span class="empty-checkbox" aria-hidden="true"></span><span>{{ text }}</span>
+            </li>
+          } @empty {
+            <li class="muted">Ready for your next shop.</li>
+          }
+        </ul>
+        @if (list.activeCount > list.preview.length) {
+          <p class="more">{{ list.activeCount - list.preview.length }} more to pick up</p>
+        }
+        <div class="card-footer">
+          <span>{{ list.activeCount }} to get</span>
+          @if (list.purchasedCount) {
+            <span>{{ list.purchasedCount }} purchased</span>
+          }
+        </div>
+      </a>
+    } @empty {
+      @if (!state.loading() && !state.blocked()) {
+        <div class="empty-state">
+          <div class="large-mark"><mat-icon svgIcon="check" /></div>
+          <h2>Room for your next shop</h2>
+          <p>Create a list above. Invite someone and tick things off together.</p>
+        </div>
+      }
+    }
+  </div>
+</section>

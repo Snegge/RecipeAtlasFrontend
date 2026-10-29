@@ -1,0 +1,136 @@
+@if (state.list(); as list) {
+  <section class="list-settings" aria-label="Members and list settings">
+    @if (list.role === 'Owner') {
+      <form (submit)="$event.preventDefault(); rename()" class="settings-form">
+        <mat-form-field appearance="outline"
+          ><mat-label>List name</mat-label>
+          <input
+            matInput
+            data-testid="rename-list"
+            [formControl]="name"
+            maxlength="100"
+            [readonly]="state.isPending('$admin')"
+        /></mat-form-field>
+        @if (nameChangedRemotely()) {
+          <div class="notice">
+            <span
+              >The list changed. Current name: <strong>{{ list.name }}</strong
+              >. Review this before saving your name.</span
+            >
+            <button
+              mat-button
+              type="button"
+              (click)="rename(true)"
+              [disabled]="state.isPending('$admin')"
+            >
+              Save my name
+            </button>
+          </div>
+        } @else {
+          <button
+            mat-stroked-button
+            type="submit"
+            [disabled]="
+              !name.dirty || name.invalid || !name.value.trim() || state.isPending('$admin')
+            "
+          >
+            Save name
+          </button>
+        }
+      </form>
+      <form (submit)="$event.preventDefault(); invite()" class="settings-form">
+        <mat-form-field appearance="outline"
+          ><mat-label>Invite by username</mat-label>
+          <input
+            matInput
+            data-testid="invite-username"
+            [formControl]="username"
+            autocomplete="off"
+            [readonly]="state.isPending('$admin')"
+        /></mat-form-field>
+        <button
+          mat-stroked-button
+          type="submit"
+          data-testid="invite-member"
+          [disabled]="!username.value.trim() || state.isPending('$admin')"
+        >
+          Send invitation
+        </button>
+      </form>
+    }
+    <h2>Members</h2>
+    @for (member of list.members; track member.userId) {
+      <div class="member">
+        <div>
+          <strong>{{ member.displayName }}</strong>
+          <p class="muted small">{{ member.username }} · {{ member.role }}</p>
+        </div>
+        @if (list.role === 'Owner' && member.role !== 'Owner') {
+          <div class="actions">
+            <button
+              mat-button
+              (click)="this.member(member, true)"
+              [disabled]="state.isPending('$admin')"
+            >
+              Make owner
+            </button>
+            <button
+              mat-button
+              class="danger"
+              (click)="this.member(member, false)"
+              [disabled]="state.isPending('$admin')"
+            >
+              Remove
+            </button>
+          </div>
+        }
+      </div>
+    }
+    @if (list.invitations.length) {
+      <h3>Pending invitations</h3>
+      @for (invitation of list.invitations; track invitation.id) {
+        <div class="member">
+          <span
+            >{{ invitation.displayName }}
+            <span class="muted">({{ invitation.username }})</span></span
+          >
+          <button
+            mat-button
+            (click)="cancelInvitation(invitation.id)"
+            [disabled]="state.isPending('$admin')"
+          >
+            Cancel invitation
+          </button>
+        </div>
+      }
+    }
+    <div class="danger-zone">
+      @if (list.role === 'Owner') {
+        <button
+          mat-stroked-button
+          data-testid="delete-list"
+          class="danger"
+          (click)="leaveOrDelete(true)"
+          [disabled]="state.isPending('$admin')"
+        >
+          Delete list
+        </button>
+      } @else {
+        <button
+          mat-stroked-button
+          data-testid="leave-list"
+          (click)="leaveOrDelete(false)"
+          [disabled]="state.isPending('$admin')"
+        >
+          Leave list
+        </button>
+      }
+    </div>
+  </section>
+}
+@if (state.blocked() && name.dirty) {
+  <div class="retained-draft">
+    <label for="retained-name">Your unsaved list name</label>
+    <textarea id="retained-name" readonly [value]="name.value"></textarea>
+  </div>
+}

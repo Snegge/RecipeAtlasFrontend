@@ -30,6 +30,7 @@ const program = ts.createProgram(
     'src/app/core/models/recipe.model.ts',
     'src/app/core/models/recipe-import.model.ts',
     'src/app/core/models/account.model.ts',
+    'src/app/core/models/shopping.model.ts',
   ],
   { strict: true, noEmit: true, target: ts.ScriptTarget.ES2022 },
 );
@@ -44,6 +45,14 @@ for (const source of program.getSourceFiles()) {
 }
 let assertions = 0;
 function compare(type, schema, path, input = false) {
+  if (schema?.oneOf) {
+    const values = schema.oneOf.filter(choice => choice.type !== 'null');
+    assert(schema.oneOf.length === 2 && values.length === 1, `${path}: unsupported union`);
+    const choice = values[0];
+    const valueSchema = choice.$ref ? schemas[choice.$ref.split('/').at(-1)] : choice;
+    assert(valueSchema?.type, `${path}: nullable union must contain a typed value`);
+    schema = { ...valueSchema, type: [valueSchema.type, 'null'].flat() };
+  }
   if (schema.$ref) schema = schemas[schema.$ref.split('/').at(-1)];
   assert(schema, `Missing schema: ${path}`);
   const variants = type.isUnion() ? type.types : [type];
@@ -111,10 +120,24 @@ for (const [frontend, backend] of Object.entries({
   CookbookMembersResponse: 'CookbookMembersResponse',
   VersionResponse: 'VersionResponse',
   RecipeImageResponse: 'ImageResponse',
+  ShoppingItemResponse: 'ShoppingItemResponse',
+  ShoppingListSummary: 'ShoppingListSummary',
+  ShoppingMemberResponse: 'ShoppingMemberResponse',
+  ShoppingPendingInvitation: 'ShoppingPendingInvitation',
+  ShoppingListResponse: 'ShoppingListResponse',
+  ShoppingInvitationResponse: 'ShoppingInvitationResponse',
+  ShoppingMutationResponse: 'ShoppingMutationResponse',
+  ShoppingReservationResponse: 'ShoppingReservationResponse',
+
 })) {
   assert(interfaces.has(frontend), `Missing frontend interface ${frontend}`);
   compare(interfaces.get(frontend), schemas[backend], frontend);
 }
+assert.throws(() => compare(interfaces.get('ShoppingMutationResponse'), {
+  ...schemas.ShoppingMutationResponse,
+  properties: { ...schemas.ShoppingMutationResponse.properties,
+    item: { $ref: '#/components/schemas/ShoppingItemResponse' } },
+}, 'negative.shoppingNullable'), /nullable contract/);
 compare(interfaces.get('RecipeWriteRequest'), schemas.RecipeInput, 'RecipeWriteRequest', true);
 assert.deepEqual(schemas.IngredientInput.properties.quantity.type, ['null', 'string']);
 assert.equal(schemas.IngredientResponse.properties.quantity.type, 'string');
@@ -179,6 +202,33 @@ for (const [path, methods] of Object.entries(api.paths)) {
         operation.parameters?.some((p) => p.in === 'header' && p.name === 'If-Match' && p.required),
         `${method} ${path}: strong If-Match`,
       );
+  }
+}
+// Shopping service composes item routes from its list base; compare the resolved templates.
+const shoppingSource = readFileSync('src/app/core/services/shopping.service.ts', 'utf8');
+const shoppingTemplates = [
+  ...shoppingSource.matchAll(/['`"](\/api\/shopping[^'`"]+)['`"]/g),
+  ...shoppingSource.matchAll(/`(\$\{base\}[^`]+)`/g),
+];
+for (const match of shoppingTemplates) {
+  const path = match[1].replace('${base}', '/api/shopping-lists/{listId}')
+    .replace(/\$\{(?:c\.)?([^}]+)\}/g, '{$1}').replace('{invitationId}', '{id}');
+  assert(paths.has(path), `Unknown shopping route ${path}`);
+}
+for (const [path, methods] of Object.entries(api.paths)) {
+  if (!path.startsWith('/api/shopping-lists')) continue;
+  for (const [method, operation] of Object.entries(methods)) {
+    const reservation = path.endsWith('/reservation');
+    const versioned = !reservation && (['put', 'delete'].includes(method) ||
+      method === 'post' && ['/invitations', '/respond', '/leave', '/transfer'].some(suffix => path.endsWith(suffix)));
+    if (versioned || reservation && method === 'post') {
+      assert(operation.responses['428'] && operation.responses['400'], `${method} ${path}: shopping preconditions`);
+      assert(operation.responses[method === 'delete' ? '412' : '409'], `${method} ${path}: shopping conflict`);
+    }
+    if (method === 'delete' && !reservation) {
+      for (const name of ['If-Match', 'X-Operation-Id'])
+        assert(operation.parameters.some(p => p.name === name && p.in === 'header' && p.required), `${path}: ${name}`);
+    }
   }
 }
 console.log(

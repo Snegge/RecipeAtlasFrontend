@@ -119,6 +119,9 @@ img {
 }
 // The app header supplies the page title below the desktop navigation breakpoint.
 @media (max-width: 899px) {
+  .mat-mdc-snack-bar-container.shopping-undo-snackbar {
+    margin-bottom: calc(84px + env(safe-area-inset-bottom));
+  }
   .desktop-page-intro {
     display: none;
   }

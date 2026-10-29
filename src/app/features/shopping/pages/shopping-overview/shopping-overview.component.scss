@@ -1,0 +1,145 @@
+﻿@use '../../styles/shopping-layout';
+.create-list {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 640px;
+  margin-bottom: 28px;
+}
+.create-list button {
+  min-height: 56px;
+}
+.shopping-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+.shopping-card {
+  padding: 24px;
+  border: 1px solid #d6dfd8;
+  border-radius: 18px;
+  color: inherit;
+  text-decoration: none;
+  box-shadow: 0 2px 4px #243d2910;
+  transition: box-shadow 0.15s;
+}
+.shopping-card:hover {
+  box-shadow: 0 7px 20px #243d2920;
+}
+.tone-0 {
+  background: #f4f7ed;
+}
+.tone-1 {
+  background: #fff5dc;
+}
+.tone-2 {
+  background: #edf4f6;
+}
+.tone-3 {
+  background: #f8eee8;
+}
+.card-title {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 22px;
+}
+.card-title h3 {
+  font-size: 1.2rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.role {
+  font-size: 0.7rem;
+  border: 1px solid #74867845;
+  border-radius: 12px;
+  padding: 2px 8px;
+  flex-shrink: 0;
+}
+.preview {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+.preview li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.preview li > span:last-child {
+  min-width: 0;
+}
+.empty-checkbox {
+  height: 17px;
+  width: 17px;
+  border: 1.5px solid #8c9a8f;
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+.more {
+  margin-top: 14px;
+  font-size: 0.8rem;
+  color: #52645a;
+}
+.card-footer {
+  margin-top: 24px;
+  padding-top: 14px;
+  border-top: 1px solid #7c8b7526;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+  color: #657068;
+  font-size: 0.75rem;
+}
+.invitations {
+  margin: 8px 0 32px;
+}
+.invitations h2 {
+  margin-bottom: 14px;
+}
+.invitation {
+  padding: 16px;
+  background: white;
+  border: 1px solid #d8e1da;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
+  flex-wrap: wrap;
+}
+.invitation strong {
+  overflow-wrap: anywhere;
+}
+.empty-state {
+  grid-column: 1 / -1;
+}
+@media (max-width: 599px) {
+  .shopping-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .create-list {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .create-list mat-form-field {
+    flex: 1 1 180px;
+  }
+  .create-list button {
+    margin-top: 0;
+  }
+  .shopping-card {
+    padding: 22px;
+  }
+}

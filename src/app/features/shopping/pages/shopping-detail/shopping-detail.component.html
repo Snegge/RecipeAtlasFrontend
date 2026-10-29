@@ -1,0 +1,235 @@
+<section class="page shopping-page" [class.list-tab-active]="selectedTab === 0">
+  @if (state.error()) {
+    <div class="error-box" role="alert">
+      {{ state.error() }}
+      @if (!state.blocked()) {
+        <button mat-button (click)="state.refresh()">Refresh</button>
+      }
+    </div>
+  }
+  @for (action of state.pending(); track action.command.operationId) {
+    @if (action.status === 'uncertain' || (action.status === 'confirmed' && state.error())) {
+      <div class="notice" role="status">
+        <span
+          >{{ action.label }} ·
+          {{ action.status === 'uncertain' ? 'Result unknown' : 'Saved; refresh needed' }}</span
+        >
+        <button mat-button (click)="retry(action.key)" [disabled]="state.blocked()">Retry</button>
+      </div>
+    }
+  }
+  @if (state.loading()) {
+    <p role="status">Loading your list…</p>
+  }
+  @if (state.list(); as list) {
+    <header class="list-heading">
+      <div class="desktop-page-intro">
+        <a mat-button class="back-link" routerLink="/shopping-lists"
+          ><mat-icon svgIcon="back" />All shopping lists</a
+        >
+        <p class="eyebrow">YOUR NEXT SHOP</p>
+        <h1>{{ list.name }}</h1>
+        <p class="muted">
+          {{ state.remaining().length }} to get · {{ list.members.length }}
+          {{ list.members.length === 1 ? 'person' : 'people' }}
+        </p>
+      </div>
+    </header>
+  }
+  <mat-tab-group [(selectedIndex)]="selectedTab" [preserveContent]="true" animationDuration="0ms">
+    <mat-tab label="List">
+      <div class="tab-content">
+        @if (state.list(); as list) {
+          @if (selectedTab === 0) {
+            <form class="quick-add" (submit)="$event.preventDefault(); add()">
+              <mat-icon svgIcon="plus" /><input
+                #quickInput
+                data-testid="add-item"
+                aria-label="Add an item"
+                maxlength="500"
+                placeholder="Add an item…"
+                autocomplete="off"
+                [value]="state.addText()"
+                (input)="state.addText.set(quickInput.value)"
+                [readOnly]="state.isPending('$add')"
+              />
+              <button
+                mat-flat-button
+                type="submit"
+                data-testid="add-item-button"
+                [disabled]="!state.addText().trim() || state.isPending('$add')"
+              >
+                Add
+              </button>
+            </form>
+          }
+          <div class="checklist" aria-label="Shopping checklist">
+            <div class="section-label">
+              <h2>To get</h2>
+              <span>{{ state.remaining().length }}</span>
+            </div>
+            <ng-container *ngTemplateOutlet="rows; context: { items: state.remaining() }" />
+            @if (!state.remaining().length) {
+              <p class="all-done">
+                <mat-icon svgIcon="check" />{{
+                  state.purchased().length
+                    ? 'All picked up. Nicely done.'
+                    : 'Your list starts with one item.'
+                }}
+              </p>
+            }
+            @if (state.purchased().length) {
+              <div class="section-label purchased-heading">
+                <h2>Purchased</h2>
+                <span>{{ state.purchased().length }}</span>
+              </div>
+              <ng-container *ngTemplateOutlet="rows; context: { items: state.purchased() }" />
+            }
+          </div>
+        }
+        @if (detachedDraft()) {
+          <div class="retained-draft">
+            <h2>Your unsaved item text</h2>
+            <p class="muted">Copy this before leaving the page.</p>
+            <textarea
+              aria-label="Unsaved item text"
+              readonly
+              [value]="state.draft()!.text"
+            ></textarea>
+            <button
+              mat-button
+              data-testid="discard-detached-draft"
+              (click)="state.cancelEdit()"
+              [disabled]="state.isPending(state.draft()!.id)"
+            >
+              Discard my text
+            </button>
+          </div>
+        }
+        @if (state.blocked() && state.addText()) {
+          <div class="retained-draft">
+            <label for="retained-add">Your unsaved new item</label>
+            <textarea id="retained-add" readonly [value]="state.addText()"></textarea>
+          </div>
+        }
+      </div>
+    </mat-tab>
+    <mat-tab label="Settings">
+      <div class="tab-content"><app-shopping-settings /></div>
+    </mat-tab>
+  </mat-tab-group>
+</section>
+<ng-template #rows let-items="items">
+  @for (item of items; track item.id) {
+    <div
+      class="item-row"
+      data-testid="shopping-item"
+      [attr.data-item-id]="item.id"
+      [class.is-purchased]="item.purchased"
+      [class.is-editing]="state.draft()?.id === item.id"
+    >
+      <label class="check-target"
+        ><input
+          type="checkbox"
+          [checked]="item.purchased"
+          [attr.aria-label]="
+            (item.purchased ? 'Mark as needed: ' : 'Mark as purchased: ') + item.text
+          "
+          [disabled]="
+            state.isPending(item.id) || state.reserved(item) || state.draft()?.id === item.id
+          "
+          (change)="purchase(item)"
+      /></label>
+      <div class="item-copy">
+        @if (state.draft(); as draft) {
+          @if (draft.id === item.id) {
+            <input
+              #draftInput
+              data-testid="item-draft"
+              aria-label="Edit item text"
+              class="item-input"
+              maxlength="500"
+              [value]="draft.text"
+              (input)="state.changeText(draftInput.value)"
+              [readonly]="draft.status !== 'editing' && draft.status !== 'lost'"
+              (keydown.enter)="saveOnEnter($event)"
+              (keydown.escape)="state.cancelEdit()"
+              (blur)="state.save()"
+            />
+            <p class="muted small" role="status">
+              @switch (draft.status) {
+                @case ('acquiring') {
+                  Reserving this item…
+                }
+                @case ('editing') {
+                  Saves on Enter or when you leave this field. Escape cancels.
+                }
+                @case ('saving') {
+                  Saving…
+                }
+                @case ('uncertain') {
+                  Result unknown. Use Retry above; your text is kept.
+                }
+                @case ('lost') {
+                  Editing protection ended. Your text has been kept.
+                }
+              }
+            </p>
+            @if (draft.status === 'lost') {
+              <div class="edit-review">
+                <p>
+                  Current shared text: <strong>{{ item.text }}</strong>
+                </p>
+                <div class="actions">
+                  <button
+                    mat-stroked-button
+                    data-testid="reacquire-edit"
+                    (click)="state.reacquire()"
+                    [disabled]="state.reserved(item)"
+                  >
+                    Continue with my text
+                  </button>
+                  <button mat-button (click)="state.cancelEdit()">Discard my text</button>
+                </div>
+              </div>
+            }
+          } @else {
+            <button
+              class="item-text"
+              data-testid="edit-item"
+              (click)="edit(item)"
+              [disabled]="!!state.draft() || state.isPending(item.id) || state.reserved(item)"
+            >
+              {{ item.text }}
+            </button>
+          }
+        } @else {
+          <button
+            class="item-text"
+            data-testid="edit-item"
+            (click)="edit(item)"
+            [disabled]="state.isPending(item.id) || state.reserved(item)"
+          >
+            {{ item.text }}
+          </button>
+        }
+        @if (state.reserved(item) && state.draft()?.id !== item.id) {
+          <span class="editing-label"
+            ><mat-icon svgIcon="lock" />{{ item.editingBy }} is editing</span
+          >
+        }
+      </div>
+      <button
+        mat-icon-button
+        data-testid="remove-item"
+        [attr.aria-label]="'Remove ' + item.text"
+        (click)="remove(item)"
+        [disabled]="
+          state.isPending(item.id) || state.reserved(item) || state.draft()?.id === item.id
+        "
+      >
+        <mat-icon svgIcon="close" />
+      </button>
+    </div>
+  }
+</ng-template>

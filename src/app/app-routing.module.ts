@@ -15,6 +15,10 @@ const routes: Routes = [
     loadChildren: () =>
       import('./features/cookbooks/cookbooks.module').then((m) => m.CookbooksModule),
   },
+  {
+    path: 'shopping-lists',
+    loadChildren: () => import('./features/shopping/shopping.module').then((m) => m.ShoppingModule),
+  },
   { path: '', pathMatch: 'full', redirectTo: 'cookbooks' },
   {
     path: '',
