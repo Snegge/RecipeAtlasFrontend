@@ -1,6 +1,6 @@
 # Installable Recipoke and public offline shell
 
-Recipoke uses Angular 22.2.1's maintained `@angular/service-worker`, registered after stability (30-second maximum). It keeps versioned shell assets together without a second worker framework. Backend domain, database, authorization, concurrency, shopping receipts and event contracts are unchanged. See the backend ADR 016. Official references: https://angular.dev/ecosystem/service-workers/getting-started and https://angular.dev/ecosystem/service-workers/communications.
+Recipoke uses Angular 22.2.1's maintained `@angular/service-worker`, registered after stability (30-second maximum). It keeps versioned shell assets together without a second worker framework. Backend domain, database, authorization, concurrency, shopping receipts and event contracts are unchanged. See the backend cloud-deployment ADR 017 for combined hosting and persistence. Official references: https://angular.dev/ecosystem/service-workers/getting-started and https://angular.dev/ecosystem/service-workers/communications.
 
 ## Cache and authentication boundary
 
@@ -18,7 +18,9 @@ VERSION_READY offers Reload and Continue for now, with no automatic reload or ac
 
 ## Hosting and release procedure
 
-The existing topology serves at `/`: frontend Caddy owns static files; ASP.NET Core is API-only. `/api`, `/api/*` and `/health` go to the API without SPA fallback. Do not deploy this build under a subpath without rebuilding with the matching base href and adapting Caddy and API routing: the existing client intentionally uses origin-root `/api` paths. Worker is beside index, scope `/`; no Service-Worker-Allowed override is needed. Use same-origin HTTPS (localhost/loopback is the browser development exception), preserve cookie/security headers and never cache API responses at a CDN. Disable query logging/analytics on invitation pages.
+The Render Free prototype uses the [combined ASP.NET Core image](cloud-deployment.md), served at `/`. ASP.NET Core owns static files and API routing, with the same cache policy described below. The backend operator guide is the primary release procedure for Render; no separate Caddy container or persistent asset volume is required. Render replaces the complete image atomically. Old prefetched chunks remain in the browser cache; an evicted old chunk requires an explicit reload because this prototype has no server-side historical asset archive.
+
+The alternative existing Compose topology also serves at `/`: frontend Caddy owns static files; ASP.NET Core is API-only. The remaining Caddy deployment steps apply to that topology. `/api`, `/api/*` and `/health` go to the API without SPA fallback. Do not deploy this build under a subpath without rebuilding with the matching base href and adapting Caddy and API routing: the existing client intentionally uses origin-root `/api` paths. Worker is beside index, scope `/`; no Service-Worker-Allowed override is needed. Use same-origin HTTPS (localhost/loopback is the browser development exception), preserve cookie/security headers and never cache API responses at a CDN. Disable query logging/analytics on invitation pages.
 
 Caddy policy: hashed main/chunk/styles/polyfills JS/CSS are public immutable for one year; manifest/favicon/icons are public for one day; index, worker scripts and ngsw.json revalidate (`no-cache`). Missing files with extensions return 404, not index. API responses remain no-store, including errors and authenticated images.
 
@@ -28,14 +30,14 @@ Caddy policy: hashed main/chunk/styles/polyfills JS/CSS are public immutable for
 4. Keep existing Compose project name, API data/key volume and same-origin proxy. Configure actual frontend build context in `compose.fullstack.example.yaml`; `./frontend` is an example, not the sibling checkout's assumed location. The backend-only Caddyfile does not serve the frontend and cannot provide PWA hosting by itself.
 5. Roll back index, worker metadata and public metadata together to a retained complete release, preserving both generations of hashed assets. Existing tabs may keep their assigned version until reload. No PWA database migration exists. Backend schema rollback rules still apply separately.
 
-For local browser verification after production build, from the backend checkout:
+For combined-image verification, from the backend checkout after a Release backend build and frontend npm ci:
 
 ```
-node tests/pwa_browser.mjs /absolute/frontend/root /absolute/chromium/executable
-node tests/shopping_browser.mjs /absolute/frontend/root /absolute/chromium/executable
+python scripts/build_cloud.py --frontend /absolute/frontend/root --tag recipoke:local
+python tests/cloud_integration.py --image recipoke:local --frontend /absolute/frontend/root --chromium /absolute/chromium/executable
 ```
 
-The PWA runner starts a disposable SQLite backend and a local production-file HTTP proxy. It tests the Angular worker, not Caddy configuration. It serves A then an index with a B marker and matching generated hash manifest, announces B without reload, and verifies explicit reload selects B. It checks desktop/narrow mobile shell, cache URLs and offline server requests. It is not a physical-device installation test, full container deployment test or a second independently compiled application release. Run deployment smoke checks with real Caddy before release: direct frontend navigation, missing chunk 404, unknown API 404/no-store, JS/CSS and manifest MIME, no-cache index/ngsw, immutable hashed assets, HTTPS and worker scope. Never use a real user database for smoke tests.
+This starts disposable PostgreSQL and application containers and fresh Chromium desktop/mobile profiles. It checks the production worker, offline navigation, cache entries, private-route failures, HTTP cache/MIME rules and same-origin API requests. It also checks data/cookie persistence across fresh containers. It does not test physical-device installation or a new two-build worker update sequence; existing frontend lifecycle/unsaved-work unit tests cover the unchanged update behavior. No real account database or paid provider is used. See the backend cloud verification report for executed results.
 
 ## Development recovery and limits
 
