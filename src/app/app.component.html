@@ -98,6 +98,37 @@
         }
       </div>
     </header>
+    <section class="pwa-status" aria-label="Application status">
+      @if (pwa.offline() || pwa.connectionFailed()) {
+        <p role="status">
+          Connection required for accounts, recipes and shopping lists. Visible data may be stale.
+          Changes are not saved offline.
+        </p>
+      }
+      @if (pwa.update(); as update) {
+        <p role="status">
+          {{
+            update === 'broken'
+              ? 'This application version needs a reload.'
+              : 'A new version is ready.'
+          }}
+          Save or finish your work first.
+        </p>
+        <button mat-button (click)="reloadForUpdate()">Reload</button>
+        @if (update !== 'broken') {
+          <button mat-button (click)="pwa.update.set(null)">Continue for now</button>
+        }
+      }
+      @if (!pwa.installed()) {
+        <button mat-button (click)="pwa.install()">Install Recipoke</button>
+      }
+      @if (pwa.instructions()) {
+        <p role="status">
+          Use your browser menu to install this app when available. On iPhone or iPad, open in
+          Safari and choose Share, then Add to Home Screen.
+        </p>
+      }
+    </section>
     <main id="main" tabindex="-1"><router-outlet /></main>
   </mat-sidenav-content>
 </mat-sidenav-container>

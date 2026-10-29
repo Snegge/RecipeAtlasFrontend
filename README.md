@@ -106,7 +106,7 @@ python3 scripts/sync_frontend_contracts.py /absolute/path/to/RecipeAtlasFrontend
 
 Use the actual root with `package.json`. Frontend CI checks copied artifacts locally and does not require private backend credentials; the cross-repository command detects unsynchronised copies. `npm ci` uses the lockfile. npm funding/update/install-script notices are not vulnerability findings; check the actual audit output.
 
-Known limits: in-memory drafts lost on refresh, no account deletion/promotion UI, cookbook ownership transfer, reset email, cooking sessions, offline sync or PWA. Shopping-list ownership transfer is supported. Shopping drafts and uncertain operations stay in memory only; reload loses them. Invitation links cannot be recovered after creation. Permissions always come from the server, even when UI controls were visible earlier.
+Known limits: in-memory drafts lost on refresh, no account deletion/promotion UI, cookbook ownership transfer, reset email, cooking sessions, offline sync. Shopping-list ownership transfer is supported. Shopping drafts and uncertain operations stay in memory only; reload loses them. Invitation links cannot be recovered after creation. Permissions always come from the server, even when UI controls were visible earlier.
 
 Optional real-browser smoke with both local checkouts and installed Chromium (backend already built, dotnet on PATH):
 
@@ -138,3 +138,6 @@ features/cookbooks/
   components/cookbook-invitations/
   styles/_cookbook-layout.scss
 ```
+
+## Installable application
+See [PWA setup, cache policy, installation and deployment](docs/pwa.md). PWA shell support is implemented; private data and shopping synchronization remain network-only.

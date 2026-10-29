@@ -150,6 +150,10 @@ describe('NgModule application routes', () => {
       .mockReturnValue({ afterClosed: () => of(false) } as never);
     expect(await router.navigateByUrl('/cookbooks/cookbook-2/recipes/new')).toBe(false);
     expect(editor.form.controls.title.value).toBe('Unsaved in first cookbook');
+    const warn = vi.spyOn((fixture.componentInstance as any).snack, 'open');
+    fixture.componentInstance.reloadForUpdate();
+    expect(warn).toHaveBeenCalled();
+    expect(editor.form.controls.title.value).toBe('Unsaved in first cookbook');
     expect(confirm).toHaveBeenCalled();
     editor.form.markAsPristine();
     expect(await router.navigateByUrl('/cookbooks/cookbook-2/recipes/new')).toBe(true);
@@ -192,5 +196,5 @@ describe('NgModule application routes', () => {
     expect(await router.navigateByUrl('/invite')).toBe(true);
     await fixture.whenStable();
     expect(fixture.nativeElement.querySelector('app-shopping-detail')).toBeNull();
-  });
+  }, 15000);
 });

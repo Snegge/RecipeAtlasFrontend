@@ -119,4 +119,14 @@ describe('Session boundaries', () => {
     expect(session.epoch()).toBeGreaterThan(epoch);
     expect(context.current()).toBeNull();
   });
+  it('keeps current in-memory identity and drafts on an unconfirmed network failure', async () => {
+    const session = TestBed.inject(SessionState);
+    session.user.set(alice);
+    const epoch = session.epoch();
+    const checking = TestBed.inject(AuthService).check();
+    http.expectOne('/api/auth/me').error(new ProgressEvent('error'));
+    expect(await checking).toBe(false);
+    expect(session.user()).toEqual(alice);
+    expect(session.epoch()).toBe(epoch);
+  });
 });

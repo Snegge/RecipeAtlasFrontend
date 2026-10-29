@@ -2,11 +2,26 @@
     header Strict-Transport-Security "max-age=31536000"
     @backend path /api /api/* /health
     handle @backend {
+        header Cache-Control "no-store"
         reverse_proxy api:8080
     }
     handle {
         root * /srv
-        try_files {path} /index.html
+        @immutable path_regexp hashed ^/(?:main|polyfills|styles|chunk)-[A-Za-z0-9_-]{8,}\.(?:js|css)$
+        header @immutable Cache-Control "public, max-age=31536000, immutable"
+        @metadata path /manifest.webmanifest /favicon.svg /icons/*
+        header @metadata Cache-Control "public, max-age=86400"
+        @revalidate path /index.html /ngsw.json /ngsw-worker.js /safety-worker.js /worker-basic.min.js
+        header @revalidate Cache-Control "no-cache"
+        @navigation {
+            not path /api /api/* /health
+            not path_regexp extension \.[^/]+$
+        }
+        handle @navigation {
+            try_files {path} /index.html
+            header Cache-Control "no-cache"
+            file_server
+        }
         file_server
     }
 }
