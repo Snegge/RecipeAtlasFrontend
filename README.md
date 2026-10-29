@@ -141,3 +141,6 @@ features/cookbooks/
 
 ## Installable application
 See [PWA setup, cache policy, installation and deployment](docs/pwa.md). PWA shell support is implemented; private data and shopping synchronization remain network-only.
+
+## Gemeinsames Cloud-Image
+Siehe [Render-Build](docs/cloud-deployment.md). Der Backend-Release-Workflow baut beide exakten Repository-Revisionen in ein ASP.NET-Core-Image mit öffentlichen Angular-Assets.
