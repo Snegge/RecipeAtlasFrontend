@@ -42,7 +42,7 @@ export class ShoppingEvents {
     });
     this.connection.onreconnected(() => {
       if (!this.live()) return;
-      this.watched.clear();
+      this.watched = new Set();
       void this.sync();
       this.changed();
     });
@@ -91,9 +91,9 @@ export class ShoppingEvents {
         await this.connection.stop();
         return;
       }
-      this.watched.clear();
+      this.watched = new Set();
       await this.sync();
-      this.changed();
+      if (this.live()) this.changed();
     } catch {
       // The visible-page timer retries startup; authorized GETs continue independently.
     } finally {
@@ -104,18 +104,20 @@ export class ShoppingEvents {
     if (!this.live() || this.syncing || this.connection.state !== HubConnectionState.Connected)
       return;
     this.syncing = true;
+    // A reconnect replaces the set; completions from the old connection cannot confirm new watches.
+    const watched = this.watched;
     let failed = false;
     try {
       for (const id of this.watched) {
         if (this.desired.has(id)) continue;
         await this.connection.invoke('Unwatch', id);
+        if (!this.live() || watched !== this.watched) return;
         this.watched.delete(id);
-        if (!this.live()) return;
       }
       for (const id of this.desired) {
         if (this.watched.has(id)) continue;
         await this.connection.invoke('Watch', id);
-        if (!this.live()) return;
+        if (!this.live() || watched !== this.watched) return;
         this.watched.add(id);
       }
     } catch {
@@ -123,7 +125,7 @@ export class ShoppingEvents {
     } finally {
       this.syncing = false;
       if (
-        !failed &&
+        (!failed || watched !== this.watched) &&
         this.live() &&
         (this.desired.size !== this.watched.size ||
           [...this.desired].some((id) => !this.watched.has(id)))
