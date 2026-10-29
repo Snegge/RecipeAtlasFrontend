@@ -119,15 +119,6 @@
           <button mat-button (click)="pwa.update.set(null)">Continue for now</button>
         }
       }
-      @if (!pwa.installed()) {
-        <button mat-button (click)="pwa.install()">Install Recipoke</button>
-      }
-      @if (pwa.instructions()) {
-        <p role="status">
-          Use your browser menu to install this app when available. On iPhone or iPad, open in
-          Safari and choose Share, then Add to Home Screen.
-        </p>
-      }
     </section>
     <main id="main" tabindex="-1"><router-outlet /></main>
   </mat-sidenav-content>
