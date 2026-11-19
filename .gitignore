@@ -4,3 +4,25 @@
 /out-tsc
 /test-results
 npm-debug.log
+
+# Local agent settings, credentials and university source material.
+.agents/
+.codex/
+.aws/
+skills-lock.json
+Hochschulvorlagen/
+.env
+.env.*
+!.env.example
+.neon
+
+# Local test output and workstation files.
+coverage/
+playwright-report/
+blob-report/
+*.log
+.idea/
+.vs/
+.DS_Store
+Thumbs.db
+
